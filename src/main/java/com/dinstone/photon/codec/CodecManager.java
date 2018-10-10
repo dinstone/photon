@@ -3,7 +3,7 @@ package com.dinstone.photon.codec;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
-import com.dinstone.photon.protocol.Crypt;
+import com.dinstone.photon.protocol.Agreement;
 import com.dinstone.photon.protocol.Heartbeat;
 
 public class CodecManager {
@@ -14,7 +14,7 @@ public class CodecManager {
 
 	private CodecManager() {
 		regist(Heartbeat.class, new HeatbeatCodec());
-		regist(Crypt.class, new CryptCodec());
+		regist(Agreement.class, new AgreementCodec());
 	}
 
 	public <T> void regist(Class<T> clazz, MessageCodec<T> codec) {

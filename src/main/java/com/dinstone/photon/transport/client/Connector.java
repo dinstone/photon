@@ -27,7 +27,7 @@ import com.dinstone.photon.codec.CodecManager;
 import com.dinstone.photon.crypto.AesCrypto;
 import com.dinstone.photon.crypto.RsaCrypto;
 import com.dinstone.photon.crypto.RsaCrypto.PrivateKeyCipher;
-import com.dinstone.photon.protocol.Crypt;
+import com.dinstone.photon.protocol.Agreement;
 import com.dinstone.photon.protocol.Heartbeat;
 import com.dinstone.photon.session.DefaultSession;
 import com.dinstone.photon.session.Session;
@@ -94,7 +94,7 @@ public class Connector {
 				ch.pipeline().addLast("MessageDecoder", new MessageDecoder(CodecManager.getInstance()));
 				ch.pipeline().addLast("MessageEncoder", new MessageEncoder(CodecManager.getInstance()));
 
-				ch.pipeline().addLast("IdleStateHandler", new IdleStateHandler(0, 60, 0));
+				ch.pipeline().addLast("IdleStateHandler", new IdleStateHandler(60, 30, 0));
 				ch.pipeline().addLast("NettyClientHandler", new NettyClientHandler());
 			}
 		});
@@ -144,12 +144,12 @@ public class Connector {
 
 		Channel channel = channelFuture.channel();
 		if (keyPair != null) {
-			Attribute<Promise<Crypt>> promiseAttr = channel.attr(AttributeKeys.PROMISE_KEY);
-			promiseAttr.set(new DefaultPromise<Crypt>(GlobalEventExecutor.INSTANCE));
+			Attribute<Promise<Agreement>> promiseAttr = channel.attr(AttributeKeys.PROMISE_KEY);
+			promiseAttr.set(new DefaultPromise<Agreement>(GlobalEventExecutor.INSTANCE));
 
-			channel.writeAndFlush(new Crypt(keyPair.getPublic().getEncoded()));
+			channel.writeAndFlush(new Agreement(keyPair.getPublic().getEncoded()));
 
-			Future<Crypt> future = promiseAttr.get().awaitUninterruptibly();
+			Future<Agreement> future = promiseAttr.get().awaitUninterruptibly();
 			if (!future.isSuccess()) {
 				throw new RuntimeException(future.cause());
 			}
@@ -176,7 +176,9 @@ public class Connector {
 		public void userEventTriggered(ChannelHandlerContext ctx, Object evt) throws Exception {
 			if (evt instanceof IdleStateEvent) {
 				IdleStateEvent event = (IdleStateEvent) evt;
-				if (event.state() == IdleState.WRITER_IDLE) {
+				if (event.state() == IdleState.READER_IDLE) {
+					ctx.close();
+				} else if (event.state() == IdleState.WRITER_IDLE) {
 					heartbeat.increase();
 					ctx.writeAndFlush(heartbeat);
 				}
@@ -197,8 +199,8 @@ public class Connector {
 
 		@Override
 		public void channelInactive(ChannelHandlerContext ctx) throws Exception {
-			AttributeKey<Promise<Crypt>> akey = AttributeKey.valueOf("crypt.promise.key");
-			Promise<Crypt> promise = ctx.channel().attr(akey).get();
+			AttributeKey<Promise<Agreement>> akey = AttributeKey.valueOf("crypt.promise.key");
+			Promise<Agreement> promise = ctx.channel().attr(akey).get();
 			if (promise != null) {
 				promise.tryFailure(new ConnectException("connection is closed"));
 			}
@@ -210,8 +212,8 @@ public class Connector {
 		public void channelRead(ChannelHandlerContext ctx, Object msg) throws Exception {
 
 			LOG.info("client received message : {}", msg);
-			if (msg instanceof Crypt) {
-				ctx.channel().attr(AttributeKeys.PROMISE_KEY).get().trySuccess((Crypt) msg);
+			if (msg instanceof Agreement) {
+				ctx.channel().attr(AttributeKeys.PROMISE_KEY).get().trySuccess((Agreement) msg);
 			}
 		}
 

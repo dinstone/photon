@@ -9,11 +9,11 @@ public class Heartbeat {
 	}
 
 	public int increase() {
-		return tick++;
+		return ++tick;
 	}
 
 	public int decrease() {
-		return tick--;
+		return --tick;
 	}
 
 	public int getTick() {

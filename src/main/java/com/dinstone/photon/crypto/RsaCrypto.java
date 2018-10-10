@@ -41,57 +41,48 @@ public class RsaCrypto {
 
 	public static class PublicKeyCipher implements com.dinstone.photon.crypto.Cipher {
 
-		private Cipher encriptor;
-
-		private Cipher decriptor;
+		private PublicKey publicKey;
 
 		public PublicKeyCipher(byte[] encodedKey) {
 			try {
 				X509EncodedKeySpec x509KeySpec = new X509EncodedKeySpec(encodedKey);
 				KeyFactory keyFactory = KeyFactory.getInstance(KEY_ALGORITHM);
-				PublicKey publicKey = keyFactory.generatePublic(x509KeySpec);
-
-				this.encriptor = createCipher(publicKey, Cipher.ENCRYPT_MODE);
-				this.decriptor = createCipher(publicKey, Cipher.DECRYPT_MODE);
+				publicKey = keyFactory.generatePublic(x509KeySpec);
 			} catch (Exception e) {
 				throw new RuntimeException(e);
 			}
 		}
 
 		public byte[] encrypt(byte[] bytes) throws Exception {
-			return encriptor.doFinal(bytes);
+			return createCipher(publicKey, Cipher.ENCRYPT_MODE).doFinal(bytes);
 		}
 
 		public byte[] decrypt(byte[] bytes) throws Exception {
-			return decriptor.doFinal(bytes);
+			return createCipher(publicKey, Cipher.DECRYPT_MODE).doFinal(bytes);
 		}
 
 	}
 
 	public static class PrivateKeyCipher implements com.dinstone.photon.crypto.Cipher {
 
-		private Cipher encriptor;
-
-		private Cipher decriptor;
+		private PrivateKey privateKey;
 
 		public PrivateKeyCipher(byte[] encodedKey) {
 			try {
 				PKCS8EncodedKeySpec pkcs8KeySpec = new PKCS8EncodedKeySpec(encodedKey);
 				KeyFactory keyFactory = KeyFactory.getInstance(KEY_ALGORITHM);
-				PrivateKey privateKey = keyFactory.generatePrivate(pkcs8KeySpec);
-				this.encriptor = createCipher(privateKey, Cipher.ENCRYPT_MODE);
-				this.decriptor = createCipher(privateKey, Cipher.DECRYPT_MODE);
+				privateKey = keyFactory.generatePrivate(pkcs8KeySpec);
 			} catch (Exception e) {
 				throw new RuntimeException(e);
 			}
 		}
 
 		public byte[] encrypt(byte[] bytes) throws Exception {
-			return encriptor.doFinal(bytes);
+			return createCipher(privateKey, Cipher.ENCRYPT_MODE).doFinal(bytes);
 		}
 
 		public byte[] decrypt(byte[] bytes) throws Exception {
-			return decriptor.doFinal(bytes);
+			return createCipher(privateKey, Cipher.DECRYPT_MODE).doFinal(bytes);
 		}
 
 	}

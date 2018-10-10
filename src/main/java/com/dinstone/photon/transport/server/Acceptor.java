@@ -14,7 +14,7 @@ import com.dinstone.photon.codec.CodecManager;
 import com.dinstone.photon.crypto.AesCrypto;
 import com.dinstone.photon.crypto.RsaCrypto;
 import com.dinstone.photon.crypto.RsaCrypto.PublicKeyCipher;
-import com.dinstone.photon.protocol.Crypt;
+import com.dinstone.photon.protocol.Agreement;
 import com.dinstone.photon.protocol.Heartbeat;
 import com.dinstone.photon.session.DefaultSession;
 import com.dinstone.photon.transport.MessageDecoder;
@@ -71,7 +71,7 @@ public class Acceptor {
 				ch.pipeline().addLast("MessageDecoder", new MessageDecoder(CodecManager.getInstance()));
 				ch.pipeline().addLast("MessageEncoder", new MessageEncoder(CodecManager.getInstance()));
 
-				ch.pipeline().addLast("IdleStateHandler", new IdleStateHandler(20, 0, 0));
+				ch.pipeline().addLast("IdleStateHandler", new IdleStateHandler(60, 0, 0));
 				ch.pipeline().addLast("NettyServerHandler", new NettyServerHandler());
 			}
 		});
@@ -167,11 +167,11 @@ public class Acceptor {
 
 			if (msg instanceof Heartbeat) {
 				ctx.writeAndFlush(msg);
-			} else if (msg instanceof Crypt) {
+			} else if (msg instanceof Agreement) {
 				final byte[] aesKey = AesCrypto.genAesKey();
 
-				PublicKeyCipher rsaCipher = new RsaCrypto.PublicKeyCipher(((Crypt) msg).getData());
-				ctx.writeAndFlush(new Crypt(rsaCipher.encrypt(aesKey))).addListener(new ChannelFutureListener() {
+				PublicKeyCipher rsaCipher = new RsaCrypto.PublicKeyCipher(((Agreement) msg).getData());
+				ctx.writeAndFlush(new Agreement(rsaCipher.encrypt(aesKey))).addListener(new ChannelFutureListener() {
 
 					@Override
 					public void operationComplete(ChannelFuture future) throws Exception {

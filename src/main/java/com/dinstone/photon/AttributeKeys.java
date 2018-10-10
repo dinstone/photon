@@ -1,7 +1,7 @@
 package com.dinstone.photon;
 
 import com.dinstone.photon.crypto.Cipher;
-import com.dinstone.photon.protocol.Crypt;
+import com.dinstone.photon.protocol.Agreement;
 import com.dinstone.photon.session.Session;
 
 import io.netty.util.AttributeKey;
@@ -13,6 +13,6 @@ public class AttributeKeys {
 
 	public static final AttributeKey<Session> SESSION_KEY = AttributeKey.valueOf("session.key");
 
-	public static final AttributeKey<Promise<Crypt>> PROMISE_KEY = AttributeKey.valueOf("promise.key");
+	public static final AttributeKey<Promise<Agreement>> PROMISE_KEY = AttributeKey.valueOf("promise.key");
 
 }

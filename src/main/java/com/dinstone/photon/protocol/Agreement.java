@@ -1,10 +1,10 @@
 package com.dinstone.photon.protocol;
 
-public class Crypt {
+public class Agreement {
 
 	private byte[] data;
 
-	public Crypt(byte[] encoded) {
+	public Agreement(byte[] encoded) {
 		this.data = encoded;
 	}
 
