@@ -22,7 +22,8 @@ import java.security.KeyPair;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.dinstone.photon.AttributeKeys;
+import com.dinstone.photon.ArrayUtil;
+import com.dinstone.photon.AttributeHelper;
 import com.dinstone.photon.codec.CodecManager;
 import com.dinstone.photon.crypto.AesCrypto;
 import com.dinstone.photon.crypto.RsaCrypto;
@@ -50,8 +51,6 @@ import io.netty.channel.socket.nio.NioSocketChannel;
 import io.netty.handler.timeout.IdleState;
 import io.netty.handler.timeout.IdleStateEvent;
 import io.netty.handler.timeout.IdleStateHandler;
-import io.netty.util.Attribute;
-import io.netty.util.AttributeKey;
 import io.netty.util.concurrent.DefaultPromise;
 import io.netty.util.concurrent.DefaultThreadFactory;
 import io.netty.util.concurrent.Future;
@@ -144,25 +143,23 @@ public class Connector {
 
 		Channel channel = channelFuture.channel();
 		if (keyPair != null) {
-			Attribute<Promise<Agreement>> promiseAttr = channel.attr(AttributeKeys.PROMISE_KEY);
-			promiseAttr.set(new DefaultPromise<Agreement>(GlobalEventExecutor.INSTANCE));
+			byte[] saltBytes = AesCrypto.genAesSalt();
+			AttributeHelper.setPromise(channel, new DefaultPromise<Agreement>(GlobalEventExecutor.INSTANCE));
+			channel.writeAndFlush(new Agreement(ArrayUtil.concat(saltBytes, keyPair.getPublic().getEncoded())));
 
-			channel.writeAndFlush(new Agreement(keyPair.getPublic().getEncoded()));
-
-			Future<Agreement> future = promiseAttr.get().awaitUninterruptibly();
+			Future<Agreement> future = AttributeHelper.getPromise(channel).awaitUninterruptibly();
 			if (!future.isSuccess()) {
 				throw new RuntimeException(future.cause());
 			}
-
-			promiseAttr.set(null);
+			AttributeHelper.setPromise(channel, null);
 
 			byte[] encoded = keyPair.getPrivate().getEncoded();
-			byte[] aesKey = new PrivateKeyCipher(encoded).decrypt(future.get().getData());
-			channel.attr(AttributeKeys.CIPHER_KEY).set(new AesCrypto.KeyCipher(aesKey));
+			byte[] saltHalf = new PrivateKeyCipher(encoded).decrypt(future.get().getData());
+			AttributeHelper.setCipher(channel, new AesCrypto(ArrayUtil.concat(saltBytes, saltHalf)));
 		}
 
 		DefaultSession session = new DefaultSession(channel);
-		channel.attr(AttributeKeys.SESSION_KEY).set(session);
+		AttributeHelper.setSession(channel, session);
 
 		LOG.debug("session connect {} to {}", channel.localAddress(), channel.remoteAddress());
 		return session;
@@ -199,8 +196,7 @@ public class Connector {
 
 		@Override
 		public void channelInactive(ChannelHandlerContext ctx) throws Exception {
-			AttributeKey<Promise<Agreement>> akey = AttributeKey.valueOf("crypt.promise.key");
-			Promise<Agreement> promise = ctx.channel().attr(akey).get();
+			Promise<Agreement> promise = AttributeHelper.getPromise(ctx.channel());
 			if (promise != null) {
 				promise.tryFailure(new ConnectException("connection is closed"));
 			}
@@ -213,7 +209,7 @@ public class Connector {
 
 			LOG.info("client received message : {}", msg);
 			if (msg instanceof Agreement) {
-				ctx.channel().attr(AttributeKeys.PROMISE_KEY).get().trySuccess((Agreement) msg);
+				AttributeHelper.getPromise(ctx.channel()).trySuccess((Agreement) msg);
 			}
 		}
 

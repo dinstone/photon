@@ -2,7 +2,7 @@ package com.dinstone.photon.transport;
 
 import java.util.List;
 
-import com.dinstone.photon.AttributeKeys;
+import com.dinstone.photon.AttributeHelper;
 import com.dinstone.photon.codec.CodecManager;
 import com.dinstone.photon.codec.MessageCodec;
 import com.dinstone.photon.protocol.Frame;
@@ -24,7 +24,7 @@ public class MessageDecoder extends MessageToMessageDecoder<Frame> {
 			msg.dezip();
 		}
 		if (msg.isCrypto()) {
-			msg.decrypt(ctx.channel().attr(AttributeKeys.CIPHER_KEY).get());
+			msg.decrypt(AttributeHelper.getCipher(ctx.channel()));
 		}
 
 		MessageCodec<?> messageCodec = codecManager.find(msg.getCodec());

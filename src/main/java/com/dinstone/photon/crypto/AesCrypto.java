@@ -1,30 +1,43 @@
 package com.dinstone.photon.crypto;
 
-import java.security.InvalidKeyException;
 import java.security.Key;
-import java.security.NoSuchAlgorithmException;
 import java.util.Random;
 
 import javax.crypto.Cipher;
-import javax.crypto.NoSuchPaddingException;
 import javax.crypto.spec.SecretKeySpec;
 
-public class AesCrypto {
+public class AesCrypto implements com.dinstone.photon.crypto.Cipher {
 
 	public static final String KEY_ALGORITHM = "AES";
 
 	private static final String KEY_TRANSFORMATION = "AES/ECB/PKCS5Padding";
 
+	private final SecretKeySpec key;
+
+	public AesCrypto(byte[] encodedKey) {
+		try {
+			key = new SecretKeySpec(encodedKey, KEY_ALGORITHM);
+		} catch (Exception e) {
+			throw new RuntimeException(e);
+		}
+	}
+
 	public static byte[] genAesKey() {
 		byte[] result = new byte[16];
 		Random random = new Random();
-		writeLong(random.nextLong(), result, 0);
-		writeLong(random.nextLong(), result, 8);
+		System.arraycopy(genLong(random), 0, result, 0, 8);
+		System.arraycopy(genLong(random), 0, result, 8, 8);
 		return result;
 	}
 
-	private static void writeLong(long value, byte[] out, int destPos) {
+	public static byte[] genAesSalt() {
+		Random random = new Random();
+		return genLong(random);
+	}
+
+	private static byte[] genLong(Random random) {
 		byte[] buffer = new byte[8];
+		long value = random.nextLong();
 		buffer[0] = (byte) (value >>> 56);
 		buffer[1] = (byte) (value >>> 48);
 		buffer[2] = (byte) (value >>> 40);
@@ -33,40 +46,21 @@ public class AesCrypto {
 		buffer[5] = (byte) (value >>> 16);
 		buffer[6] = (byte) (value >>> 8);
 		buffer[7] = (byte) (value);
-		System.arraycopy(buffer, 0, out, destPos, 8);
+		return buffer;
 	}
 
-	private static Cipher createCipher(Key key, int opmodule)
-			throws NoSuchAlgorithmException, NoSuchPaddingException, InvalidKeyException {
+	private static Cipher createCipher(Key key, int opmodule) throws Exception {
 		Cipher cipher = Cipher.getInstance(KEY_TRANSFORMATION);
 		cipher.init(opmodule, key);
 		return cipher;
 	}
 
-	public static class KeyCipher implements com.dinstone.photon.crypto.Cipher{
+	public byte[] encrypt(byte[] bytes) throws Exception {
+		return createCipher(key, Cipher.ENCRYPT_MODE).doFinal(bytes);
+	}
 
-		private Cipher encriptor;
-
-		private Cipher decriptor;
-
-		public KeyCipher(byte[] encodedKey) {
-			try {
-				SecretKeySpec key = new SecretKeySpec(encodedKey, KEY_ALGORITHM);
-				this.encriptor = createCipher(key, Cipher.ENCRYPT_MODE);
-				this.decriptor = createCipher(key, Cipher.DECRYPT_MODE);
-			} catch (Exception e) {
-				throw new RuntimeException(e);
-			}
-		}
-
-		public byte[] encrypt(byte[] bytes) throws Exception {
-			return encriptor.doFinal(bytes);
-		}
-
-		public byte[] decrypt(byte[] bytes) throws Exception {
-			return decriptor.doFinal(bytes);
-		}
-
+	public byte[] decrypt(byte[] bytes) throws Exception {
+		return createCipher(key, Cipher.DECRYPT_MODE).doFinal(bytes);
 	}
 
 }

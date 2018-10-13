@@ -9,7 +9,8 @@ import java.util.concurrent.TimeUnit;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.dinstone.photon.AttributeKeys;
+import com.dinstone.photon.ArrayUtil;
+import com.dinstone.photon.AttributeHelper;
 import com.dinstone.photon.codec.CodecManager;
 import com.dinstone.photon.crypto.AesCrypto;
 import com.dinstone.photon.crypto.RsaCrypto;
@@ -146,7 +147,7 @@ public class Acceptor {
 				connectionMap.put(addressLabel, channel);
 
 				DefaultSession session = new DefaultSession();
-				ctx.channel().attr(AttributeKeys.SESSION_KEY).set(session);
+				AttributeHelper.setSession(ctx.channel(), session);
 			}
 		}
 
@@ -168,16 +169,26 @@ public class Acceptor {
 			if (msg instanceof Heartbeat) {
 				ctx.writeAndFlush(msg);
 			} else if (msg instanceof Agreement) {
-				final byte[] aesKey = AesCrypto.genAesKey();
-
-				PublicKeyCipher rsaCipher = new RsaCrypto.PublicKeyCipher(((Agreement) msg).getData());
+				byte[] data = ((Agreement) msg).getData();
+				final byte[] aesKey = AesCrypto.genAesSalt();
+				final byte[] rsalt = ArrayUtil.subarray(data, 0, 8);
+				PublicKeyCipher rsaCipher = new RsaCrypto.PublicKeyCipher(ArrayUtil.subarray(data, 8, data.length - 8));
 				ctx.writeAndFlush(new Agreement(rsaCipher.encrypt(aesKey))).addListener(new ChannelFutureListener() {
 
 					@Override
 					public void operationComplete(ChannelFuture future) throws Exception {
 						if (future.isSuccess()) {
-							ctx.channel().attr(AttributeKeys.CIPHER_KEY).set(new AesCrypto.KeyCipher(aesKey));
+							AttributeHelper.setCipher(ctx.channel(), new AesCrypto(connact(rsalt, aesKey)));
+							// ctx.channel().attr(AttributeHelper.CIPHER_KEY).set(new
+							// AesCrypto(connact(rsalt, aesKey)));
 						}
+					}
+
+					private byte[] connact(byte[] abytes, byte[] bbytes) {
+						byte[] result = new byte[abytes.length + bbytes.length];
+						System.arraycopy(abytes, 0, result, 0, abytes.length);
+						System.arraycopy(bbytes, 0, result, abytes.length, bbytes.length);
+						return result;
 					}
 				});
 			}
