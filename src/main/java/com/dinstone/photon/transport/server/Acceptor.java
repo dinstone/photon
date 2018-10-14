@@ -170,26 +170,17 @@ public class Acceptor {
 				ctx.writeAndFlush(msg);
 			} else if (msg instanceof Agreement) {
 				byte[] data = ((Agreement) msg).getData();
-				final byte[] aesKey = AesCrypto.genAesSalt();
-				final byte[] rsalt = ArrayUtil.subarray(data, 0, 8);
+				final byte[] aesKey = ArrayUtil.concat(ArrayUtil.subarray(data, 0, 8), AesCrypto.genAesSalt());
 				PublicKeyCipher rsaCipher = new RsaCrypto.PublicKeyCipher(ArrayUtil.subarray(data, 8, data.length - 8));
 				ctx.writeAndFlush(new Agreement(rsaCipher.encrypt(aesKey))).addListener(new ChannelFutureListener() {
 
 					@Override
 					public void operationComplete(ChannelFuture future) throws Exception {
 						if (future.isSuccess()) {
-							AttributeHelper.setCipher(ctx.channel(), new AesCrypto(connact(rsalt, aesKey)));
-							// ctx.channel().attr(AttributeHelper.CIPHER_KEY).set(new
-							// AesCrypto(connact(rsalt, aesKey)));
+							AttributeHelper.setCipher(ctx.channel(), new AesCrypto(aesKey));
 						}
 					}
 
-					private byte[] connact(byte[] abytes, byte[] bbytes) {
-						byte[] result = new byte[abytes.length + bbytes.length];
-						System.arraycopy(abytes, 0, result, 0, abytes.length);
-						System.arraycopy(bbytes, 0, result, abytes.length, bbytes.length);
-						return result;
-					}
 				});
 			}
 

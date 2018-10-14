@@ -1,7 +1,6 @@
 package com.dinstone.photon;
 
 import com.dinstone.photon.crypto.Cipher;
-import com.dinstone.photon.protocol.Agreement;
 import com.dinstone.photon.session.Session;
 
 import io.netty.channel.Channel;
@@ -14,14 +13,14 @@ public class AttributeHelper {
 
 	private static final AttributeKey<Session> SESSION_KEY = AttributeKey.valueOf("session.key");
 
-	private static final AttributeKey<Promise<Agreement>> PROMISE_KEY = AttributeKey.valueOf("promise.key");
+	private static final AttributeKey<Promise<Void>> CONNECT_PROMISE_KEY = AttributeKey.valueOf("connect.promise.key");
 
-	public static void setPromise(Channel channel, Promise<Agreement> promise) {
-		channel.attr(AttributeHelper.PROMISE_KEY).set(promise);
+	public static void setConnectPromise(Channel channel, Promise<Void> promise) {
+		channel.attr(AttributeHelper.CONNECT_PROMISE_KEY).set(promise);
 	}
 
-	public static Promise<Agreement> getPromise(Channel channel) {
-		return channel.attr(AttributeHelper.PROMISE_KEY).get();
+	public static Promise<Void> getConnectPromise(Channel channel) {
+		return channel.attr(AttributeHelper.CONNECT_PROMISE_KEY).get();
 	}
 
 	public static void setCipher(Channel channel, Cipher cipher) {

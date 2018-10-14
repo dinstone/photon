@@ -32,8 +32,8 @@ public class CodecManager {
 		return codecIdMap.get(codecId);
 	}
 
-	public MessageCodec<?> find(Object message) {
-		return codecTypeMap.get(message.getClass());
+	public <T> MessageCodec<T> find(T message) {
+		return (MessageCodec<T>) codecTypeMap.get(message.getClass());
 	}
 
 	public static CodecManager getInstance() {

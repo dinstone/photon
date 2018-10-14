@@ -44,9 +44,9 @@ public class TransportDecoder extends ByteToMessageDecoder {
 			in.markReaderIndex();
 			int len = in.readInt();
 			if (len > maxSize) {
-				throw new IllegalStateException("The encoded object is too big: " + len + " (> " + maxSize + ")");
+				throw new IllegalStateException("The encoded data is too big: " + len + " (> " + maxSize + ")");
 			} else if (len < 1) {
-				throw new IllegalStateException("The encoded object is too small: " + len + " (< 1)");
+				throw new IllegalStateException("The encoded data is too small: " + len + " (<1)");
 			}
 
 			if (in.readableBytes() < len) {

@@ -9,9 +9,10 @@ public class ArrayUtil {
 		return result;
 	}
 
-	public static byte[] subarray(byte[] b, int off, int length) {
-		byte[] b1 = new byte[length];
-		System.arraycopy(b, off, b1, 0, length);
-		return b1;
+	public static byte[] subarray(byte[] bytes, int offset, int length) {
+		byte[] result = new byte[length];
+		System.arraycopy(bytes, offset, result, 0, length);
+		return result;
 	}
+
 }

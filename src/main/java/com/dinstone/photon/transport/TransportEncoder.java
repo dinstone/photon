@@ -38,9 +38,9 @@ public class TransportEncoder extends MessageToByteEncoder<Frame> {
 
 	@Override
 	protected void encode(ChannelHandlerContext ctx, Frame frame, ByteBuf out) throws Exception {
-		int length = frame.getDatas().length;
+		int length = frame.getDatas().length - 4;
 		if (length > maxSize) {
-			throw new IllegalArgumentException("The encoded object is too big: " + length + " (> " + maxSize + ')');
+			throw new IllegalArgumentException("The encoded data is too big: " + length + " (>" + maxSize + ")");
 		}
 
 		frame.encode(out);

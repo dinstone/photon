@@ -61,11 +61,11 @@ public class Connector {
 
 	private static final Logger LOG = LoggerFactory.getLogger(Connector.class);
 
-	private NioEventLoopGroup workGroup;
+	private final NioEventLoopGroup workGroup;
 
-	private Bootstrap clientBoot;
+	private final Bootstrap clientBoot;
 
-	private KeyPair keyPair;
+	private final KeyPair keyPair;
 
 	private int refCount;
 
@@ -76,6 +76,8 @@ public class Connector {
 			} catch (Exception e) {
 				throw new RuntimeException(e);
 			}
+		} else {
+			this.keyPair = null;
 		}
 
 		workGroup = new NioEventLoopGroup(transportConfig.getConnectPoolSize(), new DefaultThreadFactory("N4C-Work"));
@@ -128,13 +130,6 @@ public class Connector {
 		}
 	}
 
-	// public Channel createChannel(InetSocketAddress sa) {
-	// Channel channel = clientBoot.connect(sa).awaitUninterruptibly().channel();
-	// LOG.debug("session connect {} to {}", channel.localAddress(),
-	// channel.remoteAddress());
-	// return channel;
-	// }
-
 	public Session createSession(InetSocketAddress sa) throws Exception {
 		ChannelFuture channelFuture = clientBoot.connect(sa).awaitUninterruptibly();
 		if (!channelFuture.isSuccess()) {
@@ -142,20 +137,10 @@ public class Connector {
 		}
 
 		Channel channel = channelFuture.channel();
-		if (keyPair != null) {
-			byte[] saltBytes = AesCrypto.genAesSalt();
-			AttributeHelper.setPromise(channel, new DefaultPromise<Agreement>(GlobalEventExecutor.INSTANCE));
-			channel.writeAndFlush(new Agreement(ArrayUtil.concat(saltBytes, keyPair.getPublic().getEncoded())));
 
-			Future<Agreement> future = AttributeHelper.getPromise(channel).awaitUninterruptibly();
-			if (!future.isSuccess()) {
-				throw new RuntimeException(future.cause());
-			}
-			AttributeHelper.setPromise(channel, null);
-
-			byte[] encoded = keyPair.getPrivate().getEncoded();
-			byte[] saltHalf = new PrivateKeyCipher(encoded).decrypt(future.get().getData());
-			AttributeHelper.setCipher(channel, new AesCrypto(ArrayUtil.concat(saltBytes, saltHalf)));
+		Future<Void> connectFuture = AttributeHelper.getConnectPromise(channel);
+		if (!connectFuture.await().isSuccess()) {
+			throw new RuntimeException(connectFuture.cause());
 		}
 
 		DefaultSession session = new DefaultSession(channel);
@@ -185,31 +170,38 @@ public class Connector {
 		}
 
 		@Override
-		public void channelActive(ChannelHandlerContext ctx) throws Exception {
-			// DefaultSession session = new DefaultSession();
-			// ctx.channel().attr(Session.SESSION_KEY).set(session);
-			//
-			// if (keyPair != null) {
-			// ctx.writeAndFlush(new Crypt(keyPair.getPublic().getEncoded()));
-			// }
+		public void channelRegistered(ChannelHandlerContext ctx) throws Exception {
+			AttributeHelper.setConnectPromise(ctx.channel(), new DefaultPromise<Void>(GlobalEventExecutor.INSTANCE));
 		}
 
 		@Override
-		public void channelInactive(ChannelHandlerContext ctx) throws Exception {
-			Promise<Agreement> promise = AttributeHelper.getPromise(ctx.channel());
-			if (promise != null) {
-				promise.tryFailure(new ConnectException("connection is closed"));
+		public void channelActive(ChannelHandlerContext ctx) throws Exception {
+			if (keyPair != null) {
+				byte[] saltBytes = AesCrypto.genAesSalt();
+				byte[] publicKey = keyPair.getPublic().getEncoded();
+				ctx.channel().writeAndFlush(new Agreement(ArrayUtil.concat(saltBytes, publicKey)));
+			} else {
+				AttributeHelper.getConnectPromise(ctx.channel()).trySuccess(null);
 			}
-
-			super.channelInactive(ctx);
 		}
 
 		@Override
 		public void channelRead(ChannelHandlerContext ctx, Object msg) throws Exception {
-
 			LOG.info("client received message : {}", msg);
 			if (msg instanceof Agreement) {
-				AttributeHelper.getPromise(ctx.channel()).trySuccess((Agreement) msg);
+				byte[] encoded = keyPair.getPrivate().getEncoded();
+				byte[] aeskey = new PrivateKeyCipher(encoded).decrypt(((Agreement) msg).getData());
+				AttributeHelper.setCipher(ctx.channel(), new AesCrypto(aeskey));
+
+				AttributeHelper.getConnectPromise(ctx.channel()).trySuccess(null);
+			}
+		}
+
+		@Override
+		public void channelInactive(ChannelHandlerContext ctx) throws Exception {
+			Promise<Void> connectPromise = AttributeHelper.getConnectPromise(ctx.channel());
+			if (!connectPromise.isDone()) {
+				connectPromise.tryFailure(new ConnectException("connection is closed"));
 			}
 		}
 
