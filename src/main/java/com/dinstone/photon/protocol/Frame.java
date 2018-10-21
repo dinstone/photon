@@ -67,7 +67,7 @@ public class Frame {
 	public Frame dezip() throws Exception {
 		if (zipped && datas != null) {
 			int len;
-			byte[] buffer = new byte[1024];
+			byte[] buffer = new byte[8192];
 			GZIPInputStream ungzip = new GZIPInputStream(new ByteArrayInputStream(datas));
 			ByteArrayOutputStream out = new ByteArrayOutputStream();
 			while ((len = ungzip.read(buffer)) != -1) {

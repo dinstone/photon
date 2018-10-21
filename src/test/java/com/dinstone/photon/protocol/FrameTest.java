@@ -35,24 +35,29 @@ public class FrameTest {
 		for (int i = 0; i < message.length; i++) {
 			message[i] = 'a';
 		}
+
+		long ent = 0;
+		long det = 0;
 		for (int j = 0; j < 10000; j++) {
+			long es = System.currentTimeMillis();
 			ByteBuf out = ByteBufAllocator.DEFAULT.buffer(1200);
 			new Frame((byte) 1, message).enzip().encode(out);
-
+			long ds = System.currentTimeMillis();
+			ent += ds - es;
 			byte[] actuals = new Frame().decode(out).dezip().getDatas();
-
+			det += System.currentTimeMillis() - ds;
 			out.release();
 		}
 
 		long e = System.currentTimeMillis();
-		System.out.println("zip take's " + (e - s) + "ms, qps=" + 10000 * 1000 / (e - s));
+		System.out.println("zip take's " + (e - s) + "ms, qps=" + 10000 * 1000 / (e - s) + ", en:ds=" + ent + ":" + det);
 
 	}
 
 	@Test
 	public void test02() throws Exception {
 		long s = System.currentTimeMillis();
-	
+
 		byte[] message = new byte[512000];
 		for (int i = 0; i < message.length; i++) {
 			message[i] = 'a';
@@ -60,15 +65,15 @@ public class FrameTest {
 		for (int j = 0; j < 10000; j++) {
 			ByteBuf out = ByteBufAllocator.DEFAULT.buffer(1200);
 			new Frame((byte) 1, message).encode(out);
-	
+
 			byte[] actuals = new Frame().decode(out).getDatas();
-	
+
 			out.release();
 		}
-	
+
 		long e = System.currentTimeMillis();
 		System.out.println("non take's " + (e - s) + "ms, qps=" + 10000 * 1000 / (e - s));
-	
+
 	}
 
 	@Test
@@ -94,7 +99,7 @@ public class FrameTest {
 		System.out.println("cipher take's " + (e - s) + "ms, qps=" + 10000 * 1000 / (e - s));
 
 	}
-	
+
 	@Test
 	public void test04() throws Exception {
 		long s = System.currentTimeMillis();
