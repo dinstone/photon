@@ -192,6 +192,8 @@ public class Connector {
 				byte[] encoded = keyPair.getPrivate().getEncoded();
 				byte[] aeskey = new PrivateKeyCipher(encoded).decrypt(((Agreement) msg).getData());
 				AttributeHelper.setCipher(ctx.channel(), new AesCrypto(aeskey));
+				
+//				ctx.pipeline().addAfter(baseName, name, handler);
 
 				AttributeHelper.getConnectPromise(ctx.channel()).trySuccess(null);
 			}
