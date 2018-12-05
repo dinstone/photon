@@ -15,6 +15,9 @@ public class AttributeHelper {
 
 	private static final AttributeKey<Promise<Void>> CONNECT_PROMISE_KEY = AttributeKey.valueOf("connect.promise.key");
 
+	private static final AttributeKey<String> LOCAL_REMOTE_ADDRESS_KEY = AttributeKey
+			.valueOf("local.remote.address.key");
+
 	public static void setConnectPromise(Channel channel, Promise<Void> promise) {
 		channel.attr(AttributeHelper.CONNECT_PROMISE_KEY).set(promise);
 	}

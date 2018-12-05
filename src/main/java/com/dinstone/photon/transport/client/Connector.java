@@ -19,9 +19,8 @@ import java.net.ConnectException;
 import java.net.InetSocketAddress;
 import java.security.KeyPair;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
+import com.dinstone.loghub.Logger;
+import com.dinstone.loghub.LoggerFactory;
 import com.dinstone.photon.ArrayUtil;
 import com.dinstone.photon.AttributeHelper;
 import com.dinstone.photon.codec.CodecManager;
@@ -131,18 +130,19 @@ public class Connector {
 	}
 
 	public Session createSession(InetSocketAddress sa) throws Exception {
+		// connect to peer
 		ChannelFuture channelFuture = clientBoot.connect(sa).awaitUninterruptibly();
 		if (!channelFuture.isSuccess()) {
 			throw new RuntimeException(channelFuture.cause());
 		}
 
 		Channel channel = channelFuture.channel();
-
+		// wait connection success
 		Future<Void> connectFuture = AttributeHelper.getConnectPromise(channel);
 		if (!connectFuture.await().isSuccess()) {
 			throw new RuntimeException(connectFuture.cause());
 		}
-
+		// create session
 		DefaultSession session = new DefaultSession(channel);
 		AttributeHelper.setSession(channel, session);
 
@@ -192,8 +192,8 @@ public class Connector {
 				byte[] encoded = keyPair.getPrivate().getEncoded();
 				byte[] aeskey = new PrivateKeyCipher(encoded).decrypt(((Agreement) msg).getData());
 				AttributeHelper.setCipher(ctx.channel(), new AesCrypto(aeskey));
-				
-//				ctx.pipeline().addAfter(baseName, name, handler);
+
+				// ctx.pipeline().addAfter(baseName, name, handler);
 
 				AttributeHelper.getConnectPromise(ctx.channel()).trySuccess(null);
 			}

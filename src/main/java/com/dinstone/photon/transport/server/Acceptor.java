@@ -1,14 +1,11 @@
 package com.dinstone.photon.transport.server;
 
 import java.net.InetSocketAddress;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.TimeUnit;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
+import com.dinstone.loghub.Logger;
+import com.dinstone.loghub.LoggerFactory;
 import com.dinstone.photon.ArrayUtil;
 import com.dinstone.photon.AttributeHelper;
 import com.dinstone.photon.codec.CodecManager;
@@ -18,14 +15,14 @@ import com.dinstone.photon.crypto.RsaCrypto.PublicKeyCipher;
 import com.dinstone.photon.protocol.Agreement;
 import com.dinstone.photon.protocol.Heartbeat;
 import com.dinstone.photon.session.DefaultSession;
+import com.dinstone.photon.session.Session;
+import com.dinstone.photon.session.SessionManager;
 import com.dinstone.photon.transport.MessageDecoder;
 import com.dinstone.photon.transport.MessageEncoder;
-import com.dinstone.photon.transport.NetworkInterfaceUtil;
 import com.dinstone.photon.transport.TransportDecoder;
 import com.dinstone.photon.transport.TransportEncoder;
 
 import io.netty.bootstrap.ServerBootstrap;
-import io.netty.channel.Channel;
 import io.netty.channel.ChannelFuture;
 import io.netty.channel.ChannelFutureListener;
 import io.netty.channel.ChannelHandlerContext;
@@ -39,17 +36,11 @@ import io.netty.channel.socket.nio.NioServerSocketChannel;
 import io.netty.handler.timeout.IdleState;
 import io.netty.handler.timeout.IdleStateEvent;
 import io.netty.handler.timeout.IdleStateHandler;
-import io.netty.util.AttributeKey;
 import io.netty.util.concurrent.DefaultThreadFactory;
 
 public class Acceptor {
 
 	private static final Logger LOG = LoggerFactory.getLogger(Acceptor.class);
-
-	private static final AttributeKey<String> LOCAL_REMOTE_ADDRESS_KEY = AttributeKey
-			.valueOf("local-remote-address-key");
-
-	private final ConcurrentMap<String, Channel> connectionMap = new ConcurrentHashMap<>();
 
 	private EventLoopGroup bossGroup;
 
@@ -59,7 +50,7 @@ public class Acceptor {
 
 	public Acceptor bind() {
 		bossGroup = new NioEventLoopGroup(1, new DefaultThreadFactory("N4A-Boss"));
-		workGroup = new NioEventLoopGroup(1, new DefaultThreadFactory("N4A-Work"));
+		workGroup = new NioEventLoopGroup(0, new DefaultThreadFactory("N4A-Work"));
 
 		ServerBootstrap boot = new ServerBootstrap().group(bossGroup, workGroup);
 		boot.channel(NioServerSocketChannel.class).childHandler(new ChannelInitializer<SocketChannel>() {
@@ -134,29 +125,21 @@ public class Acceptor {
 
 		@Override
 		public void channelActive(ChannelHandlerContext ctx) throws Exception {
-			int currentConnectioncount = connectionMap.size();
+			int currentConnectioncount = SessionManager.sessionCount();
 			if (currentConnectioncount >= maxConnectionCount) {
 				ctx.close();
 				LOG.warn("connection count is too big: limit={},current={}", maxConnectionCount,
 						currentConnectioncount);
 			} else {
-				Channel channel = ctx.channel();
-				String addressLabel = NetworkInterfaceUtil.addressLabel(channel.remoteAddress(),
-						channel.localAddress());
-				channel.attr(LOCAL_REMOTE_ADDRESS_KEY).set(addressLabel);
-				connectionMap.put(addressLabel, channel);
-
-				DefaultSession session = new DefaultSession();
+				Session session = new DefaultSession(ctx.channel());
+				SessionManager.addSession(ctx.channel(), session);
 				AttributeHelper.setSession(ctx.channel(), session);
 			}
 		}
 
 		@Override
 		public void channelInactive(ChannelHandlerContext ctx) throws Exception {
-			String connectionKey = ctx.channel().attr(LOCAL_REMOTE_ADDRESS_KEY).get();
-			if (connectionKey != null) {
-				connectionMap.remove(connectionKey);
-			}
+			SessionManager.delSession(ctx.channel());
 
 			super.channelInactive(ctx);
 		}
@@ -170,8 +153,8 @@ public class Acceptor {
 				ctx.writeAndFlush(msg);
 			} else if (msg instanceof Agreement) {
 				byte[] data = ((Agreement) msg).getData();
-				final byte[] aesKey = ArrayUtil.concat(ArrayUtil.subarray(data, 0, 8), AesCrypto.genAesSalt());
-				PublicKeyCipher rsaCipher = new RsaCrypto.PublicKeyCipher(ArrayUtil.subarray(data, 8, data.length - 8));
+				final byte[] aesKey = ArrayUtil.concat(ArrayUtil.copy(data, 0, 8), AesCrypto.genAesSalt());
+				PublicKeyCipher rsaCipher = new RsaCrypto.PublicKeyCipher(ArrayUtil.copy(data, 8, data.length - 8));
 				ctx.writeAndFlush(new Agreement(rsaCipher.encrypt(aesKey))).addListener(new ChannelFutureListener() {
 
 					@Override

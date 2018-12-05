@@ -6,11 +6,9 @@ import io.netty.channel.ChannelFuture;
 
 public interface Session {
 
+	boolean isActive();
+
 	Cipher getCipher();
 
-	public void setCipher(Cipher cipher);
-
 	ChannelFuture write(Object msg);
-
-	boolean isActive();
 }
