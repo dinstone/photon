@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package com.dinstone.photon.protocol;
 
 import java.io.ByteArrayInputStream;
@@ -28,114 +29,105 @@ import io.netty.buffer.ByteBuf;
  * transport frame
  * 
  * @author dinstone
- *
  */
 public class Frame {
 
-	private static final byte WIRE_VERSION = 1;
+    private static final byte WIRE_VERSION = 1;
 
-	protected boolean zipped;
+    protected boolean zipped;
 
-	protected boolean crypto;
+    protected byte codec;
 
-	protected byte codec;
+    protected byte[] datas;
 
-	protected byte[] datas;
+    public Frame() {
+        super();
+    }
 
-	public Frame() {
-		super();
-	}
+    public Frame(byte codec, byte[] datas) {
+        super();
+        this.codec = codec;
+        this.datas = datas;
+    }
 
-	public Frame(byte codec, byte[] datas) {
-		super();
-		this.codec = codec;
-		this.datas = datas;
-	}
+    public Frame enzip() throws Exception {
+        if (!zipped && datas != null) {
+            ByteArrayOutputStream out = new ByteArrayOutputStream();
+            GZIPOutputStream gzip = new GZIPOutputStream(out);
+            gzip.write(datas);
+            gzip.close();
+            datas = out.toByteArray();
+            zipped = true;
+        }
+        return this;
+    }
 
-	public Frame enzip() throws Exception {
-		if (!zipped && datas != null) {
-			ByteArrayOutputStream out = new ByteArrayOutputStream();
-			GZIPOutputStream gzip = new GZIPOutputStream(out);
-			gzip.write(datas);
-			gzip.close();
-			datas = out.toByteArray();
-			zipped = true;
-		}
-		return this;
-	}
+    public Frame dezip() throws Exception {
+        if (zipped && datas != null) {
+            int len;
+            byte[] buffer = new byte[8192];
+            GZIPInputStream ungzip = new GZIPInputStream(new ByteArrayInputStream(datas));
+            ByteArrayOutputStream out = new ByteArrayOutputStream();
+            while ((len = ungzip.read(buffer)) != -1) {
+                out.write(buffer, 0, len);
+            }
+            datas = out.toByteArray();
+            zipped = false;
+        }
+        return this;
+    }
 
-	public Frame dezip() throws Exception {
-		if (zipped && datas != null) {
-			int len;
-			byte[] buffer = new byte[8192];
-			GZIPInputStream ungzip = new GZIPInputStream(new ByteArrayInputStream(datas));
-			ByteArrayOutputStream out = new ByteArrayOutputStream();
-			while ((len = ungzip.read(buffer)) != -1) {
-				out.write(buffer, 0, len);
-			}
-			datas = out.toByteArray();
-			zipped = false;
-		}
-		return this;
-	}
+    public Frame encrypt(Cipher cipher) throws Exception {
+        if (cipher != null && datas != null) {
+            datas = cipher.encrypt(datas);
+        }
+        return this;
+    }
 
-	public Frame encrypt(Cipher cipher) throws Exception {
-		if (!crypto && datas != null) {
-			datas = cipher.encrypt(datas);
-			crypto = true;
-		}
-		return this;
-	}
+    public Frame decrypt(Cipher cipher) throws Exception {
+        if (cipher != null && datas != null) {
+            datas = cipher.decrypt(datas);
+        }
+        return this;
+    }
 
-	public Frame decrypt(Cipher cipher) throws Exception {
-		if (crypto && datas != null) {
-			datas = cipher.decrypt(datas);
-			crypto = false;
-		}
-		return this;
-	}
+    public Frame encode(ByteBuf out) {
+        out.writeInt(3 + datas.length);
+        out.writeByte(WIRE_VERSION);
+        out.writeBoolean(zipped);
+        // out.writeBoolean(crypto);
+        out.writeByte(codec);
+        out.writeBytes(datas);
 
-	public Frame encode(ByteBuf out) {
-		out.writeInt(4 + datas.length);
-		out.writeByte(WIRE_VERSION);
-		out.writeBoolean(zipped);
-		out.writeBoolean(crypto);
-		out.writeByte(codec);
-		out.writeBytes(datas);
+        return this;
+    }
 
-		return this;
-	}
+    public Frame decode(ByteBuf in) {
+        int len = in.readInt();
+        byte version = in.readByte();
+        if (WIRE_VERSION != version) {
+            throw new IllegalStateException("Invalid wire version " + version + " should be <= " + WIRE_VERSION);
+        }
+        zipped = in.readBoolean();
+        // crypto = in.readBoolean();
+        codec = in.readByte();
 
-	public Frame decode(ByteBuf in) {
-		int len = in.readInt();
-		byte version = in.readByte();
-		if (WIRE_VERSION != version) {
-			throw new IllegalStateException("Invalid wire version " + version + " should be <= " + WIRE_VERSION);
-		}
-		zipped = in.readBoolean();
-		crypto = in.readBoolean();
-		codec = in.readByte();
+        datas = new byte[len - 3];
+        in.readBytes(datas);
 
-		datas = new byte[len - 4];
-		in.readBytes(datas);
+        return this;
+    }
 
-		return this;
-	}
+    public boolean isZipped() {
+        return zipped;
+    }
 
-	public boolean isZipped() {
-		return zipped;
-	}
+    public byte getCodec() {
+        return codec;
+    }
 
-	public boolean isCrypto() {
-		return crypto;
-	}
-
-	public byte getCodec() {
-		return codec;
-	}
-
-	public byte[] getDatas() {
-		return datas;
-	}
+    public byte[] getDatas() {
+        return datas;
+    }
 
 }

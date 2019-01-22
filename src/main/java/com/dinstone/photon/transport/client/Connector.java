@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package com.dinstone.photon.transport.client;
 
 import java.net.ConnectException;
@@ -50,168 +51,164 @@ import io.netty.channel.socket.nio.NioSocketChannel;
 import io.netty.handler.timeout.IdleState;
 import io.netty.handler.timeout.IdleStateEvent;
 import io.netty.handler.timeout.IdleStateHandler;
-import io.netty.util.concurrent.DefaultPromise;
 import io.netty.util.concurrent.DefaultThreadFactory;
 import io.netty.util.concurrent.Future;
-import io.netty.util.concurrent.GlobalEventExecutor;
 import io.netty.util.concurrent.Promise;
 
 public class Connector {
 
-	private static final Logger LOG = LoggerFactory.getLogger(Connector.class);
+    private static final Logger LOG = LoggerFactory.getLogger(Connector.class);
 
-	private final NioEventLoopGroup workGroup;
+    private final NioEventLoopGroup workGroup;
 
-	private final Bootstrap clientBoot;
+    private final Bootstrap clientBoot;
 
-	private final KeyPair keyPair;
+    private final KeyPair keyPair;
 
-	private int refCount;
+    private int refCount;
 
-	public Connector(final TransportConfig transportConfig) {
-		if (transportConfig.enableCrypt()) {
-			try {
-				this.keyPair = RsaCrypto.generateKeyPair();
-			} catch (Exception e) {
-				throw new RuntimeException(e);
-			}
-		} else {
-			this.keyPair = null;
-		}
+    public Connector(final TransportConfig transportConfig) {
+        if (transportConfig.enableCrypt()) {
+            try {
+                this.keyPair = RsaCrypto.generateKeyPair();
+            } catch (Exception e) {
+                throw new RuntimeException(e);
+            }
+        } else {
+            this.keyPair = null;
+        }
 
-		workGroup = new NioEventLoopGroup(transportConfig.getConnectPoolSize(), new DefaultThreadFactory("N4C-Work"));
-		clientBoot = new Bootstrap().group(workGroup).channel(NioSocketChannel.class);
-		clientBoot.option(ChannelOption.TCP_NODELAY, true);
-		clientBoot.option(ChannelOption.CONNECT_TIMEOUT_MILLIS, transportConfig.getConnectTimeout());
-		clientBoot.option(ChannelOption.SO_RCVBUF, 8 * 1024).option(ChannelOption.SO_SNDBUF, 8 * 1024);
-		clientBoot.handler(new ChannelInitializer<SocketChannel>() {
+        workGroup = new NioEventLoopGroup(transportConfig.getConnectPoolSize(), new DefaultThreadFactory("N4C-Work"));
+        clientBoot = new Bootstrap().group(workGroup).channel(NioSocketChannel.class);
+        clientBoot.option(ChannelOption.TCP_NODELAY, true);
+        clientBoot.option(ChannelOption.CONNECT_TIMEOUT_MILLIS, transportConfig.getConnectTimeout());
+        clientBoot.option(ChannelOption.SO_RCVBUF, 8 * 1024).option(ChannelOption.SO_SNDBUF, 8 * 1024);
+        clientBoot.handler(new ChannelInitializer<SocketChannel>() {
 
-			@Override
-			public void initChannel(SocketChannel ch) throws Exception {
-				ch.pipeline().addLast("TransportDecoder", new TransportDecoder());
-				ch.pipeline().addLast("TransportEncoder", new TransportEncoder());
+            @Override
+            public void initChannel(SocketChannel ch) throws Exception {
+                ch.pipeline().addLast("TransportDecoder", new TransportDecoder());
+                ch.pipeline().addLast("TransportEncoder", new TransportEncoder());
 
-				ch.pipeline().addLast("MessageDecoder", new MessageDecoder(CodecManager.getInstance()));
-				ch.pipeline().addLast("MessageEncoder", new MessageEncoder(CodecManager.getInstance()));
+                ch.pipeline().addLast("MessageDecoder", new MessageDecoder(CodecManager.getInstance()));
+                ch.pipeline().addLast("MessageEncoder", new MessageEncoder(CodecManager.getInstance()));
 
-				ch.pipeline().addLast("IdleStateHandler", new IdleStateHandler(60, 30, 0));
-				ch.pipeline().addLast("NettyClientHandler", new NettyClientHandler());
-			}
-		});
-	}
+                ch.pipeline().addLast("IdleStateHandler", new IdleStateHandler(60, 30, 0));
+                ch.pipeline().addLast("NettyClientHandler", new NettyClientHandler());
+            }
+        });
+    }
 
-	/**
-	*
-	*/
-	public void incrementRefCount() {
-		++refCount;
-	}
+    /**
+    *
+    */
+    public void incrementRefCount() {
+        ++refCount;
+    }
 
-	/**
-	*
-	*/
-	public void decrementRefCount() {
-		if (refCount > 0) {
-			--refCount;
-		}
-	}
+    /**
+    *
+    */
+    public void decrementRefCount() {
+        if (refCount > 0) {
+            --refCount;
+        }
+    }
 
-	/**
-	 * @return
-	 */
-	public boolean isZeroRefCount() {
-		return refCount == 0;
-	}
+    /**
+     * @return
+     */
+    public boolean isZeroRefCount() {
+        return refCount == 0;
+    }
 
-	public void dispose() {
-		if (workGroup != null) {
-			workGroup.shutdownGracefully();
-		}
-	}
+    public void dispose() {
+        if (workGroup != null) {
+            workGroup.shutdownGracefully();
+        }
+    }
 
-	public Session createSession(InetSocketAddress sa) throws Exception {
-		// connect to peer
-		ChannelFuture channelFuture = clientBoot.connect(sa).awaitUninterruptibly();
-		if (!channelFuture.isSuccess()) {
-			throw new RuntimeException(channelFuture.cause());
-		}
+    public Session createSession(InetSocketAddress sa) throws Exception {
+        // connect to peer
+        ChannelFuture channelFuture = clientBoot.connect(sa).awaitUninterruptibly();
+        if (!channelFuture.isSuccess()) {
+            throw new RuntimeException(channelFuture.cause());
+        }
 
-		Channel channel = channelFuture.channel();
-		// wait connection success
-		Future<Void> connectFuture = AttributeHelper.getConnectPromise(channel);
-		if (!connectFuture.await().isSuccess()) {
-			throw new RuntimeException(connectFuture.cause());
-		}
-		// create session
-		DefaultSession session = new DefaultSession(channel);
-		AttributeHelper.setSession(channel, session);
+        Channel channel = channelFuture.channel();
+        // wait connection success
+        Future<Void> connectFuture = AttributeHelper.getConnectPromise(channel);
+        if (!connectFuture.await().isSuccess()) {
+            throw new RuntimeException(connectFuture.cause());
+        }
+        // create session
+        DefaultSession session = new DefaultSession(channel);
+        AttributeHelper.setSession(channel, session);
 
-		LOG.debug("session connect {} to {}", channel.localAddress(), channel.remoteAddress());
-		return session;
-	}
+        LOG.debug("session connect {} to {}", channel.localAddress(), channel.remoteAddress());
+        return session;
+    }
 
-	public class NettyClientHandler extends ChannelInboundHandlerAdapter {
+    public class NettyClientHandler extends ChannelInboundHandlerAdapter {
 
-		private Heartbeat heartbeat = new Heartbeat(0);
+        private Heartbeat heartbeat = new Heartbeat(0);
 
-		@Override
-		public void userEventTriggered(ChannelHandlerContext ctx, Object evt) throws Exception {
-			if (evt instanceof IdleStateEvent) {
-				IdleStateEvent event = (IdleStateEvent) evt;
-				if (event.state() == IdleState.READER_IDLE) {
-					ctx.close();
-				} else if (event.state() == IdleState.WRITER_IDLE) {
-					heartbeat.increase();
-					ctx.writeAndFlush(heartbeat);
-				}
-			} else {
-				super.userEventTriggered(ctx, evt);
-			}
-		}
+        @Override
+        public void userEventTriggered(ChannelHandlerContext ctx, Object evt) throws Exception {
+            if (evt instanceof IdleStateEvent) {
+                IdleStateEvent event = (IdleStateEvent) evt;
+                if (event.state() == IdleState.READER_IDLE) {
+                    ctx.close();
+                } else if (event.state() == IdleState.WRITER_IDLE) {
+                    heartbeat.increase();
+                    ctx.writeAndFlush(heartbeat);
+                }
+            } else {
+                super.userEventTriggered(ctx, evt);
+            }
+        }
 
-		@Override
-		public void channelRegistered(ChannelHandlerContext ctx) throws Exception {
-			AttributeHelper.setConnectPromise(ctx.channel(), new DefaultPromise<Void>(GlobalEventExecutor.INSTANCE));
-		}
+        @Override
+        public void channelRegistered(ChannelHandlerContext ctx) throws Exception {
+            AttributeHelper.setConnectPromise(ctx.channel());
+        }
 
-		@Override
-		public void channelActive(ChannelHandlerContext ctx) throws Exception {
-			if (keyPair != null) {
-				byte[] saltBytes = AesCrypto.genAesSalt();
-				byte[] publicKey = keyPair.getPublic().getEncoded();
-				ctx.channel().writeAndFlush(new Agreement(ArrayUtil.concat(saltBytes, publicKey)));
-			} else {
-				AttributeHelper.getConnectPromise(ctx.channel()).trySuccess(null);
-			}
-		}
+        @Override
+        public void channelActive(ChannelHandlerContext ctx) throws Exception {
+            if (keyPair != null) {
+                byte[] saltBytes = AesCrypto.genAesSalt();
+                byte[] publicKey = keyPair.getPublic().getEncoded();
+                ctx.channel().writeAndFlush(new Agreement(ArrayUtil.concat(saltBytes, publicKey)));
+            } else {
+                AttributeHelper.getConnectPromise(ctx.channel()).trySuccess(null);
+            }
+        }
 
-		@Override
-		public void channelRead(ChannelHandlerContext ctx, Object msg) throws Exception {
-			LOG.info("client received message : {}", msg);
-			if (msg instanceof Agreement) {
-				byte[] encoded = keyPair.getPrivate().getEncoded();
-				byte[] aeskey = new PrivateKeyCipher(encoded).decrypt(((Agreement) msg).getData());
-				AttributeHelper.setCipher(ctx.channel(), new AesCrypto(aeskey));
+        @Override
+        public void channelRead(ChannelHandlerContext ctx, Object msg) throws Exception {
+            LOG.info("client received message : {}", msg);
+            if (msg instanceof Agreement) {
+                byte[] encoded = keyPair.getPrivate().getEncoded();
+                byte[] aeskey = new PrivateKeyCipher(encoded).decrypt(((Agreement) msg).getData());
+                AttributeHelper.setCipher(ctx.channel(), new AesCrypto(aeskey));
 
-				// ctx.pipeline().addAfter(baseName, name, handler);
+                AttributeHelper.getConnectPromise(ctx.channel()).trySuccess(null);
+            }
+        }
 
-				AttributeHelper.getConnectPromise(ctx.channel()).trySuccess(null);
-			}
-		}
+        @Override
+        public void channelInactive(ChannelHandlerContext ctx) throws Exception {
+            Promise<Void> connectPromise = AttributeHelper.getConnectPromise(ctx.channel());
+            if (!connectPromise.isDone()) {
+                connectPromise.tryFailure(new ConnectException("connection is closed"));
+            }
+        }
 
-		@Override
-		public void channelInactive(ChannelHandlerContext ctx) throws Exception {
-			Promise<Void> connectPromise = AttributeHelper.getConnectPromise(ctx.channel());
-			if (!connectPromise.isDone()) {
-				connectPromise.tryFailure(new ConnectException("connection is closed"));
-			}
-		}
+        @Override
+        public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) { // (4)
+            LOG.error("Unhandled Exception", cause);
+            ctx.close();
+        }
 
-		@Override
-		public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) { // (4)
-			LOG.error("Unhandled Exception", cause);
-			ctx.close();
-		}
-
-	}
+    }
 }

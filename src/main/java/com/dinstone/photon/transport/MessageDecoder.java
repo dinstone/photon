@@ -23,9 +23,8 @@ public class MessageDecoder extends MessageToMessageDecoder<Frame> {
 		if (msg.isZipped()) {
 			msg.dezip();
 		}
-		if (msg.isCrypto()) {
-			msg.decrypt(AttributeHelper.getCipher(ctx.channel()));
-		}
+		
+		msg.decrypt(AttributeHelper.getCipher(ctx.channel()));
 
 		MessageCodec<?> messageCodec = codecManager.find(msg.getCodec());
 		out.add(messageCodec.decode(msg.getDatas()));

@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package com.dinstone.photon.transport;
 
 import java.util.Properties;
@@ -21,119 +22,118 @@ import com.dinstone.photon.Configuration;
 
 public class TransportConfig extends Configuration {
 
-	/** max size */
-	private static final String MAX_SIZE = "rpc.max.size";
+    /** max size */
+    private static final String MAX_SIZE = "rpc.max.size";
 
-	/** serialize type */
-	private static final String SERIALIZE_TYPE = "rpc.serialize.type";
+    /** Connect Timeout */
+    private static final String CONNECT_TIMEOUT = "rpc.connect.timeout";
 
-	/** Connect Timeout */
-	private static final String CONNECT_TIMEOUT = "rpc.connect.timeout";
+    private static final String HEARTBEAT_INTERVAL_SECONDS = "heartbeat.interval.seconds";
 
-	private static final String HEARTBEAT_INTERVAL_SECONDS = "heartbeat.interval.seconds";
+    private static final String CONNECT_POOL_SIZE = "connect.pool.size";
 
-	private static final String CONNECT_POOL_SIZE = "connect.pool.size";
+    /** parallel count */
+    private static final String BUSINESS_PROCESSOR_COUNT = "business.processor.count";
 
-	/** parallel count */
-	private static final String BUSINESS_PROCESSOR_COUNT = "business.processor.count";
+    private static final String NIO_PROCESSOR_COUNT = "nio.processor.count";
 
-	private static final String NIO_PROCESSOR_COUNT = "nio.processor.count";
+    private static final String MAX_CONNECTION_COUNT = "max.connection.count";
 
-	private static final String MAX_CONNECTION_COUNT = "max.connection.count";
+    private static final String ENABLE_CRYPT = "enable.crypt";
 
-	public TransportConfig() {
-	}
+    public TransportConfig() {
+    }
 
-	public TransportConfig(Configuration config) {
-		super(config);
-	}
+    public TransportConfig(Configuration config) {
+        super(config);
+    }
 
-	public TransportConfig(String configLocation) {
-		super(configLocation);
-	}
+    public TransportConfig(String configLocation) {
+        super(configLocation);
+    }
 
-	public int getMaxSize() {
-		return getInt(MAX_SIZE, Integer.MAX_VALUE);
-	}
+    public int getMaxSize() {
+        return getInt(MAX_SIZE, Integer.MAX_VALUE);
+    }
 
-	public TransportConfig setMaxSize(int maxSize) {
-		setInt(MAX_SIZE, maxSize);
+    public TransportConfig setMaxSize(int maxSize) {
+        setInt(MAX_SIZE, maxSize);
 
-		return this;
-	}
+        return this;
+    }
 
-	public int getConnectTimeout() {
-		return getInt(CONNECT_TIMEOUT, 3000);
-	}
+    public int getConnectTimeout() {
+        return getInt(CONNECT_TIMEOUT, 3000);
+    }
 
-	public TransportConfig setConnectTimeout(int timeout) {
-		setInt(CONNECT_TIMEOUT, timeout);
+    public TransportConfig setConnectTimeout(int timeout) {
+        setInt(CONNECT_TIMEOUT, timeout);
 
-		return this;
-	}
+        return this;
+    }
 
-	public int getHeartbeatIntervalSeconds() {
-		return getInt(HEARTBEAT_INTERVAL_SECONDS, 60);
-	}
+    public int getHeartbeatIntervalSeconds() {
+        return getInt(HEARTBEAT_INTERVAL_SECONDS, 60);
+    }
 
-	public TransportConfig setHeartbeatIntervalSeconds(int interval) {
-		setInt(HEARTBEAT_INTERVAL_SECONDS, interval);
+    public TransportConfig setHeartbeatIntervalSeconds(int interval) {
+        setInt(HEARTBEAT_INTERVAL_SECONDS, interval);
 
-		return this;
-	}
+        return this;
+    }
 
-	public int getConnectPoolSize() {
-		return getInt(CONNECT_POOL_SIZE, 2);
-	}
+    public int getConnectPoolSize() {
+        return getInt(CONNECT_POOL_SIZE, 2);
+    }
 
-	public TransportConfig setConnectPoolSize(int size) {
-		if (size > 0) {
-			setInt(CONNECT_POOL_SIZE, size);
-		}
-		return this;
-	}
+    public TransportConfig setConnectPoolSize(int size) {
+        if (size > 0) {
+            setInt(CONNECT_POOL_SIZE, size);
+        }
+        return this;
+    }
 
-	public int getNioProcessorCount() {
-		return getInt(NIO_PROCESSOR_COUNT, Runtime.getRuntime().availableProcessors());
-	}
+    public int getNioProcessorCount() {
+        return getInt(NIO_PROCESSOR_COUNT, Runtime.getRuntime().availableProcessors());
+    }
 
-	public TransportConfig setNioProcessorCount(int count) {
-		if (count > 0) {
-			setInt(NIO_PROCESSOR_COUNT, count);
-		}
-		return this;
-	}
+    public TransportConfig setNioProcessorCount(int count) {
+        if (count > 0) {
+            setInt(NIO_PROCESSOR_COUNT, count);
+        }
+        return this;
+    }
 
-	public int getBusinessProcessorCount() {
-		return getInt(BUSINESS_PROCESSOR_COUNT, 0);
-	}
+    public int getBusinessProcessorCount() {
+        return getInt(BUSINESS_PROCESSOR_COUNT, 0);
+    }
 
-	public TransportConfig setBusinessProcessorCount(int count) {
-		setInt(BUSINESS_PROCESSOR_COUNT, count);
+    public TransportConfig setBusinessProcessorCount(int count) {
+        setInt(BUSINESS_PROCESSOR_COUNT, count);
 
-		return this;
-	}
+        return this;
+    }
 
-	public int getMaxConnectionCount() {
-		return getInt(MAX_CONNECTION_COUNT, 1000);
-	}
+    public int getMaxConnectionCount() {
+        return getInt(MAX_CONNECTION_COUNT, 1000);
+    }
 
-	public TransportConfig setMaxConnectionCount(int count) {
-		if (count > 0) {
-			setInt(MAX_CONNECTION_COUNT, count);
-		}
-		return this;
-	}
+    public TransportConfig setMaxConnectionCount(int count) {
+        if (count > 0) {
+            setInt(MAX_CONNECTION_COUNT, count);
+        }
+        return this;
+    }
 
-	@Override
-	public TransportConfig setProperties(Properties other) {
-		super.setProperties(other);
+    @Override
+    public TransportConfig setProperties(Properties other) {
+        super.setProperties(other);
 
-		return this;
-	}
+        return this;
+    }
 
-	public boolean enableCrypt() {
-		return true;
-	}
+    public boolean enableCrypt() {
+        return getBoolean(ENABLE_CRYPT, false);
+    }
 
 }
