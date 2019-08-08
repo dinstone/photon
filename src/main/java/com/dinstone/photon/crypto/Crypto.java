@@ -1,6 +1,6 @@
 package com.dinstone.photon.crypto;
 
-public interface Cipher {
+public interface Crypto {
 
 	public byte[] encrypt(byte[] bytes) throws Exception;
 

@@ -39,7 +39,7 @@ public class RsaCrypto {
 		return cipher;
 	}
 
-	public static class PublicKeyCipher implements com.dinstone.photon.crypto.Cipher {
+	public static class PublicKeyCipher implements com.dinstone.photon.crypto.Crypto {
 
 		private PublicKey publicKey;
 
@@ -63,7 +63,7 @@ public class RsaCrypto {
 
 	}
 
-	public static class PrivateKeyCipher implements com.dinstone.photon.crypto.Cipher {
+	public static class PrivateKeyCipher implements com.dinstone.photon.crypto.Crypto {
 
 		private PrivateKey privateKey;
 

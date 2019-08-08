@@ -5,7 +5,7 @@ import java.util.List;
 import com.dinstone.photon.AttributeHelper;
 import com.dinstone.photon.codec.CodecManager;
 import com.dinstone.photon.codec.MessageCodec;
-import com.dinstone.photon.crypto.Cipher;
+import com.dinstone.photon.crypto.Crypto;
 import com.dinstone.photon.protocol.Frame;
 
 import io.netty.channel.ChannelHandlerContext;
@@ -23,7 +23,7 @@ public class MessageEncoder extends MessageToMessageEncoder<Object> {
 	protected void encode(ChannelHandlerContext ctx, Object msg, List<Object> out) throws Exception {
 		MessageCodec<Object> messageCodec = (MessageCodec<Object>) codecManager.find(msg);
 		Frame frame = new Frame(messageCodec.getCodecId(), messageCodec.encode(msg));
-		Cipher cipher = AttributeHelper.getCipher(ctx.channel());
+		Crypto cipher = AttributeHelper.getCipher(ctx.channel());
 		if (cipher != null) {
 			frame.encrypt(cipher);
 		}

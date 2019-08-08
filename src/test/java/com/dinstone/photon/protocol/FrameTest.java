@@ -5,7 +5,7 @@ import static org.junit.Assert.assertArrayEquals;
 import org.junit.Test;
 
 import com.dinstone.photon.crypto.AesCrypto;
-import com.dinstone.photon.crypto.Cipher;
+import com.dinstone.photon.crypto.Crypto;
 
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.ByteBufAllocator;
@@ -85,7 +85,7 @@ public class FrameTest {
 			message[i] = 'a';
 		}
 
-		Cipher cipher = new AesCrypto(AesCrypto.genAesKey());
+		Crypto cipher = new AesCrypto(AesCrypto.genAesKey());
 		for (int j = 0; j < 10000; j++) {
 			ByteBuf out = ByteBufAllocator.DEFAULT.buffer(1200);
 			new Frame((byte) 1, message).encrypt(cipher).encode(out);
@@ -109,7 +109,7 @@ public class FrameTest {
 			message[i] = 'a';
 		}
 
-		Cipher cipher = new AesCrypto(AesCrypto.genAesKey());
+		Crypto cipher = new AesCrypto(AesCrypto.genAesKey());
 		for (int j = 0; j < 10000; j++) {
 			ByteBuf out = ByteBufAllocator.DEFAULT.buffer(1200);
 			new Frame((byte) 1, message).encrypt(cipher).enzip().encode(out);

@@ -21,7 +21,7 @@ import java.io.ByteArrayOutputStream;
 import java.util.zip.GZIPInputStream;
 import java.util.zip.GZIPOutputStream;
 
-import com.dinstone.photon.crypto.Cipher;
+import com.dinstone.photon.crypto.Crypto;
 
 import io.netty.buffer.ByteBuf;
 
@@ -77,16 +77,16 @@ public class Frame {
         return this;
     }
 
-    public Frame encrypt(Cipher cipher) throws Exception {
-        if (cipher != null && datas != null) {
-            datas = cipher.encrypt(datas);
+    public Frame encrypt(Crypto crypto) throws Exception {
+        if (crypto != null && datas != null) {
+            datas = crypto.encrypt(datas);
         }
         return this;
     }
 
-    public Frame decrypt(Cipher cipher) throws Exception {
-        if (cipher != null && datas != null) {
-            datas = cipher.decrypt(datas);
+    public Frame decrypt(Crypto crypto) throws Exception {
+        if (crypto != null && datas != null) {
+            datas = crypto.decrypt(datas);
         }
         return this;
     }
