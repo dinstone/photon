@@ -7,24 +7,23 @@ import io.netty.channel.Channel;
 
 public class SessionManager {
 
-	private static final SessionManager instance = new SessionManager();
+    private static final SessionManager instance = new SessionManager();
 
-	private Map<Channel, Session> sessionMap = new ConcurrentHashMap<>();
+    private Map<Channel, Session> sessionMap = new ConcurrentHashMap<>();
 
-	private SessionManager() {
-	}
+    private SessionManager() {
+    }
 
-	public static void addSession(Channel channel, Session session) {
-		instance.sessionMap.put(channel, session);
+    public static void addSession(Channel channel, Session session) {
+        instance.sessionMap.put(channel, session);
+    }
 
-	}
+    public static Session delSession(Channel channel) {
+        return instance.sessionMap.remove(channel);
+    }
 
-	public static void delSession(Channel channel) {
-		instance.sessionMap.remove(channel);
-	}
-
-	public static int sessionCount() {
-		return instance.sessionMap.size();
-	}
+    public static int sessionCount() {
+        return instance.sessionMap.size();
+    }
 
 }

@@ -18,7 +18,7 @@ public class DefaultSession implements Session {
 		this.code = NetworkInterfaceUtil.addressLabel(channel.remoteAddress(), channel.localAddress());
 	}
 
-	public Crypto getCipher() {
+	public Crypto getCrypto() {
 		return AttributeHelper.getCipher(channel);
 	}
 
