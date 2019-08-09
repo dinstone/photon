@@ -8,7 +8,7 @@ public interface Session {
 
 	boolean isActive();
 
-	Crypto getCipher();
+	Crypto getCrypto();
 
 	ChannelFuture write(Object msg);
 }
