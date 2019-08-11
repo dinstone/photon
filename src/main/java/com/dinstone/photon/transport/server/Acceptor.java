@@ -1,6 +1,8 @@
 package com.dinstone.photon.transport.server;
 
 import java.net.InetSocketAddress;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.TimeUnit;
 
@@ -8,17 +10,15 @@ import com.dinstone.loghub.Logger;
 import com.dinstone.loghub.LoggerFactory;
 import com.dinstone.photon.ArrayUtil;
 import com.dinstone.photon.AttributeHelper;
-import com.dinstone.photon.codec.CodecManager;
 import com.dinstone.photon.crypto.AesCrypto;
 import com.dinstone.photon.crypto.RsaCrypto;
 import com.dinstone.photon.crypto.RsaCrypto.PublicKeyCipher;
+import com.dinstone.photon.handler.MessageHandler;
+import com.dinstone.photon.message.Heartbeat;
 import com.dinstone.photon.protocol.Agreement;
-import com.dinstone.photon.protocol.Heartbeat;
 import com.dinstone.photon.session.DefaultSession;
 import com.dinstone.photon.session.Session;
 import com.dinstone.photon.session.SessionManager;
-import com.dinstone.photon.transport.MessageDecoder;
-import com.dinstone.photon.transport.MessageEncoder;
 import com.dinstone.photon.transport.TransportDecoder;
 import com.dinstone.photon.transport.TransportEncoder;
 
@@ -40,139 +40,166 @@ import io.netty.util.concurrent.DefaultThreadFactory;
 
 public class Acceptor {
 
-	private static final Logger LOG = LoggerFactory.getLogger(Acceptor.class);
+    private static final Logger LOG = LoggerFactory.getLogger(Acceptor.class);
 
-	private EventLoopGroup bossGroup;
+    private EventLoopGroup bossGroup;
 
-	private EventLoopGroup workGroup;
+    private EventLoopGroup workGroup;
 
-	private ExecutorService executorService;
+    private ExecutorService executorService;
 
-	public Acceptor bind() {
-		bossGroup = new NioEventLoopGroup(1, new DefaultThreadFactory("N4A-Boss"));
-		workGroup = new NioEventLoopGroup(0, new DefaultThreadFactory("N4A-Work"));
+    private Map<Class<?>, MessageHandler> handlers = new ConcurrentHashMap<>();
 
-		ServerBootstrap boot = new ServerBootstrap().group(bossGroup, workGroup);
-		boot.channel(NioServerSocketChannel.class).childHandler(new ChannelInitializer<SocketChannel>() {
+    public Acceptor() {
+        regist(Heartbeat.class, new MessageHandler() {
 
-			@Override
-			public void initChannel(SocketChannel ch) throws Exception {
-				ch.pipeline().addLast("TransportDecoder", new TransportDecoder());
-				ch.pipeline().addLast("TransportEncoder", new TransportEncoder());
+            @Override
+            public void handle(Session session, Object msg) {
+                if (msg instanceof Heartbeat) {
+                    session.write((Heartbeat) msg);
+                }
 
-				ch.pipeline().addLast("MessageDecoder", new MessageDecoder(CodecManager.getInstance()));
-				ch.pipeline().addLast("MessageEncoder", new MessageEncoder(CodecManager.getInstance()));
+            }
+        });
+    }
 
-				ch.pipeline().addLast("IdleStateHandler", new IdleStateHandler(60, 0, 0));
-				ch.pipeline().addLast("NettyServerHandler", new NettyServerHandler());
-			}
-		});
-		boot.option(ChannelOption.SO_REUSEADDR, true).option(ChannelOption.SO_BACKLOG, 128);
-		boot.childOption(ChannelOption.SO_RCVBUF, 4 * 1024).childOption(ChannelOption.SO_SNDBUF, 4 * 1024)
-				.childOption(ChannelOption.TCP_NODELAY, true);
+    public <T> void regist(Class<T> messageType, MessageHandler messageHandler) {
+        if (handlers.containsKey(messageType)) {
+            throw new IllegalStateException("Already a handler registered with type " + messageType);
+        }
+        handlers.put(messageType, messageHandler);
+    }
 
-		InetSocketAddress serviceAddress = new InetSocketAddress("127.0.0.1", 4444);
-		try {
-			boot.bind(serviceAddress).sync();
+    public Acceptor bind() {
+        bossGroup = new NioEventLoopGroup(1, new DefaultThreadFactory("N4A-Boss"));
+        workGroup = new NioEventLoopGroup(0, new DefaultThreadFactory("N4A-Work"));
 
-			// int processorCount = transportConfig.getBusinessProcessorCount();
-			// if (processorCount > 0) {
-			// NamedThreadFactory threadFactory = new
-			// NamedThreadFactory("N4A-BusinessProcessor");
-			// executorService = Executors.newFixedThreadPool(processorCount,
-			// threadFactory);
-			// }
-		} catch (Exception e) {
-			throw new RuntimeException("can't bind service on " + serviceAddress, e);
-		}
-		LOG.info("netty acceptance bind on {}", serviceAddress);
+        ServerBootstrap boot = new ServerBootstrap().group(bossGroup, workGroup);
+        boot.channel(NioServerSocketChannel.class).childHandler(new ChannelInitializer<SocketChannel>() {
 
-		return this;
-	}
+            @Override
+            public void initChannel(SocketChannel ch) throws Exception {
+                ch.pipeline().addLast("TransportDecoder", new TransportDecoder());
+                ch.pipeline().addLast("TransportEncoder", new TransportEncoder());
 
-	public void destroy() {
-		if (workGroup != null) {
-			workGroup.shutdownGracefully();
-		}
-		if (bossGroup != null) {
-			bossGroup.shutdownGracefully();
-		}
+                // ch.pipeline().addLast("MessageDecoder", new
+                // MessageDecoder(CodecManager.getInstance()));
+                // ch.pipeline().addLast("MessageEncoder", new
+                // MessageEncoder(CodecManager.getInstance()));
 
-		if (executorService != null) {
-			executorService.shutdownNow();
-			try {
-				executorService.awaitTermination(Integer.MAX_VALUE, TimeUnit.SECONDS);
-			} catch (InterruptedException e) {
-			}
-		}
-	}
+                ch.pipeline().addLast("IdleStateHandler", new IdleStateHandler(60, 0, 0));
+                ch.pipeline().addLast("NettyServerHandler", new ServerHandler());
+            }
+        });
+        boot.option(ChannelOption.SO_REUSEADDR, true).option(ChannelOption.SO_BACKLOG, 128);
+        boot.childOption(ChannelOption.SO_RCVBUF, 4 * 1024).childOption(ChannelOption.SO_SNDBUF, 4 * 1024)
+                .childOption(ChannelOption.TCP_NODELAY, true);
 
-	private class NettyServerHandler extends ChannelInboundHandlerAdapter {
+        InetSocketAddress serviceAddress = new InetSocketAddress("127.0.0.1", 4444);
+        try {
+            boot.bind(serviceAddress).sync();
 
-		private final int maxConnectionCount = 4;
+            // int processorCount = transportConfig.getBusinessProcessorCount();
+            // if (processorCount > 0) {
+            // NamedThreadFactory threadFactory = new
+            // NamedThreadFactory("N4A-BusinessProcessor");
+            // executorService = Executors.newFixedThreadPool(processorCount,
+            // threadFactory);
+            // }
+        } catch (Exception e) {
+            throw new RuntimeException("can't bind service on " + serviceAddress, e);
+        }
+        LOG.info("netty acceptance bind on {}", serviceAddress);
 
-		@Override
-		public void userEventTriggered(ChannelHandlerContext ctx, Object evt) throws Exception {
-			if (evt instanceof IdleStateEvent) {
-				IdleStateEvent event = (IdleStateEvent) evt;
-				if (event.state() == IdleState.READER_IDLE) {
-					ctx.close();
-				}
-			} else {
-				super.userEventTriggered(ctx, evt);
-			}
-		}
+        return this;
+    }
 
-		@Override
-		public void channelActive(ChannelHandlerContext ctx) throws Exception {
-			int currentConnectioncount = SessionManager.sessionCount();
-			if (currentConnectioncount >= maxConnectionCount) {
-				ctx.close();
-				LOG.warn("connection count is too big: limit={},current={}", maxConnectionCount,
-						currentConnectioncount);
-			} else {
-				Session session = new DefaultSession(ctx.channel());
-				SessionManager.addSession(ctx.channel(), session);
-				AttributeHelper.setSession(ctx.channel(), session);
-			}
-		}
+    public void destroy() {
+        if (workGroup != null) {
+            workGroup.shutdownGracefully();
+        }
+        if (bossGroup != null) {
+            bossGroup.shutdownGracefully();
+        }
 
-		@Override
-		public void channelInactive(ChannelHandlerContext ctx) throws Exception {
-			SessionManager.delSession(ctx.channel());
+        if (executorService != null) {
+            executorService.shutdownNow();
+            try {
+                executorService.awaitTermination(Integer.MAX_VALUE, TimeUnit.SECONDS);
+            } catch (InterruptedException e) {
+            }
+        }
+    }
 
-			super.channelInactive(ctx);
-		}
+    private class ServerHandler extends ChannelInboundHandlerAdapter {
 
-		@Override
-		public void channelRead(final ChannelHandlerContext ctx, final Object msg) throws Exception {
+        private final int maxConnectionCount = 4;
 
-			LOG.info("server received message : {}", msg);
+        @Override
+        public void userEventTriggered(ChannelHandlerContext ctx, Object evt) throws Exception {
+            if (evt instanceof IdleStateEvent) {
+                IdleStateEvent event = (IdleStateEvent) evt;
+                if (event.state() == IdleState.READER_IDLE) {
+                    ctx.close();
+                }
+            } else {
+                super.userEventTriggered(ctx, evt);
+            }
+        }
 
-			if (msg instanceof Heartbeat) {
-				ctx.writeAndFlush(msg);
-			} else if (msg instanceof Agreement) {
-				byte[] data = ((Agreement) msg).getData();
-				final byte[] aesKey = ArrayUtil.concat(ArrayUtil.copy(data, 0, 8), AesCrypto.genAesSalt());
-				PublicKeyCipher rsaCipher = new RsaCrypto.PublicKeyCipher(ArrayUtil.copy(data, 8, data.length - 8));
-				ctx.writeAndFlush(new Agreement(rsaCipher.encrypt(aesKey))).addListener(new ChannelFutureListener() {
+        @Override
+        public void channelActive(ChannelHandlerContext ctx) throws Exception {
+            int currentConnectioncount = SessionManager.sessionCount();
+            if (currentConnectioncount >= maxConnectionCount) {
+                ctx.close();
+                LOG.warn("connection count is too big: limit={},current={}", maxConnectionCount,
+                        currentConnectioncount);
+            } else {
+                Session session = new DefaultSession(ctx.channel());
+                SessionManager.addSession(ctx.channel(), session);
+                AttributeHelper.setSession(ctx.channel(), session);
+            }
+        }
 
-					@Override
-					public void operationComplete(ChannelFuture future) throws Exception {
-						if (future.isSuccess()) {
-							AttributeHelper.setCipher(ctx.channel(), new AesCrypto(aesKey));
-						}
-					}
+        @Override
+        public void channelInactive(ChannelHandlerContext ctx) throws Exception {
+            SessionManager.delSession(ctx.channel());
 
-				});
-			}
+            super.channelInactive(ctx);
+        }
 
-		}
+        @Override
+        public void channelRead(final ChannelHandlerContext ctx, final Object msg) throws Exception {
 
-		@Override
-		public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) {
-			LOG.error("untreated exception", cause);
-			ctx.close();
-		}
-	}
+            LOG.info("server received message : {}", msg);
+
+            MessageHandler messageHandler = handlers.get(msg.getClass());
+            if (messageHandler != null) {
+                messageHandler.handle(AttributeHelper.getSession(ctx.channel()), msg);
+            }
+
+            if (msg instanceof Agreement) {
+                byte[] data = ((Agreement) msg).getData();
+                final byte[] aesKey = ArrayUtil.concat(ArrayUtil.copy(data, 0, 8), AesCrypto.genAesSalt());
+                PublicKeyCipher rsaCipher = new RsaCrypto.PublicKeyCipher(ArrayUtil.copy(data, 8, data.length - 8));
+                ctx.writeAndFlush(new Agreement(rsaCipher.encrypt(aesKey))).addListener(new ChannelFutureListener() {
+
+                    @Override
+                    public void operationComplete(ChannelFuture future) throws Exception {
+                        if (future.isSuccess()) {
+                            AttributeHelper.setCipher(ctx.channel(), new AesCrypto(aesKey));
+                        }
+                    }
+
+                });
+            }
+
+        }
+
+        @Override
+        public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) {
+            LOG.error("untreated exception", cause);
+            ctx.close();
+        }
+    }
 }

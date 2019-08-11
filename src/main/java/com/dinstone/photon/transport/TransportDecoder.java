@@ -17,7 +17,9 @@ package com.dinstone.photon.transport;
 
 import java.util.List;
 
-import com.dinstone.photon.protocol.Frame;
+import com.dinstone.photon.codec.CodecManager;
+import com.dinstone.photon.codec.MessageCodec;
+import com.dinstone.photon.message.MessageType;
 
 import io.netty.buffer.ByteBuf;
 import io.netty.channel.ChannelHandlerContext;
@@ -25,37 +27,44 @@ import io.netty.handler.codec.ByteToMessageDecoder;
 
 public class TransportDecoder extends ByteToMessageDecoder {
 
-	/** 2GB */
-	private int maxSize = Integer.MAX_VALUE;
+    /** 2GB */
+    private int maxSize = Integer.MAX_VALUE;
 
-	public TransportDecoder() {
-	}
+    public TransportDecoder() {
+    }
 
-	public TransportDecoder(int maxSize) {
-		if (maxSize <= 0) {
-			throw new IllegalArgumentException("maxSize: " + maxSize);
-		}
-		this.maxSize = maxSize;
-	}
+    public TransportDecoder(int maxSize) {
+        if (maxSize <= 0) {
+            throw new IllegalArgumentException("maxSize: " + maxSize);
+        }
+        this.maxSize = maxSize;
+    }
 
-	@Override
-	protected void decode(ChannelHandlerContext ctx, ByteBuf in, List<Object> out) throws Exception {
-		if (in.readableBytes() > 4) {
-			in.markReaderIndex();
-			int len = in.readInt();
-			if (len > maxSize) {
-				throw new IllegalStateException("The encoded data is too big: " + len + " (> " + maxSize + ")");
-			} else if (len < 1) {
-				throw new IllegalStateException("The encoded data is too small: " + len + " (<1)");
-			}
+    @Override
+    protected void decode(ChannelHandlerContext ctx, ByteBuf in, List<Object> out) throws Exception {
+        if (in.readableBytes() > 4) {
+            in.markReaderIndex();
+            int length = in.readInt();
+            if (length > maxSize) {
+                throw new IllegalStateException("The encoded data is too big: " + length + " (> " + maxSize + ")");
+            } else if (length < 1) {
+                throw new IllegalStateException("The encoded data is too small: " + length + " (<1)");
+            }
 
-			if (in.readableBytes() < len) {
-				in.resetReaderIndex();
-				return;
-			}
+            if (in.readableBytes() < length) {
+                in.resetReaderIndex();
+                return;
+            }
 
-			out.add(new Frame().decode(in.resetReaderIndex()));
-		}
-	}
+            MessageType messageType = MessageType.valueOf(in.readByte());
+            MessageCodec<Object> codec = CodecManager.find(messageType);
+            if (codec != null) {
+                out.add(codec.decode(in));
+            } else {
+                throw new IllegalStateException("can't find message codec for " + messageType);
+            }
+
+        }
+    }
 
 }

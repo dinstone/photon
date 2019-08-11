@@ -15,35 +15,47 @@
  */
 package com.dinstone.photon.transport;
 
-import com.dinstone.photon.protocol.Frame;
+import com.dinstone.photon.codec.CodecManager;
+import com.dinstone.photon.codec.MessageCodec;
+import com.dinstone.photon.message.Message;
+import com.dinstone.photon.message.MessageType;
 
 import io.netty.buffer.ByteBuf;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.handler.codec.MessageToByteEncoder;
 
-public class TransportEncoder extends MessageToByteEncoder<Frame> {
+public class TransportEncoder extends MessageToByteEncoder<Message> {
 
-	/** 2GB */
-	private int maxSize = Integer.MAX_VALUE;
+    /** 2GB */
+    private int maxSize = Integer.MAX_VALUE;
 
-	public TransportEncoder() {
-	}
+    public TransportEncoder() {
+    }
 
-	public TransportEncoder(int maxSize) {
-		if (maxSize <= 0) {
-			throw new IllegalArgumentException("maxSize: " + maxSize);
-		}
-		this.maxSize = maxSize;
-	}
+    public TransportEncoder(int maxSize) {
+        if (maxSize <= 0) {
+            throw new IllegalArgumentException("maxSize: " + maxSize);
+        }
+        this.maxSize = maxSize;
+    }
 
-	@Override
-	protected void encode(ChannelHandlerContext ctx, Frame frame, ByteBuf out) throws Exception {
-		int length = frame.getDatas().length - 4;
-		if (length > maxSize) {
-			throw new IllegalArgumentException("The encoded data is too big: " + length + " (>" + maxSize + ")");
-		}
+    @Override
+    protected void encode(ChannelHandlerContext ctx, Message message, ByteBuf out) throws Exception {
+        MessageType messageType = message.getMessageType();
+        MessageCodec<Object> codec = CodecManager.find(messageType);
+        if (codec != null) {
+            ByteBuf buf = codec.encode(message);
+            int length = buf.readableBytes();
+            if (length > maxSize) {
+                throw new IllegalArgumentException("The encoded data is too big: " + length + " (>" + maxSize + ")");
+            }
+            out.writeInt(length);
+            out.writeByte(messageType.getValue());
+            out.writeBytes(buf);
+        } else {
+            throw new IllegalStateException("can't find message codec for " + messageType);
+        }
 
-		frame.encode(out);
-	}
+    }
 
 }

@@ -1,11 +1,11 @@
 package com.dinstone.photon.codec;
 
+import io.netty.buffer.ByteBuf;
+
 public interface MessageCodec<M> {
 
-	byte getCodecId();
+    M decode(ByteBuf in);
 
-	M decode(byte[] datas);
-
-	byte[] encode(M message);
+    ByteBuf encode(M message);
 
 }

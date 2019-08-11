@@ -3,40 +3,31 @@ package com.dinstone.photon.codec;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
-import com.dinstone.photon.protocol.Agreement;
-import com.dinstone.photon.protocol.Heartbeat;
+import com.dinstone.photon.message.MessageType;
 
 public class CodecManager {
 
-	private static final CodecManager instance = new CodecManager();
-	private Map<Byte, MessageCodec<?>> codecIdMap = new ConcurrentHashMap<>();
-	private Map<Class<?>, MessageCodec<?>> codecTypeMap = new ConcurrentHashMap<>();
+    private static final CodecManager instance = new CodecManager();
 
-	private CodecManager() {
-		regist(Heartbeat.class, new HeatbeatCodec());
-		regist(Agreement.class, new AgreementCodec());
-	}
+    private Map<MessageType, MessageCodec<?>> codecTypeMap = new ConcurrentHashMap<>();
 
-	public <T> void regist(Class<T> clazz, MessageCodec<T> codec) {
-		if (codecIdMap.containsKey(codec.getCodecId())) {
-			throw new IllegalStateException("Already a codec registered for id " + codec.getCodecId());
-		}
-		if (codecTypeMap.containsKey(clazz)) {
-			throw new IllegalStateException("Already a codec registered with class " + clazz);
-		}
-		codecIdMap.put(codec.getCodecId(), codec);
-		codecTypeMap.put(clazz, codec);
-	}
+    private CodecManager() {
+        regist(MessageType.HEARTBEAT, new HeatbeatCodec());
+        regist(MessageType.REQUEST, new RequestCodec());
+        regist(MessageType.RESPONSE, new ResponseCodec());
+        regist(MessageType.NOTICE, new NoticeCodec());
+    }
 
-	public MessageCodec<?> find(byte codecId) {
-		return codecIdMap.get(codecId);
-	}
+    public static <T> void regist(MessageType messageType, MessageCodec<T> codec) {
+        if (instance.codecTypeMap.containsKey(messageType)) {
+            throw new IllegalStateException("Already a codec registered with type " + messageType);
+        }
+        instance.codecTypeMap.put(messageType, codec);
+    }
 
-	public <T> MessageCodec<T> find(T message) {
-		return (MessageCodec<T>) codecTypeMap.get(message.getClass());
-	}
+    @SuppressWarnings("unchecked")
+    public static <T> MessageCodec<T> find(MessageType message) {
+        return (MessageCodec<T>) instance.codecTypeMap.get(message);
+    }
 
-	public static CodecManager getInstance() {
-		return instance;
-	}
 }
