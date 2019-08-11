@@ -11,9 +11,6 @@ import com.dinstone.photon.serialization.SerializerType;
 import com.dinstone.photon.session.Session;
 import com.dinstone.photon.transport.TransportConfig;
 
-import io.netty.channel.ChannelFuture;
-import io.netty.channel.ChannelFutureListener;
-
 public class ConnectorTest {
     private static final Logger LOG = LoggerFactory.getLogger(ConnectorTest.class);
 
@@ -38,16 +35,9 @@ public class ConnectorTest {
         request.setSerializerType(SerializerType.JACKSON);
         request.setTimeout(10000);
         request.setContent("Hello World".getBytes());
-        ChannelFuture cf = session.write(request);
-        cf.addListener(new ChannelFutureListener() {
 
-            @Override
-            public void operationComplete(ChannelFuture future) throws Exception {
-                if (future.isDone()) {
-                    future.channel();
-                }
-            }
-        });
+        Response response = session.sync(request);
+        LOG.info("response is {}", response.getContent());
 
         System.in.read();
 

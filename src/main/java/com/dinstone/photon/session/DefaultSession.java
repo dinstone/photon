@@ -1,14 +1,30 @@
 package com.dinstone.photon.session;
 
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
+
+import com.dinstone.loghub.Logger;
+import com.dinstone.loghub.LoggerFactory;
 import com.dinstone.photon.AttributeHelper;
 import com.dinstone.photon.crypto.Crypto;
 import com.dinstone.photon.message.Message;
+import com.dinstone.photon.message.Notice;
+import com.dinstone.photon.message.Request;
+import com.dinstone.photon.message.Response;
+import com.dinstone.photon.message.Status;
 import com.dinstone.photon.transport.NetworkInterfaceUtil;
 
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelFuture;
+import io.netty.util.concurrent.GenericFutureListener;
 
 public class DefaultSession implements Session {
+
+    private static final Logger LOG = LoggerFactory.getLogger(DefaultSession.class);
+
+    private Map<Integer, ResponseFuture> futures = new ConcurrentHashMap<Integer, ResponseFuture>();
 
     private String code;
 
@@ -31,6 +47,47 @@ public class DefaultSession implements Session {
     @Override
     public boolean isActive() {
         return channel.isActive();
+    }
+
+    @Override
+    public void oneway(Notice notice) {
+        ChannelFuture cf = channel.writeAndFlush(notice);
+        cf.addListener(new GenericFutureListener<ChannelFuture>() {
+
+            @Override
+            public void operationComplete(ChannelFuture future) throws Exception {
+                if (!future.isSuccess()) {
+                    LOG.warn("send notice error", future.cause());
+                }
+            }
+
+        });
+    }
+
+    @Override
+    public Response sync(final Request request) throws InterruptedException, TimeoutException {
+        final ResponseFuture responseFuture = new ResponseFuture();
+        futures.put(request.getMessageId(), responseFuture);
+
+        ChannelFuture cf = channel.writeAndFlush(request);
+        cf.addListener(new GenericFutureListener<ChannelFuture>() {
+
+            @Override
+            public void operationComplete(ChannelFuture future) throws Exception {
+                if (!future.isSuccess()) {
+                    Response result = new Response();
+                    result.setMessageId(request.getMessageId());
+                    result.setStatus(Status.ERROR);
+                    responseFuture.setResult(result);
+
+                    futures.remove(request.getMessageId());
+                    
+                    LOG.warn("send request error", future.cause());
+                }
+            }
+
+        });
+        return responseFuture.get(request.getTimeout(), TimeUnit.MILLISECONDS);
     }
 
 }
