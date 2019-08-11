@@ -38,8 +38,8 @@ public class AttributeHelper {
         channel.attr(AttributeHelper.SESSION_KEY).set(session);
     }
 
-    public static void getSession(Channel channel) {
-        channel.attr(AttributeHelper.SESSION_KEY).get();
+    public static Session getSession(Channel channel) {
+        return channel.attr(AttributeHelper.SESSION_KEY).get();
     }
 
 }

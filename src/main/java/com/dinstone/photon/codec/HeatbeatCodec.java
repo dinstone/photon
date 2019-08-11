@@ -1,24 +1,30 @@
 package com.dinstone.photon.codec;
 
-import java.nio.ByteBuffer;
+import com.dinstone.photon.message.Heartbeat;
 
-import com.dinstone.photon.protocol.Heartbeat;
+import io.netty.buffer.ByteBuf;
+import io.netty.buffer.ByteBufAllocator;
 
 public class HeatbeatCodec implements MessageCodec<Heartbeat> {
 
-	@Override
-	public byte getCodecId() {
-		return 0;
-	}
+    private static final byte VERSION = 1;
 
-	@Override
-	public Heartbeat decode(byte[] datas) {
-		return new Heartbeat(ByteBuffer.wrap(datas).getInt());
-	}
+    @Override
+    public Heartbeat decode(ByteBuf in) {
+        byte version = in.readByte();
+        if (VERSION != version) {
+            throw new IllegalStateException("Invalid wire version " + version + " should be <= " + VERSION);
+        }
+        int messageId = in.readInt();
+        return new Heartbeat(messageId);
+    }
 
-	@Override
-	public byte[] encode(Heartbeat message) {
-		return ByteBuffer.allocate(4).putInt(message.getTick()).array();
-	}
+    @Override
+    public ByteBuf encode(Heartbeat message) {
+        ByteBuf out = ByteBufAllocator.DEFAULT.buffer(5);
+        out.writeByte(message.getMessageVersion());
+        out.writeInt(message.getMessageId());
+        return out;
+    }
 
 }

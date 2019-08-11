@@ -19,21 +19,21 @@ package com.dinstone.photon.transport.client;
 import java.net.ConnectException;
 import java.net.InetSocketAddress;
 import java.security.KeyPair;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
 import com.dinstone.loghub.Logger;
 import com.dinstone.loghub.LoggerFactory;
 import com.dinstone.photon.ArrayUtil;
 import com.dinstone.photon.AttributeHelper;
-import com.dinstone.photon.codec.CodecManager;
 import com.dinstone.photon.crypto.AesCrypto;
 import com.dinstone.photon.crypto.RsaCrypto;
 import com.dinstone.photon.crypto.RsaCrypto.PrivateKeyCipher;
+import com.dinstone.photon.handler.MessageHandler;
+import com.dinstone.photon.message.Heartbeat;
 import com.dinstone.photon.protocol.Agreement;
-import com.dinstone.photon.protocol.Heartbeat;
 import com.dinstone.photon.session.DefaultSession;
 import com.dinstone.photon.session.Session;
-import com.dinstone.photon.transport.MessageDecoder;
-import com.dinstone.photon.transport.MessageEncoder;
 import com.dinstone.photon.transport.TransportConfig;
 import com.dinstone.photon.transport.TransportDecoder;
 import com.dinstone.photon.transport.TransportEncoder;
@@ -67,6 +67,8 @@ public class Connector {
 
     private int refCount;
 
+    private Map<Class<?>, MessageHandler> handlers = new ConcurrentHashMap<>();
+
     public Connector(final TransportConfig transportConfig) {
         if (transportConfig.enableCrypt()) {
             try {
@@ -90,13 +92,17 @@ public class Connector {
                 ch.pipeline().addLast("TransportDecoder", new TransportDecoder());
                 ch.pipeline().addLast("TransportEncoder", new TransportEncoder());
 
-                ch.pipeline().addLast("MessageDecoder", new MessageDecoder(CodecManager.getInstance()));
-                ch.pipeline().addLast("MessageEncoder", new MessageEncoder(CodecManager.getInstance()));
-
                 ch.pipeline().addLast("IdleStateHandler", new IdleStateHandler(60, 30, 0));
-                ch.pipeline().addLast("NettyClientHandler", new NettyClientHandler());
+                ch.pipeline().addLast("ClientHandler", new ClientHandler());
             }
         });
+    }
+
+    public <T> void regist(Class<T> messageType, MessageHandler messageHandler) {
+        if (handlers.containsKey(messageType)) {
+            throw new IllegalStateException("Already a handler registered with type " + messageType);
+        }
+        handlers.put(messageType, messageHandler);
     }
 
     /**
@@ -149,7 +155,7 @@ public class Connector {
         return session;
     }
 
-    public class NettyClientHandler extends ChannelInboundHandlerAdapter {
+    public class ClientHandler extends ChannelInboundHandlerAdapter {
 
         private Heartbeat heartbeat = new Heartbeat(0);
 
@@ -160,7 +166,6 @@ public class Connector {
                 if (event.state() == IdleState.READER_IDLE) {
                     ctx.close();
                 } else if (event.state() == IdleState.WRITER_IDLE) {
-                    heartbeat.increase();
                     ctx.writeAndFlush(heartbeat);
                 }
             } else {
@@ -187,6 +192,12 @@ public class Connector {
         @Override
         public void channelRead(ChannelHandlerContext ctx, Object msg) throws Exception {
             LOG.info("client received message : {}", msg);
+
+            MessageHandler messageHandler = handlers.get(msg.getClass());
+            if (messageHandler != null) {
+                messageHandler.handle(AttributeHelper.getSession(ctx.channel()), msg);
+            }
+
             if (msg instanceof Agreement) {
                 byte[] encoded = keyPair.getPrivate().getEncoded();
                 byte[] aeskey = new PrivateKeyCipher(encoded).decrypt(((Agreement) msg).getData());
