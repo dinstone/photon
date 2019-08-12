@@ -14,7 +14,9 @@ import com.dinstone.photon.crypto.AesCrypto;
 import com.dinstone.photon.crypto.RsaCrypto;
 import com.dinstone.photon.crypto.RsaCrypto.PublicKeyCipher;
 import com.dinstone.photon.handler.MessageHandler;
+import com.dinstone.photon.handler.ResponseHandler;
 import com.dinstone.photon.message.Heartbeat;
+import com.dinstone.photon.message.Response;
 import com.dinstone.photon.protocol.Agreement;
 import com.dinstone.photon.session.DefaultSession;
 import com.dinstone.photon.session.Session;
@@ -51,6 +53,7 @@ public class Acceptor {
     private Map<Class<?>, MessageHandler> handlers = new ConcurrentHashMap<>();
 
     public Acceptor() {
+        regist(Response.class, new ResponseHandler());
         regist(Heartbeat.class, new MessageHandler() {
 
             @Override

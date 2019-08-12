@@ -6,7 +6,7 @@ import com.dinstone.photon.serialization.SerializerType;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.ByteBufAllocator;
 
-public class RequestCodec extends AbstractMessageCodec<Request> {
+public class RequestCodec extends AbstractCodec<Request> {
 
     private static final byte VERSION = 1;
 

@@ -3,7 +3,7 @@ package com.dinstone.photon.codec;
 import io.netty.buffer.ByteBuf;
 import io.netty.util.CharsetUtil;
 
-public abstract class AbstractMessageCodec<M> implements MessageCodec<M> {
+public abstract class AbstractCodec<M> implements MessageCodec<M> {
 
     protected void writeString(ByteBuf buff, String str) {
         byte[] strBytes = str.getBytes(CharsetUtil.UTF_8);

@@ -4,7 +4,6 @@ import java.net.InetSocketAddress;
 
 import com.dinstone.loghub.Logger;
 import com.dinstone.loghub.LoggerFactory;
-import com.dinstone.photon.handler.MessageHandler;
 import com.dinstone.photon.message.Request;
 import com.dinstone.photon.message.Response;
 import com.dinstone.photon.serialization.SerializerType;
@@ -16,16 +15,6 @@ public class ConnectorTest {
 
     public static void main(String[] args) throws Throwable {
         Connector connector = new Connector(new TransportConfig());
-        connector.regist(Response.class, new MessageHandler() {
-
-            @Override
-            public void handle(Session session, Object msg) {
-                if (msg instanceof Response) {
-                    Response response = (Response) msg;
-                    LOG.info("response stauts is {}", response.getStatus());
-                }
-            }
-        });
 
         Session session = connector.createSession(new InetSocketAddress("127.0.0.1", 4444));
         LOG.info("channel active is {}", session.isActive());

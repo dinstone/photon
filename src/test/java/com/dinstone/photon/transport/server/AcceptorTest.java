@@ -18,11 +18,13 @@ public class AcceptorTest {
             public void handle(Session session, Object msg) {
                 if (msg instanceof Request) {
                     Request request = (Request) msg;
+                    
                     Response response = new Response();
                     response.setMessageId(request.getMessageId());
                     response.setSerializerType(request.getSerializerType());
                     response.setStatus(Status.SUCCESS);
                     response.setContent(new byte[] { 32 });
+                    
                     session.write(response);
                 }
             }

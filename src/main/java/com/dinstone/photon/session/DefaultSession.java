@@ -14,7 +14,6 @@ import com.dinstone.photon.message.Notice;
 import com.dinstone.photon.message.Request;
 import com.dinstone.photon.message.Response;
 import com.dinstone.photon.message.Status;
-import com.dinstone.photon.transport.NetworkInterfaceUtil;
 
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelFuture;
@@ -26,17 +25,22 @@ public class DefaultSession implements Session {
 
     private Map<Integer, ResponseFuture> futures = new ConcurrentHashMap<Integer, ResponseFuture>();
 
-    private String code;
+    private String sessionId;
 
     private Channel channel;
 
     public DefaultSession(Channel channel) {
         this.channel = channel;
-        this.code = NetworkInterfaceUtil.addressLabel(channel.remoteAddress(), channel.localAddress());
+        this.sessionId = channel.id().asLongText();
     }
 
     public Crypto getCrypto() {
         return AttributeHelper.getCipher(channel);
+    }
+
+    @Override
+    public String sessionId() {
+        return sessionId;
     }
 
     @Override
@@ -66,8 +70,8 @@ public class DefaultSession implements Session {
 
     @Override
     public Response sync(final Request request) throws InterruptedException, TimeoutException {
-        final ResponseFuture responseFuture = new ResponseFuture();
-        futures.put(request.getMessageId(), responseFuture);
+        final ResponseFuture responseFuture = new ResponseFuture(request.getMessageId());
+        addFuture(responseFuture);
 
         ChannelFuture cf = channel.writeAndFlush(request);
         cf.addListener(new GenericFutureListener<ChannelFuture>() {
@@ -80,14 +84,23 @@ public class DefaultSession implements Session {
                     result.setStatus(Status.ERROR);
                     responseFuture.setResult(result);
 
-                    futures.remove(request.getMessageId());
-                    
+                    removeFuture(request.getMessageId());
                     LOG.warn("send request error", future.cause());
                 }
             }
 
         });
         return responseFuture.get(request.getTimeout(), TimeUnit.MILLISECONDS);
+    }
+
+    @Override
+    public ResponseFuture removeFuture(int messageId) {
+        return futures.remove(messageId);
+    }
+
+    @Override
+    public void addFuture(ResponseFuture future) {
+        futures.put(future.getFutureId(), future);
     }
 
 }

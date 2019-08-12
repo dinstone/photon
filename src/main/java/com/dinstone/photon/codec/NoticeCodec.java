@@ -6,7 +6,7 @@ import com.dinstone.photon.serialization.SerializerType;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.ByteBufAllocator;
 
-public class NoticeCodec extends AbstractMessageCodec<Notice> {
+public class NoticeCodec extends AbstractCodec<Notice> {
 
     private static final byte VERSION = 1;
 

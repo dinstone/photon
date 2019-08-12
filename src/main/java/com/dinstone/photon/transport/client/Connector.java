@@ -30,7 +30,9 @@ import com.dinstone.photon.crypto.AesCrypto;
 import com.dinstone.photon.crypto.RsaCrypto;
 import com.dinstone.photon.crypto.RsaCrypto.PrivateKeyCipher;
 import com.dinstone.photon.handler.MessageHandler;
+import com.dinstone.photon.handler.ResponseHandler;
 import com.dinstone.photon.message.Heartbeat;
+import com.dinstone.photon.message.Response;
 import com.dinstone.photon.protocol.Agreement;
 import com.dinstone.photon.session.DefaultSession;
 import com.dinstone.photon.session.Session;
@@ -70,6 +72,8 @@ public class Connector {
     private Map<Class<?>, MessageHandler> handlers = new ConcurrentHashMap<>();
 
     public Connector(final TransportConfig transportConfig) {
+        regist(Response.class, new ResponseHandler());
+        
         if (transportConfig.enableCrypt()) {
             try {
                 this.keyPair = RsaCrypto.generateKeyPair();

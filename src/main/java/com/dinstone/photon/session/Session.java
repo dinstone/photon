@@ -9,16 +9,20 @@ import com.dinstone.photon.message.Response;
 import io.netty.channel.ChannelFuture;
 
 public interface Session {
+    
+    String sessionId();
 
     boolean isActive();
 
     Crypto getCrypto();
 
-    ChannelFuture write(Message msg);
-
     void oneway(Notice notice);
+
+    ChannelFuture write(Message msg);
 
     Response sync(Request request) throws Exception;
 
-    ResponseFuture remove(int messageId);
+    ResponseFuture removeFuture(int messageId);
+
+    void addFuture(ResponseFuture future);
 }
