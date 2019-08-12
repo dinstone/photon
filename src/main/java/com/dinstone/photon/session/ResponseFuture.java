@@ -36,13 +36,19 @@ public class ResponseFuture {
 
     private boolean done;
 
+    private int futureId;
+
     private Response response;
 
     /**
      *
      */
-    public ResponseFuture() {
-        super();
+    public ResponseFuture(int futureId) {
+        this.futureId = futureId;
+    }
+
+    public int getFutureId() {
+        return futureId;
     }
 
     public Response get() throws InterruptedException {
