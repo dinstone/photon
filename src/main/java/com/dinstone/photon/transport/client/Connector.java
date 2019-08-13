@@ -24,16 +24,12 @@ import java.util.concurrent.ConcurrentHashMap;
 
 import com.dinstone.loghub.Logger;
 import com.dinstone.loghub.LoggerFactory;
-import com.dinstone.photon.ArrayUtil;
 import com.dinstone.photon.AttributeHelper;
-import com.dinstone.photon.crypto.AesCrypto;
 import com.dinstone.photon.crypto.RsaCrypto;
-import com.dinstone.photon.crypto.RsaCrypto.PrivateKeyCipher;
 import com.dinstone.photon.handler.MessageHandler;
 import com.dinstone.photon.handler.ResponseHandler;
 import com.dinstone.photon.message.Heartbeat;
 import com.dinstone.photon.message.Response;
-import com.dinstone.photon.protocol.Agreement;
 import com.dinstone.photon.session.DefaultSession;
 import com.dinstone.photon.session.Session;
 import com.dinstone.photon.transport.TransportConfig;
@@ -73,7 +69,7 @@ public class Connector {
 
     public Connector(final TransportConfig transportConfig) {
         regist(Response.class, new ResponseHandler());
-        
+
         if (transportConfig.enableCrypt()) {
             try {
                 this.keyPair = RsaCrypto.generateKeyPair();
@@ -185,9 +181,9 @@ public class Connector {
         @Override
         public void channelActive(ChannelHandlerContext ctx) throws Exception {
             if (keyPair != null) {
-                byte[] saltBytes = AesCrypto.genAesSalt();
-                byte[] publicKey = keyPair.getPublic().getEncoded();
-                ctx.channel().writeAndFlush(new Agreement(ArrayUtil.concat(saltBytes, publicKey)));
+//                byte[] saltBytes = AesCrypto.genAesSalt();
+//                byte[] publicKey = keyPair.getPublic().getEncoded();
+//                ctx.channel().writeAndFlush(new Agreement(ArrayUtil.concat(saltBytes, publicKey)));
             } else {
                 AttributeHelper.getConnectPromise(ctx.channel()).trySuccess(null);
             }
@@ -202,13 +198,13 @@ public class Connector {
                 messageHandler.handle(AttributeHelper.getSession(ctx.channel()), msg);
             }
 
-            if (msg instanceof Agreement) {
-                byte[] encoded = keyPair.getPrivate().getEncoded();
-                byte[] aeskey = new PrivateKeyCipher(encoded).decrypt(((Agreement) msg).getData());
-                AttributeHelper.setCipher(ctx.channel(), new AesCrypto(aeskey));
-
-                AttributeHelper.getConnectPromise(ctx.channel()).trySuccess(null);
-            }
+//            if (msg instanceof Agreement) {
+//                byte[] encoded = keyPair.getPrivate().getEncoded();
+//                byte[] aeskey = new PrivateKeyCipher(encoded).decrypt(((Agreement) msg).getData());
+//                AttributeHelper.setCipher(ctx.channel(), new AesCrypto(aeskey));
+//
+//                AttributeHelper.getConnectPromise(ctx.channel()).trySuccess(null);
+//            }
         }
 
         @Override

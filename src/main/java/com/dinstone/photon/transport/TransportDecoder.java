@@ -19,7 +19,7 @@ import java.util.List;
 
 import com.dinstone.photon.codec.CodecManager;
 import com.dinstone.photon.codec.MessageCodec;
-import com.dinstone.photon.message.MessageType;
+import com.dinstone.photon.message.Message;
 
 import io.netty.buffer.ByteBuf;
 import io.netty.channel.ChannelHandlerContext;
@@ -56,7 +56,7 @@ public class TransportDecoder extends ByteToMessageDecoder {
                 return;
             }
 
-            MessageType messageType = MessageType.valueOf(in.readByte());
+            Message.Type messageType = Message.Type.valueOf(in.readByte());
             MessageCodec<Object> codec = CodecManager.find(messageType);
             if (codec != null) {
                 out.add(codec.decode(in));

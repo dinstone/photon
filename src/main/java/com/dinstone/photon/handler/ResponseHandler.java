@@ -10,7 +10,7 @@ public class ResponseHandler implements MessageHandler {
     public void handle(Session session, Object msg) {
         if (msg instanceof Response) {
             Response response = (Response) msg;
-            ResponseFuture future = session.removeFuture(response.getMessageId());
+            ResponseFuture future = session.removeFuture(response.getId());
             if (future != null) {
                 future.setResult(response);
             }

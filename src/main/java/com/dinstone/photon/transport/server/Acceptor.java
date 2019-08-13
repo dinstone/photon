@@ -8,16 +8,11 @@ import java.util.concurrent.TimeUnit;
 
 import com.dinstone.loghub.Logger;
 import com.dinstone.loghub.LoggerFactory;
-import com.dinstone.photon.ArrayUtil;
 import com.dinstone.photon.AttributeHelper;
-import com.dinstone.photon.crypto.AesCrypto;
-import com.dinstone.photon.crypto.RsaCrypto;
-import com.dinstone.photon.crypto.RsaCrypto.PublicKeyCipher;
 import com.dinstone.photon.handler.MessageHandler;
 import com.dinstone.photon.handler.ResponseHandler;
 import com.dinstone.photon.message.Heartbeat;
 import com.dinstone.photon.message.Response;
-import com.dinstone.photon.protocol.Agreement;
 import com.dinstone.photon.session.DefaultSession;
 import com.dinstone.photon.session.Session;
 import com.dinstone.photon.session.SessionManager;
@@ -25,8 +20,6 @@ import com.dinstone.photon.transport.TransportDecoder;
 import com.dinstone.photon.transport.TransportEncoder;
 
 import io.netty.bootstrap.ServerBootstrap;
-import io.netty.channel.ChannelFuture;
-import io.netty.channel.ChannelFutureListener;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelInboundHandlerAdapter;
 import io.netty.channel.ChannelInitializer;
@@ -181,21 +174,21 @@ public class Acceptor {
                 messageHandler.handle(AttributeHelper.getSession(ctx.channel()), msg);
             }
 
-            if (msg instanceof Agreement) {
-                byte[] data = ((Agreement) msg).getData();
-                final byte[] aesKey = ArrayUtil.concat(ArrayUtil.copy(data, 0, 8), AesCrypto.genAesSalt());
-                PublicKeyCipher rsaCipher = new RsaCrypto.PublicKeyCipher(ArrayUtil.copy(data, 8, data.length - 8));
-                ctx.writeAndFlush(new Agreement(rsaCipher.encrypt(aesKey))).addListener(new ChannelFutureListener() {
-
-                    @Override
-                    public void operationComplete(ChannelFuture future) throws Exception {
-                        if (future.isSuccess()) {
-                            AttributeHelper.setCipher(ctx.channel(), new AesCrypto(aesKey));
-                        }
-                    }
-
-                });
-            }
+//            if (msg instanceof Agreement) {
+//                byte[] data = ((Agreement) msg).getData();
+//                final byte[] aesKey = ArrayUtil.concat(ArrayUtil.copy(data, 0, 8), AesCrypto.genAesSalt());
+//                PublicKeyCipher rsaCipher = new RsaCrypto.PublicKeyCipher(ArrayUtil.copy(data, 8, data.length - 8));
+//                ctx.writeAndFlush(new Agreement(rsaCipher.encrypt(aesKey))).addListener(new ChannelFutureListener() {
+//
+//                    @Override
+//                    public void operationComplete(ChannelFuture future) throws Exception {
+//                        if (future.isSuccess()) {
+//                            AttributeHelper.setCipher(ctx.channel(), new AesCrypto(aesKey));
+//                        }
+//                    }
+//
+//                });
+//            }
 
         }
 

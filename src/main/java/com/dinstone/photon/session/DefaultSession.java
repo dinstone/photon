@@ -70,7 +70,7 @@ public class DefaultSession implements Session {
 
     @Override
     public Response sync(final Request request) throws InterruptedException, TimeoutException {
-        final ResponseFuture responseFuture = new ResponseFuture(request.getMessageId());
+        final ResponseFuture responseFuture = new ResponseFuture(request.getId());
         addFuture(responseFuture);
 
         ChannelFuture cf = channel.writeAndFlush(request);
@@ -80,11 +80,11 @@ public class DefaultSession implements Session {
             public void operationComplete(ChannelFuture future) throws Exception {
                 if (!future.isSuccess()) {
                     Response result = new Response();
-                    result.setMessageId(request.getMessageId());
+                    result.setId(request.getId());
                     result.setStatus(Status.ERROR);
                     responseFuture.setResult(result);
 
-                    removeFuture(request.getMessageId());
+                    removeFuture(request.getId());
                     LOG.warn("send request error", future.cause());
                 }
             }

@@ -1,10 +1,10 @@
 package com.dinstone.photon.message;
 
-public class Heartbeat extends AbstractMessage {
+public class Heartbeat extends ControlMessage {
 
     public Heartbeat(int messageId) {
-        super(MessageType.HEARTBEAT);
-        setMessageId(messageId);
+        super(Type.HEARTBEAT);
+        setId(messageId);
     }
 
 }

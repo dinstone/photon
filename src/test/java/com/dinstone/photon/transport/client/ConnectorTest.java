@@ -6,7 +6,6 @@ import com.dinstone.loghub.Logger;
 import com.dinstone.loghub.LoggerFactory;
 import com.dinstone.photon.message.Request;
 import com.dinstone.photon.message.Response;
-import com.dinstone.photon.serialization.SerializerType;
 import com.dinstone.photon.session.Session;
 import com.dinstone.photon.transport.TransportConfig;
 
@@ -20,8 +19,7 @@ public class ConnectorTest {
         LOG.info("channel active is {}", session.isActive());
 
         Request request = new Request();
-        request.setMessageId(1);
-        request.setSerializerType(SerializerType.JACKSON);
+        request.setId(1);
         request.setTimeout(10000);
         request.setContent("Hello World".getBytes());
 

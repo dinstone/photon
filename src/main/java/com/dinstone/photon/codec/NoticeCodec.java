@@ -1,7 +1,6 @@
 package com.dinstone.photon.codec;
 
 import com.dinstone.photon.message.Notice;
-import com.dinstone.photon.serialization.SerializerType;
 
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.ByteBufAllocator;
@@ -14,21 +13,19 @@ public class NoticeCodec extends AbstractCodec<Notice> {
     public Notice decode(ByteBuf in) {
         byte version = in.readByte();
         if (VERSION != version) {
-            throw new IllegalStateException("Invalid wire version " + version + " should be <= " + VERSION);
+            throw new IllegalStateException("invalid message version " + version + " should be <= " + VERSION);
         }
         Notice notice = new Notice();
         // message id
-        notice.setMessageId(in.readInt());
-        // serializer type
-        notice.setSerializerType(SerializerType.valueOf(in.readByte()));
+        notice.setId(in.readInt());
         // address
         String address = readString(in);
         notice.setAddress(address);
 
         // headers
-
+        notice.setHeaders(readHeaders(in));
         // content
-        byte[] content = readBytes(in);
+        byte[] content = readContent(in);
         notice.setContent(content);
 
         return notice;
@@ -37,16 +34,14 @@ public class NoticeCodec extends AbstractCodec<Notice> {
     @Override
     public ByteBuf encode(Notice message) {
         ByteBuf out = ByteBufAllocator.DEFAULT.buffer(32);
-        out.writeByte(message.getMessageVersion());
-        out.writeInt(message.getMessageId());
-        out.writeByte(message.getSerializerType().getValue());
+        out.writeByte(message.getVersion());
+        out.writeInt(message.getId());
         writeString(out, message.getAddress());
 
         // headers
-
+        writeHeaders(out, message.getHeaders());
         // content
-        byte[] content = (byte[]) message.getContent();
-        writeBytes(out, content);
+        writeContent(out, message.getContent());
 
         return out;
     }

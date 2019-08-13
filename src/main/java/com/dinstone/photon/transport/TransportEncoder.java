@@ -18,7 +18,6 @@ package com.dinstone.photon.transport;
 import com.dinstone.photon.codec.CodecManager;
 import com.dinstone.photon.codec.MessageCodec;
 import com.dinstone.photon.message.Message;
-import com.dinstone.photon.message.MessageType;
 
 import io.netty.buffer.ByteBuf;
 import io.netty.channel.ChannelHandlerContext;
@@ -41,7 +40,7 @@ public class TransportEncoder extends MessageToByteEncoder<Message> {
 
     @Override
     protected void encode(ChannelHandlerContext ctx, Message message, ByteBuf out) throws Exception {
-        MessageType messageType = message.getMessageType();
+        Message.Type messageType = message.getType();
         MessageCodec<Object> codec = CodecManager.find(messageType);
         if (codec != null) {
             ByteBuf buf = codec.encode(message);

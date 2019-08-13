@@ -13,7 +13,7 @@ public class HeatbeatCodec implements MessageCodec<Heartbeat> {
     public Heartbeat decode(ByteBuf in) {
         byte version = in.readByte();
         if (VERSION != version) {
-            throw new IllegalStateException("Invalid wire version " + version + " should be <= " + VERSION);
+            throw new IllegalStateException("invalid message version " + version + " should be <= " + VERSION);
         }
         int messageId = in.readInt();
         return new Heartbeat(messageId);
@@ -22,8 +22,8 @@ public class HeatbeatCodec implements MessageCodec<Heartbeat> {
     @Override
     public ByteBuf encode(Heartbeat message) {
         ByteBuf out = ByteBufAllocator.DEFAULT.buffer(5);
-        out.writeByte(message.getMessageVersion());
-        out.writeInt(message.getMessageId());
+        out.writeByte(message.getVersion());
+        out.writeInt(message.getId());
         return out;
     }
 
