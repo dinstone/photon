@@ -1,18 +1,11 @@
 package com.dinstone.photon.message;
 
-import com.dinstone.photon.serialization.SerializerType;
-
-public class Response extends AbstractMessage {
+public class Response extends ExchangeMessage {
 
     private Status status;
 
     public Response() {
-        super(MessageType.RESPONSE);
-    }
-
-    public Response(SerializerType serializerType, int messageId, HeaderMap header, Object content, Status status) {
-        super(MessageType.RESPONSE, serializerType, messageId, header, content);
-        this.status = status;
+        super(Type.RESPONSE);
     }
 
     public Status getStatus() {

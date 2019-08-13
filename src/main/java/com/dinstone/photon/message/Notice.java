@@ -1,18 +1,11 @@
 package com.dinstone.photon.message;
 
-import com.dinstone.photon.serialization.SerializerType;
-
-public class Notice extends AbstractMessage {
+public class Notice extends ExchangeMessage {
 
     private String address;
 
     public Notice() {
-        super(MessageType.NOTICE);
-    }
-
-    public Notice(SerializerType serializerType, int messageId, HeaderMap header, Object content, String address) {
-        super(MessageType.NOTICE, serializerType, messageId, header, content);
-        this.address = address;
+        super(Type.NOTICE);
     }
 
     public String getAddress() {

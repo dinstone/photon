@@ -1,7 +1,6 @@
 package com.dinstone.photon.codec;
 
 import com.dinstone.photon.message.Request;
-import com.dinstone.photon.serialization.SerializerType;
 
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.ByteBufAllocator;
@@ -14,19 +13,18 @@ public class RequestCodec extends AbstractCodec<Request> {
     public Request decode(ByteBuf in) {
         byte version = in.readByte();
         if (VERSION != version) {
-            throw new IllegalStateException("Invalid wire version " + version + " should be <= " + VERSION);
+            throw new IllegalStateException("invalid message version " + version + " should be <= " + VERSION);
         }
         Request request = new Request();
         // message id
-        request.setMessageId(in.readInt());
-        // serializer type
-        request.setSerializerType(SerializerType.valueOf(in.readByte()));
+        request.setId(in.readInt());
         // timout
         request.setTimeout(in.readInt());
         // headers
+        request.setHeaders(readHeaders(in));
 
         // content
-        byte[] content = readBytes(in);
+        byte[] content = readContent(in);
         request.setContent(content);
 
         return request;
@@ -35,16 +33,14 @@ public class RequestCodec extends AbstractCodec<Request> {
     @Override
     public ByteBuf encode(Request message) {
         ByteBuf out = ByteBufAllocator.DEFAULT.buffer(32);
-        out.writeByte(message.getMessageVersion());
-        out.writeInt(message.getMessageId());
-        out.writeByte(message.getSerializerType().getValue());
+        out.writeByte(message.getVersion());
+        out.writeInt(message.getId());
         out.writeInt(message.getTimeout());
 
         // headers
-
+        writeHeaders(out, message.getHeaders());
         // content
-        byte[] content = (byte[]) message.getContent();
-        writeBytes(out, content);
+        writeContent(out, message.getContent());
 
         return out;
     }

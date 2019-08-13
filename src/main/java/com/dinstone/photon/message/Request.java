@@ -1,11 +1,11 @@
 package com.dinstone.photon.message;
 
-public class Request extends AbstractMessage {
+public class Request extends ExchangeMessage {
 
     private int timeout;
 
     public Request() {
-        super(MessageType.REQUEST);
+        super(Type.REQUEST);
     }
 
     public int getTimeout() {
