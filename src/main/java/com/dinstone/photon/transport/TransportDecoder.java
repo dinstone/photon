@@ -17,9 +17,7 @@ package com.dinstone.photon.transport;
 
 import java.util.List;
 
-import com.dinstone.photon.codec.CodecManager;
-import com.dinstone.photon.codec.MessageCodec;
-import com.dinstone.photon.message.Message;
+import com.dinstone.photon.codec.AbstractCodec;
 
 import io.netty.buffer.ByteBuf;
 import io.netty.channel.ChannelHandlerContext;
@@ -50,20 +48,12 @@ public class TransportDecoder extends ByteToMessageDecoder {
             } else if (length < 1) {
                 throw new IllegalStateException("The encoded data is too small: " + length + " (<1)");
             }
-
             if (in.readableBytes() < length) {
                 in.resetReaderIndex();
                 return;
             }
 
-            Message.Type messageType = Message.Type.valueOf(in.readByte());
-            MessageCodec<Object> codec = CodecManager.find(messageType);
-            if (codec != null) {
-                out.add(codec.decode(in));
-            } else {
-                throw new IllegalStateException("can't find message codec for " + messageType);
-            }
-
+            out.add(AbstractCodec.decodeMessage(in));
         }
     }
 

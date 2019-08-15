@@ -1,7 +1,6 @@
 package com.dinstone.photon.handler;
 
-import com.dinstone.photon.session.Session;
+public interface MessageHandler<T> {
 
-public interface MessageHandler {
-    public void handle(final Session session, Object msg);
+    public void handle(final MessageContext context, T msg);
 }
