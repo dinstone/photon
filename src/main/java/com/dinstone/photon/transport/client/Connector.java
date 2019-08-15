@@ -26,10 +26,17 @@ import com.dinstone.loghub.Logger;
 import com.dinstone.loghub.LoggerFactory;
 import com.dinstone.photon.AttributeHelper;
 import com.dinstone.photon.crypto.RsaCrypto;
+import com.dinstone.photon.handler.HeartbeatHandler;
+import com.dinstone.photon.handler.MessageContext;
 import com.dinstone.photon.handler.MessageHandler;
+import com.dinstone.photon.handler.NoticeHandler;
+import com.dinstone.photon.handler.RequestHandler;
 import com.dinstone.photon.handler.ResponseHandler;
 import com.dinstone.photon.message.Heartbeat;
+import com.dinstone.photon.message.Notice;
+import com.dinstone.photon.message.Request;
 import com.dinstone.photon.message.Response;
+import com.dinstone.photon.processor.MessageProcessor;
 import com.dinstone.photon.session.DefaultSession;
 import com.dinstone.photon.session.Session;
 import com.dinstone.photon.transport.TransportConfig;
@@ -65,10 +72,15 @@ public class Connector {
 
     private int refCount;
 
+    private MessageProcessor messageProcessor;
+
     private Map<Class<?>, MessageHandler> handlers = new ConcurrentHashMap<>();
 
     public Connector(final TransportConfig transportConfig) {
+        regist(Request.class, new RequestHandler());
         regist(Response.class, new ResponseHandler());
+        regist(Notice.class, new NoticeHandler());
+        regist(Heartbeat.class, new HeartbeatHandler());
 
         if (transportConfig.enableCrypt()) {
             try {
@@ -98,11 +110,15 @@ public class Connector {
         });
     }
 
-    public <T> void regist(Class<T> messageType, MessageHandler messageHandler) {
+    public <T> void regist(Class<T> messageType, MessageHandler<T> messageHandler) {
         if (handlers.containsKey(messageType)) {
             throw new IllegalStateException("Already a handler registered with type " + messageType);
         }
         handlers.put(messageType, messageHandler);
+    }
+
+    public void setMessageProcessor(MessageProcessor messageProcessor) {
+        this.messageProcessor = messageProcessor;
     }
 
     /**
@@ -157,7 +173,7 @@ public class Connector {
 
     public class ClientHandler extends ChannelInboundHandlerAdapter {
 
-        private Heartbeat heartbeat = new Heartbeat(0);
+        private Heartbeat heartbeat = new Heartbeat(0, true);
 
         @Override
         public void userEventTriggered(ChannelHandlerContext ctx, Object evt) throws Exception {
@@ -193,9 +209,9 @@ public class Connector {
         public void channelRead(ChannelHandlerContext ctx, Object msg) throws Exception {
             LOG.info("client received message : {}", msg);
 
-            MessageHandler messageHandler = handlers.get(msg.getClass());
+            MessageHandler<Object> messageHandler = (MessageHandler<Object>) handlers.get(msg.getClass());
             if (messageHandler != null) {
-                messageHandler.handle(AttributeHelper.getSession(ctx.channel()), msg);
+                messageHandler.handle(new MessageContext(ctx, messageProcessor), msg);
             }
 
 //            if (msg instanceof Agreement) {

@@ -1,5 +1,7 @@
 package com.dinstone.photon.codec;
 
+import com.dinstone.photon.message.Message;
+import com.dinstone.photon.message.Message.Type;
 import com.dinstone.photon.message.Notice;
 
 import io.netty.buffer.ByteBuf;
@@ -11,10 +13,12 @@ public class NoticeCodec extends AbstractCodec<Notice> {
 
     @Override
     public Notice decode(ByteBuf in) {
+        Type type = Message.Type.valueOf(in.readByte());
         byte version = in.readByte();
         if (VERSION != version) {
-            throw new IllegalStateException("invalid message version " + version + " should be <= " + VERSION);
+            throw new IllegalArgumentException("invalid message version " + version + " for " + type);
         }
+        
         Notice notice = new Notice();
         // message id
         notice.setId(in.readInt());
@@ -34,6 +38,7 @@ public class NoticeCodec extends AbstractCodec<Notice> {
     @Override
     public ByteBuf encode(Notice message) {
         ByteBuf out = ByteBufAllocator.DEFAULT.buffer(32);
+        out.writeByte(message.getType().getValue());
         out.writeByte(message.getVersion());
         out.writeInt(message.getId());
         writeString(out, message.getAddress());

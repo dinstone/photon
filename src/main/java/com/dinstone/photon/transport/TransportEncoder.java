@@ -15,8 +15,7 @@
  */
 package com.dinstone.photon.transport;
 
-import com.dinstone.photon.codec.CodecManager;
-import com.dinstone.photon.codec.MessageCodec;
+import com.dinstone.photon.codec.AbstractCodec;
 import com.dinstone.photon.message.Message;
 
 import io.netty.buffer.ByteBuf;
@@ -40,21 +39,13 @@ public class TransportEncoder extends MessageToByteEncoder<Message> {
 
     @Override
     protected void encode(ChannelHandlerContext ctx, Message message, ByteBuf out) throws Exception {
-        Message.Type messageType = message.getType();
-        MessageCodec<Object> codec = CodecManager.find(messageType);
-        if (codec != null) {
-            ByteBuf buf = codec.encode(message);
-            int length = buf.readableBytes();
-            if (length > maxSize) {
-                throw new IllegalArgumentException("The encoded data is too big: " + length + " (>" + maxSize + ")");
-            }
-            out.writeInt(length);
-            out.writeByte(messageType.getValue());
-            out.writeBytes(buf);
-        } else {
-            throw new IllegalStateException("can't find message codec for " + messageType);
+        ByteBuf buffer = AbstractCodec.encodeMessage(message);
+        int length = buffer.readableBytes();
+        if (length > maxSize) {
+            throw new IllegalArgumentException("The encoded data is too big: " + length + " (>" + maxSize + ")");
         }
-
+        out.writeInt(length);
+        out.writeBytes(buffer);
     }
 
 }

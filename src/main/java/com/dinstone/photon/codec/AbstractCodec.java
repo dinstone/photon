@@ -3,6 +3,7 @@ package com.dinstone.photon.codec;
 import java.util.Map.Entry;
 
 import com.dinstone.photon.message.Headers;
+import com.dinstone.photon.message.Message;
 
 import io.netty.buffer.ByteBuf;
 import io.netty.util.CharsetUtil;
@@ -51,7 +52,7 @@ public abstract class AbstractCodec<M> implements MessageCodec<M> {
             }
             return headers;
         }
-    
+
         return null;
     }
 
@@ -65,6 +66,27 @@ public abstract class AbstractCodec<M> implements MessageCodec<M> {
                 writeString(out, element.getKey());
                 writeString(out, element.getValue());
             }
+        }
+    }
+
+    public static ByteBuf encodeMessage(Message message) {
+        MessageCodec<Message> codec = CodecManager.find(message.getType());
+        if (codec != null) {
+            return codec.encode(message);
+        } else {
+            throw new IllegalStateException("can't find message codec for " + message.getType());
+        }
+    }
+
+    public static Message decodeMessage(ByteBuf in) {
+        in.markReaderIndex();
+        Message.Type messageType = Message.Type.valueOf(in.readByte());
+        MessageCodec<Message> codec = CodecManager.find(messageType);
+        if (codec != null) {
+            in.resetReaderIndex();
+            return codec.decode(in);
+        } else {
+            throw new IllegalStateException("can't find message codec for " + messageType);
         }
     }
 }

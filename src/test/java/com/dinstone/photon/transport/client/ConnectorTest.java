@@ -4,8 +4,11 @@ import java.net.InetSocketAddress;
 
 import com.dinstone.loghub.Logger;
 import com.dinstone.loghub.LoggerFactory;
+import com.dinstone.photon.handler.MessageContext;
+import com.dinstone.photon.message.Notice;
 import com.dinstone.photon.message.Request;
 import com.dinstone.photon.message.Response;
+import com.dinstone.photon.processor.MessageProcessor;
 import com.dinstone.photon.session.Session;
 import com.dinstone.photon.transport.TransportConfig;
 
@@ -14,6 +17,18 @@ public class ConnectorTest {
 
     public static void main(String[] args) throws Throwable {
         Connector connector = new Connector(new TransportConfig());
+        connector.setMessageProcessor(new MessageProcessor() {
+
+            @Override
+            public void process(MessageContext context, Notice notice) {
+                LOG.info("notice is {}", notice.getContent());
+            }
+
+            @Override
+            public void process(MessageContext context, Request request) {
+                LOG.info("response is {}", request.getContent());
+            }
+        });
 
         Session session = connector.createSession(new InetSocketAddress("127.0.0.1", 4444));
         LOG.info("channel active is {}", session.isActive());

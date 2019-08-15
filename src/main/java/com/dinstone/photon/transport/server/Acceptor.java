@@ -9,10 +9,17 @@ import java.util.concurrent.TimeUnit;
 import com.dinstone.loghub.Logger;
 import com.dinstone.loghub.LoggerFactory;
 import com.dinstone.photon.AttributeHelper;
+import com.dinstone.photon.handler.HeartbeatHandler;
+import com.dinstone.photon.handler.MessageContext;
 import com.dinstone.photon.handler.MessageHandler;
+import com.dinstone.photon.handler.NoticeHandler;
+import com.dinstone.photon.handler.RequestHandler;
 import com.dinstone.photon.handler.ResponseHandler;
 import com.dinstone.photon.message.Heartbeat;
+import com.dinstone.photon.message.Notice;
+import com.dinstone.photon.message.Request;
 import com.dinstone.photon.message.Response;
+import com.dinstone.photon.processor.MessageProcessor;
 import com.dinstone.photon.session.DefaultSession;
 import com.dinstone.photon.session.Session;
 import com.dinstone.photon.session.SessionManager;
@@ -43,27 +50,26 @@ public class Acceptor {
 
     private ExecutorService executorService;
 
-    private Map<Class<?>, MessageHandler> handlers = new ConcurrentHashMap<>();
+    private MessageProcessor messageProcessor;
+
+    private Map<Class<?>, MessageHandler<?>> handlers = new ConcurrentHashMap<>();
 
     public Acceptor() {
+        regist(Request.class, new RequestHandler());
         regist(Response.class, new ResponseHandler());
-        regist(Heartbeat.class, new MessageHandler() {
-
-            @Override
-            public void handle(Session session, Object msg) {
-                if (msg instanceof Heartbeat) {
-                    session.write((Heartbeat) msg);
-                }
-
-            }
-        });
+        regist(Notice.class, new NoticeHandler());
+        regist(Heartbeat.class, new HeartbeatHandler());
     }
 
-    public <T> void regist(Class<T> messageType, MessageHandler messageHandler) {
+    private <T> void regist(Class<T> messageType, MessageHandler<T> messageHandler) {
         if (handlers.containsKey(messageType)) {
             throw new IllegalStateException("Already a handler registered with type " + messageType);
         }
         handlers.put(messageType, messageHandler);
+    }
+
+    public void setMessageProcessor(MessageProcessor messageProcessor) {
+        this.messageProcessor = messageProcessor;
     }
 
     public Acceptor bind() {
@@ -78,13 +84,8 @@ public class Acceptor {
                 ch.pipeline().addLast("TransportDecoder", new TransportDecoder());
                 ch.pipeline().addLast("TransportEncoder", new TransportEncoder());
 
-                // ch.pipeline().addLast("MessageDecoder", new
-                // MessageDecoder(CodecManager.getInstance()));
-                // ch.pipeline().addLast("MessageEncoder", new
-                // MessageEncoder(CodecManager.getInstance()));
-
                 ch.pipeline().addLast("IdleStateHandler", new IdleStateHandler(60, 0, 0));
-                ch.pipeline().addLast("NettyServerHandler", new ServerHandler());
+                ch.pipeline().addLast("ServerHandler", new ServerHandler());
             }
         });
         boot.option(ChannelOption.SO_REUSEADDR, true).option(ChannelOption.SO_BACKLOG, 128);
@@ -166,12 +167,11 @@ public class Acceptor {
 
         @Override
         public void channelRead(final ChannelHandlerContext ctx, final Object msg) throws Exception {
-
             LOG.info("server received message : {}", msg);
 
-            MessageHandler messageHandler = handlers.get(msg.getClass());
+            MessageHandler<Object> messageHandler = (MessageHandler<Object>) handlers.get(msg.getClass());
             if (messageHandler != null) {
-                messageHandler.handle(AttributeHelper.getSession(ctx.channel()), msg);
+                messageHandler.handle(new MessageContext(ctx, messageProcessor), msg);
             }
 
 //            if (msg instanceof Agreement) {

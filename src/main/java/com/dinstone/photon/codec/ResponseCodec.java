@@ -1,7 +1,9 @@
 package com.dinstone.photon.codec;
 
+import com.dinstone.photon.message.Message;
 import com.dinstone.photon.message.Response;
 import com.dinstone.photon.message.Status;
+import com.dinstone.photon.message.Message.Type;
 
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.ByteBufAllocator;
@@ -12,10 +14,12 @@ public class ResponseCodec extends AbstractCodec<Response> {
 
     @Override
     public Response decode(ByteBuf in) {
+        Type type = Message.Type.valueOf(in.readByte());
         byte version = in.readByte();
         if (VERSION != version) {
-            throw new IllegalStateException("invalid message version " + version + " should be <= " + VERSION);
+            throw new IllegalArgumentException("invalid message version " + version + " for " + type);
         }
+        
         Response response = new Response();
         // message id
         response.setId(in.readInt());
@@ -33,6 +37,7 @@ public class ResponseCodec extends AbstractCodec<Response> {
     @Override
     public ByteBuf encode(Response message) {
         ByteBuf out = ByteBufAllocator.DEFAULT.buffer(32);
+        out.writeByte(message.getType().getValue());
         out.writeByte(message.getVersion());
         out.writeInt(message.getId());
         out.writeByte(message.getStatus().getValue());
