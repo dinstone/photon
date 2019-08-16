@@ -10,12 +10,13 @@ import com.dinstone.photon.message.Request;
 import com.dinstone.photon.message.Response;
 import com.dinstone.photon.message.Status;
 import com.dinstone.photon.processor.MessageProcessor;
+import com.dinstone.photon.transport.TransportConfig;
 
 public class AcceptorTest {
     private static final Logger LOG = LoggerFactory.getLogger(AcceptorTest.class);
 
     public static void main(String[] args) throws IOException {
-        Acceptor acceptor = new Acceptor();
+        Acceptor acceptor = new Acceptor(new TransportConfig());
         acceptor.setMessageProcessor(new MessageProcessor() {
 
             @Override

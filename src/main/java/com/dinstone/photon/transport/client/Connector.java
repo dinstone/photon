@@ -16,26 +16,17 @@
 
 package com.dinstone.photon.transport.client;
 
-import java.net.ConnectException;
 import java.net.InetSocketAddress;
-import java.security.KeyPair;
-import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
+
+import javax.net.ssl.SSLEngine;
 
 import com.dinstone.loghub.Logger;
 import com.dinstone.loghub.LoggerFactory;
 import com.dinstone.photon.AttributeHelper;
-import com.dinstone.photon.crypto.RsaCrypto;
-import com.dinstone.photon.handler.HeartbeatHandler;
+import com.dinstone.photon.handler.HandlerManager;
 import com.dinstone.photon.handler.MessageContext;
 import com.dinstone.photon.handler.MessageHandler;
-import com.dinstone.photon.handler.NoticeHandler;
-import com.dinstone.photon.handler.RequestHandler;
-import com.dinstone.photon.handler.ResponseHandler;
 import com.dinstone.photon.message.Heartbeat;
-import com.dinstone.photon.message.Notice;
-import com.dinstone.photon.message.Request;
-import com.dinstone.photon.message.Response;
 import com.dinstone.photon.processor.MessageProcessor;
 import com.dinstone.photon.session.DefaultSession;
 import com.dinstone.photon.session.Session;
@@ -44,6 +35,7 @@ import com.dinstone.photon.transport.TransportDecoder;
 import com.dinstone.photon.transport.TransportEncoder;
 
 import io.netty.bootstrap.Bootstrap;
+import io.netty.buffer.ByteBufAllocator;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelFuture;
 import io.netty.channel.ChannelHandlerContext;
@@ -53,12 +45,13 @@ import io.netty.channel.ChannelOption;
 import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.channel.socket.SocketChannel;
 import io.netty.channel.socket.nio.NioSocketChannel;
+import io.netty.handler.ssl.SslContextBuilder;
+import io.netty.handler.ssl.SslHandler;
+import io.netty.handler.ssl.util.InsecureTrustManagerFactory;
 import io.netty.handler.timeout.IdleState;
 import io.netty.handler.timeout.IdleStateEvent;
 import io.netty.handler.timeout.IdleStateHandler;
 import io.netty.util.concurrent.DefaultThreadFactory;
-import io.netty.util.concurrent.Future;
-import io.netty.util.concurrent.Promise;
 
 public class Connector {
 
@@ -68,29 +61,11 @@ public class Connector {
 
     private final Bootstrap clientBoot;
 
-    private final KeyPair keyPair;
-
     private int refCount;
 
     private MessageProcessor messageProcessor;
 
-    private Map<Class<?>, MessageHandler> handlers = new ConcurrentHashMap<>();
-
     public Connector(final TransportConfig transportConfig) {
-        regist(Request.class, new RequestHandler());
-        regist(Response.class, new ResponseHandler());
-        regist(Notice.class, new NoticeHandler());
-        regist(Heartbeat.class, new HeartbeatHandler());
-
-        if (transportConfig.enableCrypt()) {
-            try {
-                this.keyPair = RsaCrypto.generateKeyPair();
-            } catch (Exception e) {
-                throw new RuntimeException(e);
-            }
-        } else {
-            this.keyPair = null;
-        }
 
         workGroup = new NioEventLoopGroup(transportConfig.getConnectPoolSize(), new DefaultThreadFactory("N4C-Work"));
         clientBoot = new Bootstrap().group(workGroup).channel(NioSocketChannel.class);
@@ -101,6 +76,11 @@ public class Connector {
 
             @Override
             public void initChannel(SocketChannel ch) throws Exception {
+                if (transportConfig.enableCrypt()) {
+                    SSLEngine engine = createSslEngine(ch.alloc());
+                    ch.pipeline().addFirst(new SslHandler(engine));
+                }
+
                 ch.pipeline().addLast("TransportDecoder", new TransportDecoder());
                 ch.pipeline().addLast("TransportEncoder", new TransportEncoder());
 
@@ -110,11 +90,10 @@ public class Connector {
         });
     }
 
-    public <T> void regist(Class<T> messageType, MessageHandler<T> messageHandler) {
-        if (handlers.containsKey(messageType)) {
-            throw new IllegalStateException("Already a handler registered with type " + messageType);
-        }
-        handlers.put(messageType, messageHandler);
+    protected SSLEngine createSslEngine(ByteBufAllocator byteBufAllocator) throws Exception {
+        SslContextBuilder builder = SslContextBuilder.forClient();
+        builder.trustManager(InsecureTrustManagerFactory.INSTANCE);
+        return builder.build().newEngine(byteBufAllocator);
     }
 
     public void setMessageProcessor(MessageProcessor messageProcessor) {
@@ -158,11 +137,6 @@ public class Connector {
         }
 
         Channel channel = channelFuture.channel();
-        // wait connection success
-        Future<Void> connectFuture = AttributeHelper.getConnectPromise(channel);
-        if (!connectFuture.await().isSuccess()) {
-            throw new RuntimeException(connectFuture.cause());
-        }
         // create session
         DefaultSession session = new DefaultSession(channel);
         AttributeHelper.setSession(channel, session);
@@ -190,44 +164,12 @@ public class Connector {
         }
 
         @Override
-        public void channelRegistered(ChannelHandlerContext ctx) throws Exception {
-            AttributeHelper.setConnectPromise(ctx.channel());
-        }
-
-        @Override
-        public void channelActive(ChannelHandlerContext ctx) throws Exception {
-            if (keyPair != null) {
-//                byte[] saltBytes = AesCrypto.genAesSalt();
-//                byte[] publicKey = keyPair.getPublic().getEncoded();
-//                ctx.channel().writeAndFlush(new Agreement(ArrayUtil.concat(saltBytes, publicKey)));
-            } else {
-                AttributeHelper.getConnectPromise(ctx.channel()).trySuccess(null);
-            }
-        }
-
-        @Override
         public void channelRead(ChannelHandlerContext ctx, Object msg) throws Exception {
             LOG.info("client received message : {}", msg);
 
-            MessageHandler<Object> messageHandler = (MessageHandler<Object>) handlers.get(msg.getClass());
+            MessageHandler<Object> messageHandler = HandlerManager.find(msg.getClass());
             if (messageHandler != null) {
                 messageHandler.handle(new MessageContext(ctx, messageProcessor), msg);
-            }
-
-//            if (msg instanceof Agreement) {
-//                byte[] encoded = keyPair.getPrivate().getEncoded();
-//                byte[] aeskey = new PrivateKeyCipher(encoded).decrypt(((Agreement) msg).getData());
-//                AttributeHelper.setCipher(ctx.channel(), new AesCrypto(aeskey));
-//
-//                AttributeHelper.getConnectPromise(ctx.channel()).trySuccess(null);
-//            }
-        }
-
-        @Override
-        public void channelInactive(ChannelHandlerContext ctx) throws Exception {
-            Promise<Void> connectPromise = AttributeHelper.getConnectPromise(ctx.channel());
-            if (!connectPromise.isDone()) {
-                connectPromise.tryFailure(new ConnectException("connection is closed"));
             }
         }
 
