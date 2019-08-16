@@ -1,6 +1,6 @@
 package com.dinstone.photon.message;
 
-public class Response extends ExchangeMessage {
+public class Response extends BurdenMessage {
 
     private Status status;
 

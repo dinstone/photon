@@ -1,6 +1,6 @@
-package com.dinstone.photon.transport.server;
+package com.dinstone.photon;
 
-import java.net.InetSocketAddress;
+import java.net.SocketAddress;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.TimeUnit;
 
@@ -8,7 +8,6 @@ import javax.net.ssl.SSLEngine;
 
 import com.dinstone.loghub.Logger;
 import com.dinstone.loghub.LoggerFactory;
-import com.dinstone.photon.AttributeHelper;
 import com.dinstone.photon.handler.HandlerManager;
 import com.dinstone.photon.handler.MessageContext;
 import com.dinstone.photon.handler.MessageHandler;
@@ -57,10 +56,15 @@ public class Acceptor {
     }
 
     public void setMessageProcessor(MessageProcessor messageProcessor) {
+        if (messageProcessor == null) {
+            throw new IllegalArgumentException("messageProcessor is null");
+        }
         this.messageProcessor = messageProcessor;
     }
 
-    public Acceptor bind() {
+    public Acceptor bind(SocketAddress sa) {
+        checkMessageProcessor();
+
         bossGroup = new NioEventLoopGroup(1, new DefaultThreadFactory("N4A-Boss"));
         workGroup = new NioEventLoopGroup(0, new DefaultThreadFactory("N4A-Work"));
 
@@ -84,9 +88,8 @@ public class Acceptor {
         boot.childOption(ChannelOption.SO_RCVBUF, 4 * 1024).childOption(ChannelOption.SO_SNDBUF, 4 * 1024)
                 .childOption(ChannelOption.TCP_NODELAY, true);
 
-        InetSocketAddress serviceAddress = new InetSocketAddress("127.0.0.1", 4444);
         try {
-            boot.bind(serviceAddress).sync();
+            boot.bind(sa).sync();
 
             // int processorCount = transportConfig.getBusinessProcessorCount();
             // if (processorCount > 0) {
@@ -96,11 +99,17 @@ public class Acceptor {
             // threadFactory);
             // }
         } catch (Exception e) {
-            throw new RuntimeException("can't bind service on " + serviceAddress, e);
+            throw new RuntimeException("can't bind service on " + sa, e);
         }
-        LOG.info("netty acceptance bind on {}", serviceAddress);
+        LOG.info("netty acceptance bind on {}", sa);
 
         return this;
+    }
+
+    private void checkMessageProcessor() {
+        if (messageProcessor == null) {
+            throw new IllegalStateException("messageProcessor not set");
+        }
     }
 
     protected SSLEngine createSslEngine(ByteBufAllocator byteBufAllocator) throws Exception {

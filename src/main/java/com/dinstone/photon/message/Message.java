@@ -13,7 +13,7 @@ public interface Message {
     Object getContent();
 
     public enum Type {
-        HEARTBEAT((byte) 0), // MEP:long connection parttern
+        HEARTBEAT((byte) 0), // MEP: long connection parttern
         REQUEST((byte) 1), // MEP: the request of the request-respose parttern
         RESPONSE((byte) 2), // MEP: the response of the request-respose parttern
         NOTICE((byte) 3); // MEP: one-way or notify parttern

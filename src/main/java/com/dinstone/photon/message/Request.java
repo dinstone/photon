@@ -1,6 +1,6 @@
 package com.dinstone.photon.message;
 
-public class Request extends ExchangeMessage {
+public class Request extends BurdenMessage {
 
     private int timeout;
 
