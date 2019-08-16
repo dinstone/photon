@@ -1,10 +1,13 @@
 package com.dinstone.photon.transport.server;
 
 import java.io.IOException;
+import java.net.InetSocketAddress;
 
 import com.dinstone.loghub.Logger;
 import com.dinstone.loghub.LoggerFactory;
+import com.dinstone.photon.Acceptor;
 import com.dinstone.photon.handler.MessageContext;
+import com.dinstone.photon.message.Message;
 import com.dinstone.photon.message.Notice;
 import com.dinstone.photon.message.Request;
 import com.dinstone.photon.message.Response;
@@ -19,12 +22,10 @@ public class AcceptorTest {
         Acceptor acceptor = new Acceptor(new TransportConfig());
         acceptor.setMessageProcessor(new MessageProcessor() {
 
-            @Override
             public void process(MessageContext context, Notice notice) {
                 LOG.info("notice is {}", notice.getContent());
             }
 
-            @Override
             public void process(MessageContext context, Request request) {
                 LOG.info("response is {}", request.getContent());
                 Notice notice = new Notice();
@@ -38,9 +39,20 @@ public class AcceptorTest {
                 response.setContent(request.getContent());
                 context.getChannelContext().writeAndFlush(response);
             }
+
+            @Override
+            public void process(MessageContext context, Message message) {
+                if (message instanceof Request) {
+                    process(context, (Request) message);
+                }
+
+                if (message instanceof Notice) {
+                    process(context, (Notice) message);
+                }
+            }
         });
 
-        acceptor.bind();
+        acceptor.bind(new InetSocketAddress("127.0.0.1", 4444));
 
         System.in.read();
 

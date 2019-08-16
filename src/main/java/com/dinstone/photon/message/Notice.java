@@ -1,6 +1,6 @@
 package com.dinstone.photon.message;
 
-public class Notice extends ExchangeMessage {
+public class Notice extends BurdenMessage {
 
     private String address;
 

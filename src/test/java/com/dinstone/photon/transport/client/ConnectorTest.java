@@ -4,7 +4,9 @@ import java.net.InetSocketAddress;
 
 import com.dinstone.loghub.Logger;
 import com.dinstone.loghub.LoggerFactory;
+import com.dinstone.photon.Connector;
 import com.dinstone.photon.handler.MessageContext;
+import com.dinstone.photon.message.Message;
 import com.dinstone.photon.message.Notice;
 import com.dinstone.photon.message.Request;
 import com.dinstone.photon.message.Response;
@@ -20,13 +22,13 @@ public class ConnectorTest {
         connector.setMessageProcessor(new MessageProcessor() {
 
             @Override
-            public void process(MessageContext context, Notice notice) {
-                LOG.info("notice is {}", notice.getContent());
-            }
-
-            @Override
-            public void process(MessageContext context, Request request) {
-                LOG.info("response is {}", request.getContent());
+            public void process(MessageContext context, Message message) {
+                if (message instanceof Notice) {
+                    LOG.info("notice is {}", message.getContent());
+                }
+                if (message instanceof Request) {
+                    LOG.info("response is {}", message.getContent());
+                }
             }
         });
 

@@ -6,7 +6,7 @@ public class RequestHandler implements MessageHandler<Request> {
 
     @Override
     public void handle(MessageContext context, Request msg) {
-        context.getMessageProcessor().process(context, (Request) msg);
+        context.getMessageProcessor().process(context, msg);
     }
 
 }

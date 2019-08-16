@@ -14,15 +14,14 @@
  * limitations under the License.
  */
 
-package com.dinstone.photon.transport.client;
+package com.dinstone.photon;
 
-import java.net.InetSocketAddress;
+import java.net.SocketAddress;
 
 import javax.net.ssl.SSLEngine;
 
 import com.dinstone.loghub.Logger;
 import com.dinstone.loghub.LoggerFactory;
-import com.dinstone.photon.AttributeHelper;
 import com.dinstone.photon.handler.HandlerManager;
 import com.dinstone.photon.handler.MessageContext;
 import com.dinstone.photon.handler.MessageHandler;
@@ -97,6 +96,9 @@ public class Connector {
     }
 
     public void setMessageProcessor(MessageProcessor messageProcessor) {
+        if (messageProcessor == null) {
+            throw new IllegalArgumentException("messageProcessor is null");
+        }
         this.messageProcessor = messageProcessor;
     }
 
@@ -129,7 +131,9 @@ public class Connector {
         }
     }
 
-    public Session createSession(InetSocketAddress sa) throws Exception {
+    public Session createSession(SocketAddress sa) throws Exception {
+        checkMessageProcessor();
+
         // connect to peer
         ChannelFuture channelFuture = clientBoot.connect(sa).awaitUninterruptibly();
         if (!channelFuture.isSuccess()) {
@@ -143,6 +147,12 @@ public class Connector {
 
         LOG.debug("session connect {} to {}", channel.localAddress(), channel.remoteAddress());
         return session;
+    }
+
+    private void checkMessageProcessor() {
+        if (messageProcessor == null) {
+            throw new IllegalStateException("messageProcessor not set");
+        }
     }
 
     public class ClientHandler extends ChannelInboundHandlerAdapter {

@@ -1,13 +1,10 @@
 package com.dinstone.photon.processor;
 
 import com.dinstone.photon.handler.MessageContext;
-import com.dinstone.photon.message.Notice;
-import com.dinstone.photon.message.Request;
+import com.dinstone.photon.message.Message;
 
 public interface MessageProcessor {
 
-    void process(MessageContext context, Request request);
-
-    void process(MessageContext context, Notice notice);
+    void process(MessageContext context, Message message);
 
 }

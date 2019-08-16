@@ -1,6 +1,6 @@
 package com.dinstone.photon.message;
 
-public abstract class ExchangeMessage implements Message {
+public abstract class BurdenMessage implements Message {
 
     private byte version = 0x1;
 
@@ -12,7 +12,7 @@ public abstract class ExchangeMessage implements Message {
 
     private byte[] content;
 
-    public ExchangeMessage(Type type) {
+    public BurdenMessage(Type type) {
         this.type = type;
     }
 
