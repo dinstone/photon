@@ -133,7 +133,7 @@ public class TransportConfig extends Configuration {
     }
 
     public boolean enableCrypt() {
-        return getBoolean(ENABLE_CRYPT, false);
+        return getBoolean(ENABLE_CRYPT, true);
     }
 
 }

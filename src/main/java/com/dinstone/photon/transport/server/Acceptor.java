@@ -1,32 +1,27 @@
 package com.dinstone.photon.transport.server;
 
 import java.net.InetSocketAddress;
-import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.TimeUnit;
+
+import javax.net.ssl.SSLEngine;
 
 import com.dinstone.loghub.Logger;
 import com.dinstone.loghub.LoggerFactory;
 import com.dinstone.photon.AttributeHelper;
-import com.dinstone.photon.handler.HeartbeatHandler;
+import com.dinstone.photon.handler.HandlerManager;
 import com.dinstone.photon.handler.MessageContext;
 import com.dinstone.photon.handler.MessageHandler;
-import com.dinstone.photon.handler.NoticeHandler;
-import com.dinstone.photon.handler.RequestHandler;
-import com.dinstone.photon.handler.ResponseHandler;
-import com.dinstone.photon.message.Heartbeat;
-import com.dinstone.photon.message.Notice;
-import com.dinstone.photon.message.Request;
-import com.dinstone.photon.message.Response;
 import com.dinstone.photon.processor.MessageProcessor;
 import com.dinstone.photon.session.DefaultSession;
 import com.dinstone.photon.session.Session;
 import com.dinstone.photon.session.SessionManager;
+import com.dinstone.photon.transport.TransportConfig;
 import com.dinstone.photon.transport.TransportDecoder;
 import com.dinstone.photon.transport.TransportEncoder;
 
 import io.netty.bootstrap.ServerBootstrap;
+import io.netty.buffer.ByteBufAllocator;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelInboundHandlerAdapter;
 import io.netty.channel.ChannelInitializer;
@@ -35,6 +30,9 @@ import io.netty.channel.EventLoopGroup;
 import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.channel.socket.SocketChannel;
 import io.netty.channel.socket.nio.NioServerSocketChannel;
+import io.netty.handler.ssl.SslContextBuilder;
+import io.netty.handler.ssl.SslHandler;
+import io.netty.handler.ssl.util.SelfSignedCertificate;
 import io.netty.handler.timeout.IdleState;
 import io.netty.handler.timeout.IdleStateEvent;
 import io.netty.handler.timeout.IdleStateHandler;
@@ -52,20 +50,10 @@ public class Acceptor {
 
     private MessageProcessor messageProcessor;
 
-    private Map<Class<?>, MessageHandler<?>> handlers = new ConcurrentHashMap<>();
+    private TransportConfig transportConfig;
 
-    public Acceptor() {
-        regist(Request.class, new RequestHandler());
-        regist(Response.class, new ResponseHandler());
-        regist(Notice.class, new NoticeHandler());
-        regist(Heartbeat.class, new HeartbeatHandler());
-    }
-
-    private <T> void regist(Class<T> messageType, MessageHandler<T> messageHandler) {
-        if (handlers.containsKey(messageType)) {
-            throw new IllegalStateException("Already a handler registered with type " + messageType);
-        }
-        handlers.put(messageType, messageHandler);
+    public Acceptor(TransportConfig transportConfig) {
+        this.transportConfig = transportConfig;
     }
 
     public void setMessageProcessor(MessageProcessor messageProcessor) {
@@ -81,6 +69,10 @@ public class Acceptor {
 
             @Override
             public void initChannel(SocketChannel ch) throws Exception {
+                if (transportConfig.enableCrypt()) {
+                    SSLEngine engine = createSslEngine(ch.alloc());
+                    ch.pipeline().addFirst(new SslHandler(engine));
+                }
                 ch.pipeline().addLast("TransportDecoder", new TransportDecoder());
                 ch.pipeline().addLast("TransportEncoder", new TransportEncoder());
 
@@ -109,6 +101,14 @@ public class Acceptor {
         LOG.info("netty acceptance bind on {}", serviceAddress);
 
         return this;
+    }
+
+    protected SSLEngine createSslEngine(ByteBufAllocator byteBufAllocator) throws Exception {
+        SelfSignedCertificate certificate = new SelfSignedCertificate();
+        SslContextBuilder builder = SslContextBuilder.forServer(certificate.key(), certificate.cert());
+        SSLEngine sslEngine = builder.build().newEngine(byteBufAllocator);
+        sslEngine.setUseClientMode(false);
+        return sslEngine;
     }
 
     public void destroy() {
@@ -169,26 +169,10 @@ public class Acceptor {
         public void channelRead(final ChannelHandlerContext ctx, final Object msg) throws Exception {
             LOG.info("server received message : {}", msg);
 
-            MessageHandler<Object> messageHandler = (MessageHandler<Object>) handlers.get(msg.getClass());
+            MessageHandler<Object> messageHandler = HandlerManager.find(msg.getClass());
             if (messageHandler != null) {
                 messageHandler.handle(new MessageContext(ctx, messageProcessor), msg);
             }
-
-//            if (msg instanceof Agreement) {
-//                byte[] data = ((Agreement) msg).getData();
-//                final byte[] aesKey = ArrayUtil.concat(ArrayUtil.copy(data, 0, 8), AesCrypto.genAesSalt());
-//                PublicKeyCipher rsaCipher = new RsaCrypto.PublicKeyCipher(ArrayUtil.copy(data, 8, data.length - 8));
-//                ctx.writeAndFlush(new Agreement(rsaCipher.encrypt(aesKey))).addListener(new ChannelFutureListener() {
-//
-//                    @Override
-//                    public void operationComplete(ChannelFuture future) throws Exception {
-//                        if (future.isSuccess()) {
-//                            AttributeHelper.setCipher(ctx.channel(), new AesCrypto(aesKey));
-//                        }
-//                    }
-//
-//                });
-//            }
 
         }
 
