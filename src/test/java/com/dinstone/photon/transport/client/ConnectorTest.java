@@ -4,6 +4,7 @@ import java.net.InetSocketAddress;
 
 import com.dinstone.loghub.Logger;
 import com.dinstone.loghub.LoggerFactory;
+import com.dinstone.photon.ConnectOptions;
 import com.dinstone.photon.Connector;
 import com.dinstone.photon.handler.MessageContext;
 import com.dinstone.photon.message.Message;
@@ -12,13 +13,12 @@ import com.dinstone.photon.message.Request;
 import com.dinstone.photon.message.Response;
 import com.dinstone.photon.processor.MessageProcessor;
 import com.dinstone.photon.session.Session;
-import com.dinstone.photon.transport.TransportConfig;
 
 public class ConnectorTest {
     private static final Logger LOG = LoggerFactory.getLogger(ConnectorTest.class);
 
     public static void main(String[] args) throws Throwable {
-        Connector connector = new Connector(new TransportConfig());
+        Connector connector = new Connector(new ConnectOptions());
         connector.setMessageProcessor(new MessageProcessor() {
 
             @Override

@@ -5,6 +5,7 @@ import java.net.InetSocketAddress;
 
 import com.dinstone.loghub.Logger;
 import com.dinstone.loghub.LoggerFactory;
+import com.dinstone.photon.AcceptOptions;
 import com.dinstone.photon.Acceptor;
 import com.dinstone.photon.handler.MessageContext;
 import com.dinstone.photon.message.Message;
@@ -13,13 +14,12 @@ import com.dinstone.photon.message.Request;
 import com.dinstone.photon.message.Response;
 import com.dinstone.photon.message.Status;
 import com.dinstone.photon.processor.MessageProcessor;
-import com.dinstone.photon.transport.TransportConfig;
 
 public class AcceptorTest {
     private static final Logger LOG = LoggerFactory.getLogger(AcceptorTest.class);
 
     public static void main(String[] args) throws IOException {
-        Acceptor acceptor = new Acceptor(new TransportConfig());
+        Acceptor acceptor = new Acceptor(new AcceptOptions());
         acceptor.setMessageProcessor(new MessageProcessor() {
 
             public void process(MessageContext context, Notice notice) {

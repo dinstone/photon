@@ -15,7 +15,6 @@ import com.dinstone.photon.processor.MessageProcessor;
 import com.dinstone.photon.session.DefaultSession;
 import com.dinstone.photon.session.Session;
 import com.dinstone.photon.session.SessionManager;
-import com.dinstone.photon.transport.TransportConfig;
 import com.dinstone.photon.transport.TransportDecoder;
 import com.dinstone.photon.transport.TransportEncoder;
 
@@ -26,6 +25,7 @@ import io.netty.channel.ChannelInboundHandlerAdapter;
 import io.netty.channel.ChannelInitializer;
 import io.netty.channel.ChannelOption;
 import io.netty.channel.EventLoopGroup;
+import io.netty.channel.FixedRecvByteBufAllocator;
 import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.channel.socket.SocketChannel;
 import io.netty.channel.socket.nio.NioServerSocketChannel;
@@ -41,6 +41,8 @@ public class Acceptor {
 
     private static final Logger LOG = LoggerFactory.getLogger(Acceptor.class);
 
+    private AcceptOptions options;
+
     private EventLoopGroup bossGroup;
 
     private EventLoopGroup workGroup;
@@ -49,10 +51,8 @@ public class Acceptor {
 
     private MessageProcessor messageProcessor;
 
-    private TransportConfig transportConfig;
-
-    public Acceptor(TransportConfig transportConfig) {
-        this.transportConfig = transportConfig;
+    public Acceptor(AcceptOptions acceptOptions) {
+        this.options = acceptOptions;
     }
 
     public void setMessageProcessor(MessageProcessor messageProcessor) {
@@ -68,12 +68,12 @@ public class Acceptor {
         bossGroup = new NioEventLoopGroup(1, new DefaultThreadFactory("N4A-Boss"));
         workGroup = new NioEventLoopGroup(0, new DefaultThreadFactory("N4A-Work"));
 
-        ServerBootstrap boot = new ServerBootstrap().group(bossGroup, workGroup);
-        boot.channel(NioServerSocketChannel.class).childHandler(new ChannelInitializer<SocketChannel>() {
+        ServerBootstrap bootstrap = new ServerBootstrap().group(bossGroup, workGroup);
+        bootstrap.channel(NioServerSocketChannel.class).childHandler(new ChannelInitializer<SocketChannel>() {
 
             @Override
             public void initChannel(SocketChannel ch) throws Exception {
-                if (transportConfig.enableCrypt()) {
+                if (options.isEnableSsl()) {
                     SSLEngine engine = createSslEngine(ch.alloc());
                     ch.pipeline().addFirst(new SslHandler(engine));
                 }
@@ -84,12 +84,11 @@ public class Acceptor {
                 ch.pipeline().addLast("ServerHandler", new ServerHandler());
             }
         });
-        boot.option(ChannelOption.SO_REUSEADDR, true).option(ChannelOption.SO_BACKLOG, 128);
-        boot.childOption(ChannelOption.SO_RCVBUF, 4 * 1024).childOption(ChannelOption.SO_SNDBUF, 4 * 1024)
-                .childOption(ChannelOption.TCP_NODELAY, true);
+
+        applyConnectionOptions(bootstrap);
 
         try {
-            boot.bind(sa).sync();
+            bootstrap.bind(sa).sync();
 
             // int processorCount = transportConfig.getBusinessProcessorCount();
             // if (processorCount > 0) {
@@ -104,6 +103,31 @@ public class Acceptor {
         LOG.info("netty acceptance bind on {}", sa);
 
         return this;
+    }
+
+    private void applyConnectionOptions(ServerBootstrap bootstrap) {
+        if (options.getSoLinger() != -1) {
+            bootstrap.option(ChannelOption.SO_LINGER, options.getSoLinger());
+        }
+        bootstrap.option(ChannelOption.SO_REUSEADDR, options.isReuseAddress());
+        if (options.getAcceptBacklog() != -1) {
+            bootstrap.option(ChannelOption.SO_BACKLOG, options.getAcceptBacklog());
+        }
+
+        bootstrap.childOption(ChannelOption.TCP_NODELAY, options.isTcpNoDelay());
+        if (options.getSendBufferSize() != -1) {
+            bootstrap.childOption(ChannelOption.SO_SNDBUF, options.getSendBufferSize());
+        }
+        if (options.getReceiveBufferSize() != -1) {
+            bootstrap.childOption(ChannelOption.SO_RCVBUF, options.getReceiveBufferSize());
+            bootstrap.childOption(ChannelOption.RCVBUF_ALLOCATOR,
+                    new FixedRecvByteBufAllocator(options.getReceiveBufferSize()));
+        }
+        if (options.getTrafficClass() != -1) {
+            bootstrap.childOption(ChannelOption.IP_TOS, options.getTrafficClass());
+        }
+        bootstrap.childOption(ChannelOption.ALLOCATOR, ByteBufAllocator.DEFAULT);
+        bootstrap.childOption(ChannelOption.SO_KEEPALIVE, options.isTcpKeepAlive());
     }
 
     private void checkMessageProcessor() {
