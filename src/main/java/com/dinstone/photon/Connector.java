@@ -29,7 +29,6 @@ import com.dinstone.photon.message.Heartbeat;
 import com.dinstone.photon.processor.MessageProcessor;
 import com.dinstone.photon.session.DefaultSession;
 import com.dinstone.photon.session.Session;
-import com.dinstone.photon.transport.TransportConfig;
 import com.dinstone.photon.transport.TransportDecoder;
 import com.dinstone.photon.transport.TransportEncoder;
 
@@ -41,6 +40,7 @@ import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelInboundHandlerAdapter;
 import io.netty.channel.ChannelInitializer;
 import io.netty.channel.ChannelOption;
+import io.netty.channel.FixedRecvByteBufAllocator;
 import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.channel.socket.SocketChannel;
 import io.netty.channel.socket.nio.NioSocketChannel;
@@ -58,24 +58,24 @@ public class Connector {
 
     private final NioEventLoopGroup workGroup;
 
-    private final Bootstrap clientBoot;
+    private final Bootstrap bootstrap;
+
+    private ConnectOptions options;
 
     private int refCount;
 
     private MessageProcessor messageProcessor;
 
-    public Connector(final TransportConfig transportConfig) {
+    public Connector(final ConnectOptions connectOptions) {
+        this.options = connectOptions;
 
-        workGroup = new NioEventLoopGroup(transportConfig.getConnectPoolSize(), new DefaultThreadFactory("N4C-Work"));
-        clientBoot = new Bootstrap().group(workGroup).channel(NioSocketChannel.class);
-        clientBoot.option(ChannelOption.TCP_NODELAY, true);
-        clientBoot.option(ChannelOption.CONNECT_TIMEOUT_MILLIS, transportConfig.getConnectTimeout());
-        clientBoot.option(ChannelOption.SO_RCVBUF, 8 * 1024).option(ChannelOption.SO_SNDBUF, 8 * 1024);
-        clientBoot.handler(new ChannelInitializer<SocketChannel>() {
+        workGroup = new NioEventLoopGroup(options.getEventLoopSize(), new DefaultThreadFactory("N4C-Work"));
+        bootstrap = new Bootstrap().group(workGroup).channel(NioSocketChannel.class);
+        bootstrap.handler(new ChannelInitializer<SocketChannel>() {
 
             @Override
             public void initChannel(SocketChannel ch) throws Exception {
-                if (transportConfig.enableCrypt()) {
+                if (options.isEnableSsl()) {
                     SSLEngine engine = createSslEngine(ch.alloc());
                     ch.pipeline().addFirst(new SslHandler(engine));
                 }
@@ -87,6 +87,34 @@ public class Connector {
                 ch.pipeline().addLast("ClientHandler", new ClientHandler());
             }
         });
+
+        applyConnectionOptions(bootstrap);
+    }
+
+    private void applyConnectionOptions(Bootstrap bootstrap) {
+        bootstrap.option(ChannelOption.SO_REUSEADDR, options.isReuseAddress());
+        bootstrap.option(ChannelOption.TCP_NODELAY, options.isTcpNoDelay());
+        bootstrap.option(ChannelOption.SO_KEEPALIVE, options.isTcpKeepAlive());
+
+        if (options.getLocalAddress() != null) {
+            bootstrap.localAddress(options.getLocalAddress(), 0);
+        }
+        if (options.getSendBufferSize() != -1) {
+            bootstrap.option(ChannelOption.SO_SNDBUF, options.getSendBufferSize());
+        }
+        if (options.getReceiveBufferSize() != -1) {
+            bootstrap.option(ChannelOption.SO_RCVBUF, options.getReceiveBufferSize());
+            bootstrap.option(ChannelOption.RCVBUF_ALLOCATOR,
+                    new FixedRecvByteBufAllocator(options.getReceiveBufferSize()));
+        }
+        if (options.getSoLinger() != -1) {
+            bootstrap.option(ChannelOption.SO_LINGER, options.getSoLinger());
+        }
+        if (options.getTrafficClass() != -1) {
+            bootstrap.option(ChannelOption.IP_TOS, options.getTrafficClass());
+        }
+        bootstrap.option(ChannelOption.CONNECT_TIMEOUT_MILLIS, options.getConnectTimeout());
+        bootstrap.option(ChannelOption.ALLOCATOR, ByteBufAllocator.DEFAULT);
     }
 
     protected SSLEngine createSslEngine(ByteBufAllocator byteBufAllocator) throws Exception {
@@ -135,7 +163,7 @@ public class Connector {
         checkMessageProcessor();
 
         // connect to peer
-        ChannelFuture channelFuture = clientBoot.connect(sa).awaitUninterruptibly();
+        ChannelFuture channelFuture = bootstrap.connect(sa).awaitUninterruptibly();
         if (!channelFuture.isSuccess()) {
             throw new RuntimeException(channelFuture.cause());
         }
