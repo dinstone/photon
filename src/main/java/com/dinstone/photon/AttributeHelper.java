@@ -4,8 +4,8 @@ package com.dinstone.photon;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
-import com.dinstone.photon.session.ResponseFuture;
-import com.dinstone.photon.session.Session;
+import com.dinstone.photon.connection.Connection;
+import com.dinstone.photon.connection.ResponseFuture;
 
 import io.netty.channel.Channel;
 import io.netty.util.Attribute;
@@ -13,15 +13,15 @@ import io.netty.util.AttributeKey;
 
 public class AttributeHelper {
 
-    private static final AttributeKey<Session> SESSION_KEY = AttributeKey.valueOf("session.key");
+    private static final AttributeKey<Connection> SESSION_KEY = AttributeKey.valueOf("session.key");
 
     private static final AttributeKey<Map<Integer, ResponseFuture>> FUTURE_KEY = AttributeKey.valueOf("future.key");
 
-    public static void setSession(Channel channel, Session session) {
+    public static void setConnection(Channel channel, Connection session) {
         channel.attr(AttributeHelper.SESSION_KEY).set(session);
     }
 
-    public static Session getSession(Channel channel) {
+    public static Connection getConnection(Channel channel) {
         return channel.attr(AttributeHelper.SESSION_KEY).get();
     }
 

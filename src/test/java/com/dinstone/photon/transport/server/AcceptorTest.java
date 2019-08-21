@@ -1,7 +1,7 @@
 package com.dinstone.photon.transport.server;
 
-import java.io.IOException;
 import java.net.InetSocketAddress;
+import java.security.cert.X509Certificate;
 
 import com.dinstone.loghub.Logger;
 import com.dinstone.loghub.LoggerFactory;
@@ -15,11 +15,18 @@ import com.dinstone.photon.message.Response;
 import com.dinstone.photon.message.Status;
 import com.dinstone.photon.processor.MessageProcessor;
 
+import io.netty.handler.ssl.util.SelfSignedCertificate;
+
 public class AcceptorTest {
     private static final Logger LOG = LoggerFactory.getLogger(AcceptorTest.class);
 
-    public static void main(String[] args) throws IOException {
-        Acceptor acceptor = new Acceptor(new AcceptOptions());
+    public static void main(String[] args) throws Exception {
+        AcceptOptions acceptOptions = new AcceptOptions();
+        acceptOptions.setEnableSsl(true);
+        SelfSignedCertificate cert = new SelfSignedCertificate();
+        acceptOptions.setPrivateKey(cert.key());
+        acceptOptions.setCertChain(new X509Certificate[] { cert.cert() });
+        Acceptor acceptor = new Acceptor(acceptOptions);
         acceptor.setMessageProcessor(new MessageProcessor() {
 
             public void process(MessageContext context, Notice notice) {
