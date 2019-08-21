@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.dinstone.photon.session;
+package com.dinstone.photon.connection;
 
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;

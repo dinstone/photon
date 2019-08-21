@@ -1,5 +1,8 @@
 package com.dinstone.photon;
 
+import java.security.PrivateKey;
+import java.security.cert.X509Certificate;
+
 import io.netty.handler.ssl.ClientAuth;
 
 public class AcceptOptions extends TcpSslOptions {
@@ -30,6 +33,16 @@ public class AcceptOptions extends TcpSslOptions {
     private String host;
     private int acceptBacklog;
     private ClientAuth clientAuth;
+    private PrivateKey privateKey;
+    private X509Certificate[] certChain;
+
+    public AcceptOptions() {
+        super();
+        port = DEFAULT_PORT;
+        host = DEFAULT_HOST;
+        acceptBacklog = DEFAULT_ACCEPT_BACKLOG;
+        clientAuth = DEFAULT_CLIENT_AUTH;
+    }
 
     public int getPort() {
         return port;
@@ -61,6 +74,22 @@ public class AcceptOptions extends TcpSslOptions {
 
     public void setClientAuth(ClientAuth clientAuth) {
         this.clientAuth = clientAuth;
+    }
+
+    public PrivateKey getPrivateKey() {
+        return privateKey;
+    }
+
+    public void setPrivateKey(PrivateKey privateKey) {
+        this.privateKey = privateKey;
+    }
+
+    public X509Certificate[] getCertChain() {
+        return certChain;
+    }
+
+    public void setCertChain(X509Certificate[] certChain) {
+        this.certChain = certChain;
     }
 
 }

@@ -1,8 +1,9 @@
 package com.dinstone.photon.handler;
 
 import com.dinstone.photon.AttributeHelper;
+import com.dinstone.photon.connection.Connection;
+import com.dinstone.photon.connection.ResponseFuture;
 import com.dinstone.photon.processor.MessageProcessor;
-import com.dinstone.photon.session.ResponseFuture;
 
 import io.netty.channel.ChannelHandlerContext;
 
@@ -21,20 +22,16 @@ public class MessageContext {
         return channelContext;
     }
 
-    public void setChannelContext(ChannelHandlerContext channelContext) {
-        this.channelContext = channelContext;
-    }
-
     public MessageProcessor getMessageProcessor() {
         return messageProcessor;
     }
 
-    public void setMessageProcessor(MessageProcessor messageProcessor) {
-        this.messageProcessor = messageProcessor;
-    }
-
     public ResponseFuture removeResponseFuture(int id) {
         return AttributeHelper.futureMap(channelContext.channel()).remove(id);
+    }
+
+    public Connection getConnection() {
+        return AttributeHelper.getConnection(channelContext.channel());
     }
 
 }

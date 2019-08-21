@@ -22,13 +22,14 @@ import javax.net.ssl.SSLEngine;
 
 import com.dinstone.loghub.Logger;
 import com.dinstone.loghub.LoggerFactory;
+import com.dinstone.photon.connection.Connection;
+import com.dinstone.photon.connection.ConnectionManager;
+import com.dinstone.photon.connection.DefaultConnection;
 import com.dinstone.photon.handler.HandlerManager;
 import com.dinstone.photon.handler.MessageContext;
 import com.dinstone.photon.handler.MessageHandler;
 import com.dinstone.photon.message.Heartbeat;
 import com.dinstone.photon.processor.MessageProcessor;
-import com.dinstone.photon.session.DefaultSession;
-import com.dinstone.photon.session.Session;
 import com.dinstone.photon.transport.TransportDecoder;
 import com.dinstone.photon.transport.TransportEncoder;
 
@@ -46,7 +47,6 @@ import io.netty.channel.socket.SocketChannel;
 import io.netty.channel.socket.nio.NioSocketChannel;
 import io.netty.handler.ssl.SslContextBuilder;
 import io.netty.handler.ssl.SslHandler;
-import io.netty.handler.ssl.util.InsecureTrustManagerFactory;
 import io.netty.handler.timeout.IdleState;
 import io.netty.handler.timeout.IdleStateEvent;
 import io.netty.handler.timeout.IdleStateHandler;
@@ -119,7 +119,7 @@ public class Connector {
 
     protected SSLEngine createSslEngine(ByteBufAllocator byteBufAllocator) throws Exception {
         SslContextBuilder builder = SslContextBuilder.forClient();
-        builder.trustManager(InsecureTrustManagerFactory.INSTANCE);
+        builder.trustManager(options.getTrustManagerFactory());
         return builder.build().newEngine(byteBufAllocator);
     }
 
@@ -159,7 +159,7 @@ public class Connector {
         }
     }
 
-    public Session createSession(SocketAddress sa) throws Exception {
+    public Connection connect(SocketAddress sa) throws Exception {
         checkMessageProcessor();
 
         // connect to peer
@@ -169,12 +169,12 @@ public class Connector {
         }
 
         Channel channel = channelFuture.channel();
-        // create session
-        DefaultSession session = new DefaultSession(channel);
-        AttributeHelper.setSession(channel, session);
+        DefaultConnection connection = new DefaultConnection(channel);
+        ConnectionManager.addConnection(channel, connection);
+        AttributeHelper.setConnection(channel, connection);
 
         LOG.debug("session connect {} to {}", channel.localAddress(), channel.remoteAddress());
-        return session;
+        return connection;
     }
 
     private void checkMessageProcessor() {
@@ -199,6 +199,12 @@ public class Connector {
             } else {
                 super.userEventTriggered(ctx, evt);
             }
+        }
+
+        @Override
+        public void channelInactive(ChannelHandlerContext ctx) throws Exception {
+            ConnectionManager.delConnection(ctx.channel());
+            super.channelInactive(ctx);
         }
 
         @Override

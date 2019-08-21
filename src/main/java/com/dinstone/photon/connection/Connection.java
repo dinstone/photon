@@ -1,4 +1,4 @@
-package com.dinstone.photon.session;
+package com.dinstone.photon.connection;
 
 import com.dinstone.photon.message.Message;
 import com.dinstone.photon.message.Notice;
@@ -7,7 +7,7 @@ import com.dinstone.photon.message.Response;
 
 import io.netty.channel.ChannelFuture;
 
-public interface Session {
+public interface Connection {
 
     String sessionId();
 
@@ -18,5 +18,7 @@ public interface Session {
     ChannelFuture write(Message message);
 
     Response sync(Request request) throws Exception;
+    
+    ResponseFuture async(Request request) throws Exception;
 
 }

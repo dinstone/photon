@@ -8,13 +8,13 @@ import javax.net.ssl.SSLEngine;
 
 import com.dinstone.loghub.Logger;
 import com.dinstone.loghub.LoggerFactory;
+import com.dinstone.photon.connection.Connection;
+import com.dinstone.photon.connection.ConnectionManager;
+import com.dinstone.photon.connection.DefaultConnection;
 import com.dinstone.photon.handler.HandlerManager;
 import com.dinstone.photon.handler.MessageContext;
 import com.dinstone.photon.handler.MessageHandler;
 import com.dinstone.photon.processor.MessageProcessor;
-import com.dinstone.photon.session.DefaultSession;
-import com.dinstone.photon.session.Session;
-import com.dinstone.photon.session.SessionManager;
 import com.dinstone.photon.transport.TransportDecoder;
 import com.dinstone.photon.transport.TransportEncoder;
 
@@ -31,7 +31,6 @@ import io.netty.channel.socket.SocketChannel;
 import io.netty.channel.socket.nio.NioServerSocketChannel;
 import io.netty.handler.ssl.SslContextBuilder;
 import io.netty.handler.ssl.SslHandler;
-import io.netty.handler.ssl.util.SelfSignedCertificate;
 import io.netty.handler.timeout.IdleState;
 import io.netty.handler.timeout.IdleStateEvent;
 import io.netty.handler.timeout.IdleStateHandler;
@@ -137,8 +136,7 @@ public class Acceptor {
     }
 
     protected SSLEngine createSslEngine(ByteBufAllocator byteBufAllocator) throws Exception {
-        SelfSignedCertificate certificate = new SelfSignedCertificate();
-        SslContextBuilder builder = SslContextBuilder.forServer(certificate.key(), certificate.cert());
+        SslContextBuilder builder = SslContextBuilder.forServer(options.getPrivateKey(), options.getCertChain());
         SSLEngine sslEngine = builder.build().newEngine(byteBufAllocator);
         sslEngine.setUseClientMode(false);
         return sslEngine;
@@ -179,21 +177,21 @@ public class Acceptor {
 
         @Override
         public void channelActive(ChannelHandlerContext ctx) throws Exception {
-            int currentConnectioncount = SessionManager.sessionCount();
+            int currentConnectioncount = ConnectionManager.connectionCount();
             if (currentConnectioncount >= maxConnectionCount) {
                 ctx.close();
                 LOG.warn("connection count is too big: limit={},current={}", maxConnectionCount,
                         currentConnectioncount);
             } else {
-                Session session = new DefaultSession(ctx.channel());
-                SessionManager.addSession(ctx.channel(), session);
-                AttributeHelper.setSession(ctx.channel(), session);
+                Connection session = new DefaultConnection(ctx.channel());
+                ConnectionManager.addConnection(ctx.channel(), session);
+                AttributeHelper.setConnection(ctx.channel(), session);
             }
         }
 
         @Override
         public void channelInactive(ChannelHandlerContext ctx) throws Exception {
-            SessionManager.delSession(ctx.channel());
+            ConnectionManager.delConnection(ctx.channel());
 
             super.channelInactive(ctx);
         }

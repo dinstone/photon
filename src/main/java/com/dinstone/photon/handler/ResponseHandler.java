@@ -1,7 +1,7 @@
 package com.dinstone.photon.handler;
 
+import com.dinstone.photon.connection.ResponseFuture;
 import com.dinstone.photon.message.Response;
-import com.dinstone.photon.session.ResponseFuture;
 
 public class ResponseHandler implements MessageHandler<Response> {
 

@@ -1,7 +1,6 @@
-package com.dinstone.photon.session;
+package com.dinstone.photon.connection;
 
 import java.util.concurrent.TimeUnit;
-import java.util.concurrent.TimeoutException;
 
 import com.dinstone.loghub.Logger;
 import com.dinstone.loghub.LoggerFactory;
@@ -16,15 +15,15 @@ import io.netty.channel.Channel;
 import io.netty.channel.ChannelFuture;
 import io.netty.util.concurrent.GenericFutureListener;
 
-public class DefaultSession implements Session {
+public class DefaultConnection implements Connection {
 
-    private static final Logger LOG = LoggerFactory.getLogger(DefaultSession.class);
+    private static final Logger LOG = LoggerFactory.getLogger(DefaultConnection.class);
 
     private String sessionId;
 
     private Channel channel;
 
-    public DefaultSession(Channel channel) {
+    public DefaultConnection(Channel channel) {
         this.channel = channel;
         this.sessionId = channel.id().asLongText();
     }
@@ -60,11 +59,10 @@ public class DefaultSession implements Session {
     }
 
     @Override
-    public Response sync(final Request request) throws InterruptedException, TimeoutException {
-        final ResponseFuture responseFuture = addFuture(request.getId());
+    public ResponseFuture async(final Request request) throws Exception {
+        final ResponseFuture responseFuture = createFuture(request.getId());
 
-        ChannelFuture cf = channel.writeAndFlush(request);
-        cf.addListener(new GenericFutureListener<ChannelFuture>() {
+        channel.writeAndFlush(request).addListener(new GenericFutureListener<ChannelFuture>() {
 
             @Override
             public void operationComplete(ChannelFuture future) throws Exception {
@@ -80,14 +78,20 @@ public class DefaultSession implements Session {
             }
 
         });
-        return responseFuture.get(request.getTimeout(), TimeUnit.MILLISECONDS);
+
+        return responseFuture;
+    }
+
+    @Override
+    public Response sync(final Request request) throws Exception {
+        return async(request).get(request.getTimeout(), TimeUnit.MILLISECONDS);
     }
 
     private ResponseFuture removeFuture(int messageId) {
         return AttributeHelper.futureMap(channel).remove(messageId);
     }
 
-    private ResponseFuture addFuture(int messageId) {
+    private ResponseFuture createFuture(int messageId) {
         ResponseFuture future = new ResponseFuture(messageId);
         AttributeHelper.futureMap(channel).put(future.getFutureId(), future);
         return future;
