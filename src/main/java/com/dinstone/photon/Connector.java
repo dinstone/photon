@@ -17,6 +17,8 @@
 package com.dinstone.photon;
 
 import java.net.SocketAddress;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 import javax.net.ssl.SSLEngine;
 
@@ -64,6 +66,8 @@ public class Connector {
 
     private int refCount;
 
+    private ExecutorService executorService;
+
     private MessageProcessor messageProcessor;
 
     public Connector(final ConnectOptions connectOptions) {
@@ -83,12 +87,19 @@ public class Connector {
                 ch.pipeline().addLast("TransportDecoder", new TransportDecoder());
                 ch.pipeline().addLast("TransportEncoder", new TransportEncoder());
 
-                ch.pipeline().addLast("IdleStateHandler", new IdleStateHandler(60, 30, 0));
+                ch.pipeline().addLast("IdleStateHandler",
+                        new IdleStateHandler(2 * options.getIdleTimeout(), options.getIdleTimeout(), 0));
                 ch.pipeline().addLast("ClientHandler", new ClientHandler());
             }
         });
 
         applyConnectionOptions(bootstrap);
+
+        int processorSize = options.getProcessorSize();
+        if (processorSize > 0) {
+            NamedThreadFactory threadFactory = new NamedThreadFactory("N4A-Processor");
+            executorService = Executors.newFixedThreadPool(processorSize, threadFactory);
+        }
     }
 
     private void applyConnectionOptions(Bootstrap bootstrap) {
@@ -153,7 +164,7 @@ public class Connector {
         return refCount == 0;
     }
 
-    public void dispose() {
+    public void destroy() {
         if (workGroup != null) {
             workGroup.shutdownGracefully();
         }

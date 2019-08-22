@@ -8,10 +8,14 @@ import io.netty.handler.ssl.ClientAuth;
 public class AcceptOptions extends TcpSslOptions {
 
     /**
-     * The default port to listen on = 0 (meaning a random ephemeral free port will
-     * be chosen)
+     * The default accept event loop size = 1
      */
-    public static final int DEFAULT_PORT = 0;
+    public static final int DEFAULT_ACCEPT_SIZE = 1;
+
+    /**
+     * The default worker event loop size = 0 (2 * Runtime.availableProcessors).
+     */
+    public static final int DEFAULT_WORKER_SIZE = 0;
 
     /**
      * The default host to listen on = "0.0.0.0" (meaning listen on all available
@@ -29,8 +33,9 @@ public class AcceptOptions extends TcpSslOptions {
      */
     public static final ClientAuth DEFAULT_CLIENT_AUTH = ClientAuth.NONE;
 
-    private int port;
-    private String host;
+    private int acceptSize;
+    private int workerSize;
+
     private int acceptBacklog;
     private ClientAuth clientAuth;
     private PrivateKey privateKey;
@@ -38,26 +43,26 @@ public class AcceptOptions extends TcpSslOptions {
 
     public AcceptOptions() {
         super();
-        port = DEFAULT_PORT;
-        host = DEFAULT_HOST;
+        acceptSize = DEFAULT_ACCEPT_SIZE;
+        workerSize = DEFAULT_WORKER_SIZE;
         acceptBacklog = DEFAULT_ACCEPT_BACKLOG;
         clientAuth = DEFAULT_CLIENT_AUTH;
     }
 
-    public int getPort() {
-        return port;
+    public int getAcceptSize() {
+        return acceptSize;
     }
 
-    public void setPort(int port) {
-        this.port = port;
+    public void setAcceptSize(int acceptSize) {
+        this.acceptSize = acceptSize;
     }
 
-    public String getHost() {
-        return host;
+    public int getWorkerSize() {
+        return workerSize;
     }
 
-    public void setHost(String host) {
-        this.host = host;
+    public void setWorkerSize(int workerSize) {
+        this.workerSize = workerSize;
     }
 
     public int getAcceptBacklog() {
@@ -90,6 +95,11 @@ public class AcceptOptions extends TcpSslOptions {
 
     public void setCertChain(X509Certificate[] certChain) {
         this.certChain = certChain;
+    }
+
+    public int getProcessorSize() {
+        // TODO Auto-generated method stub
+        return 0;
     }
 
 }
