@@ -33,9 +33,9 @@ public abstract class TcpSslOptions extends NetworkOptions {
     public static final boolean DEFAULT_SSL = false;
 
     /**
-     * Default idle timeout = 0
+     * Default idle timeout = 30
      */
-    public static final int DEFAULT_IDLE_TIMEOUT = 0;
+    public static final int DEFAULT_IDLE_TIMEOUT = 30;
 
     /**
      * Default use alpn = false

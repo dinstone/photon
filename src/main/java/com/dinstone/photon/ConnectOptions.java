@@ -61,4 +61,9 @@ public class ConnectOptions extends TcpSslOptions {
         this.trustManagerFactory = trustManagerFactory;
     }
 
+    public int getProcessorSize() {
+        // TODO Auto-generated method stub
+        return 0;
+    }
+
 }

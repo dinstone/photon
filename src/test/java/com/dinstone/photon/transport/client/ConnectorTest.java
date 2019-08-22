@@ -47,7 +47,7 @@ public class ConnectorTest {
 
         System.in.read();
 
-        connector.dispose();
+        connector.destroy();
     }
 
 }

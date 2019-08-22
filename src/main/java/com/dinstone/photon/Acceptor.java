@@ -2,6 +2,7 @@ package com.dinstone.photon;
 
 import java.net.SocketAddress;
 import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 
 import javax.net.ssl.SSLEngine;
@@ -46,12 +47,42 @@ public class Acceptor {
 
     private EventLoopGroup workGroup;
 
+    private ServerBootstrap bootstrap;
+
     private ExecutorService executorService;
 
     private MessageProcessor messageProcessor;
 
     public Acceptor(AcceptOptions acceptOptions) {
         this.options = acceptOptions;
+
+        bossGroup = new NioEventLoopGroup(options.getAcceptSize(), new DefaultThreadFactory("N4A-Boss"));
+        workGroup = new NioEventLoopGroup(options.getWorkerSize(), new DefaultThreadFactory("N4A-Work"));
+
+        bootstrap = new ServerBootstrap().group(bossGroup, workGroup);
+        bootstrap.channel(NioServerSocketChannel.class).childHandler(new ChannelInitializer<SocketChannel>() {
+
+            @Override
+            public void initChannel(SocketChannel ch) throws Exception {
+                if (options.isEnableSsl()) {
+                    SSLEngine engine = createSslEngine(ch.alloc());
+                    ch.pipeline().addFirst(new SslHandler(engine));
+                }
+                ch.pipeline().addLast("TransportDecoder", new TransportDecoder());
+                ch.pipeline().addLast("TransportEncoder", new TransportEncoder());
+
+                ch.pipeline().addLast("IdleStateHandler", new IdleStateHandler(2 * options.getIdleTimeout(), 0, 0));
+                ch.pipeline().addLast("ServerHandler", new ServerHandler());
+            }
+        });
+
+        applyConnectionOptions(bootstrap);
+
+        int processorSize = options.getProcessorSize();
+        if (processorSize > 0) {
+            NamedThreadFactory threadFactory = new NamedThreadFactory("N4A-Processor");
+            executorService = Executors.newFixedThreadPool(processorSize, threadFactory);
+        }
     }
 
     public void setMessageProcessor(MessageProcessor messageProcessor) {
@@ -64,38 +95,8 @@ public class Acceptor {
     public Acceptor bind(SocketAddress sa) {
         checkMessageProcessor();
 
-        bossGroup = new NioEventLoopGroup(1, new DefaultThreadFactory("N4A-Boss"));
-        workGroup = new NioEventLoopGroup(0, new DefaultThreadFactory("N4A-Work"));
-
-        ServerBootstrap bootstrap = new ServerBootstrap().group(bossGroup, workGroup);
-        bootstrap.channel(NioServerSocketChannel.class).childHandler(new ChannelInitializer<SocketChannel>() {
-
-            @Override
-            public void initChannel(SocketChannel ch) throws Exception {
-                if (options.isEnableSsl()) {
-                    SSLEngine engine = createSslEngine(ch.alloc());
-                    ch.pipeline().addFirst(new SslHandler(engine));
-                }
-                ch.pipeline().addLast("TransportDecoder", new TransportDecoder());
-                ch.pipeline().addLast("TransportEncoder", new TransportEncoder());
-
-                ch.pipeline().addLast("IdleStateHandler", new IdleStateHandler(60, 0, 0));
-                ch.pipeline().addLast("ServerHandler", new ServerHandler());
-            }
-        });
-
-        applyConnectionOptions(bootstrap);
-
         try {
             bootstrap.bind(sa).sync();
-
-            // int processorCount = transportConfig.getBusinessProcessorCount();
-            // if (processorCount > 0) {
-            // NamedThreadFactory threadFactory = new
-            // NamedThreadFactory("N4A-BusinessProcessor");
-            // executorService = Executors.newFixedThreadPool(processorCount,
-            // threadFactory);
-            // }
         } catch (Exception e) {
             throw new RuntimeException("can't bind service on " + sa, e);
         }
@@ -135,7 +136,7 @@ public class Acceptor {
         }
     }
 
-    protected SSLEngine createSslEngine(ByteBufAllocator byteBufAllocator) throws Exception {
+    private SSLEngine createSslEngine(ByteBufAllocator byteBufAllocator) throws Exception {
         SslContextBuilder builder = SslContextBuilder.forServer(options.getPrivateKey(), options.getCertChain());
         SSLEngine sslEngine = builder.build().newEngine(byteBufAllocator);
         sslEngine.setUseClientMode(false);
