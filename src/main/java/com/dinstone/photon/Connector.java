@@ -19,6 +19,7 @@ package com.dinstone.photon;
 import java.net.SocketAddress;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
 
 import javax.net.ssl.SSLEngine;
 
@@ -92,7 +93,6 @@ public class Connector {
                 ch.pipeline().addLast("ClientHandler", new ClientHandler());
             }
         });
-
         applyConnectionOptions(bootstrap);
 
         int processorSize = options.getProcessorSize();
@@ -168,6 +168,13 @@ public class Connector {
         if (workGroup != null) {
             workGroup.shutdownGracefully();
         }
+        if (executorService != null) {
+            executorService.shutdownNow();
+            try {
+                executorService.awaitTermination(Integer.MAX_VALUE, TimeUnit.SECONDS);
+            } catch (InterruptedException e) {
+            }
+        }
     }
 
     public Connection connect(SocketAddress sa) throws Exception {
@@ -224,7 +231,7 @@ public class Connector {
 
             MessageHandler<Object> messageHandler = HandlerManager.find(msg.getClass());
             if (messageHandler != null) {
-                messageHandler.handle(new MessageContext(ctx, messageProcessor), msg);
+                messageHandler.handle(new MessageContext(ctx, executorService), messageProcessor, msg);
             }
         }
 
