@@ -21,7 +21,7 @@ public class HandlerManager {
 
     public static <T> void regist(Class<T> messageType, MessageHandler<T> messageHandler) {
         if (handlers.containsKey(messageType)) {
-            throw new IllegalStateException("Already a handler registered with type " + messageType);
+            throw new IllegalStateException("already a handler registered with type " + messageType);
         }
         handlers.put(messageType, messageHandler);
     }

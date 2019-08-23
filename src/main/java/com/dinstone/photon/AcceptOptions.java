@@ -33,8 +33,14 @@ public class AcceptOptions extends TcpSslOptions {
      */
     public static final ClientAuth DEFAULT_CLIENT_AUTH = ClientAuth.NONE;
 
+    /**
+     * Default value of processor thread size = 20
+     */
+    private static final int DEFAULT_PROCESSOR_SIZE = 20;
+
     private int acceptSize;
     private int workerSize;
+    private int processorSize;
 
     private int acceptBacklog;
     private ClientAuth clientAuth;
@@ -45,8 +51,17 @@ public class AcceptOptions extends TcpSslOptions {
         super();
         acceptSize = DEFAULT_ACCEPT_SIZE;
         workerSize = DEFAULT_WORKER_SIZE;
+        processorSize = DEFAULT_PROCESSOR_SIZE;
         acceptBacklog = DEFAULT_ACCEPT_BACKLOG;
         clientAuth = DEFAULT_CLIENT_AUTH;
+    }
+
+    public void setProcessorSize(int processorSize) {
+        this.processorSize = processorSize;
+    }
+
+    public int getProcessorSize() {
+        return processorSize;
     }
 
     public int getAcceptSize() {
@@ -95,11 +110,6 @@ public class AcceptOptions extends TcpSslOptions {
 
     public void setCertChain(X509Certificate[] certChain) {
         this.certChain = certChain;
-    }
-
-    public int getProcessorSize() {
-        // TODO Auto-generated method stub
-        return 0;
     }
 
 }
