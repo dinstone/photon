@@ -1,10 +1,5 @@
 package com.dinstone.photon;
 
-import java.nio.Buffer;
-import java.util.ArrayList;
-import java.util.LinkedHashSet;
-import java.util.Set;
-
 public abstract class TcpSslOptions extends NetworkOptions {
 
     /**
@@ -33,7 +28,7 @@ public abstract class TcpSslOptions extends NetworkOptions {
     public static final boolean DEFAULT_SSL = false;
 
     /**
-     * Default idle timeout = 30
+     * Default idle timeout = 30s
      */
     public static final int DEFAULT_IDLE_TIMEOUT = 30;
 
@@ -48,13 +43,6 @@ public abstract class TcpSslOptions extends NetworkOptions {
     private boolean usePooledBuffers;
     private int idleTimeout;
     private boolean enableSsl;
-//    private KeyCertOptions keyCertOptions;
-//    private TrustOptions trustOptions;
-    private Set<String> enabledCipherSuites = new LinkedHashSet<>();
-    private ArrayList<String> crlPaths;
-    private ArrayList<Buffer> crlValues;
-//    private SslEngineOptions sslEngineOptions;
-    private Set<String> enabledSecureTransportProtocols = new LinkedHashSet<>();
 
     public TcpSslOptions() {
         super();
@@ -66,8 +54,6 @@ public abstract class TcpSslOptions extends NetworkOptions {
         usePooledBuffers = DEFAULT_USE_POOLED_BUFFERS;
         idleTimeout = DEFAULT_IDLE_TIMEOUT;
         enableSsl = DEFAULT_SSL;
-        crlPaths = new ArrayList<>();
-        crlValues = new ArrayList<>();
     }
 
     public boolean isTcpNoDelay() {
@@ -116,38 +102,6 @@ public abstract class TcpSslOptions extends NetworkOptions {
 
     public void setEnableSsl(boolean enableSsl) {
         this.enableSsl = enableSsl;
-    }
-
-    public Set<String> getEnabledCipherSuites() {
-        return enabledCipherSuites;
-    }
-
-    public void setEnabledCipherSuites(Set<String> enabledCipherSuites) {
-        this.enabledCipherSuites = enabledCipherSuites;
-    }
-
-    public ArrayList<String> getCrlPaths() {
-        return crlPaths;
-    }
-
-    public void setCrlPaths(ArrayList<String> crlPaths) {
-        this.crlPaths = crlPaths;
-    }
-
-    public ArrayList<Buffer> getCrlValues() {
-        return crlValues;
-    }
-
-    public void setCrlValues(ArrayList<Buffer> crlValues) {
-        this.crlValues = crlValues;
-    }
-
-    public Set<String> getEnabledSecureTransportProtocols() {
-        return enabledSecureTransportProtocols;
-    }
-
-    public void setEnabledSecureTransportProtocols(Set<String> enabledSecureTransportProtocols) {
-        this.enabledSecureTransportProtocols = enabledSecureTransportProtocols;
     }
 
 }

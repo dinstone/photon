@@ -184,9 +184,9 @@ public class Acceptor {
                 LOG.warn("connection count is too big: limit={},current={}", maxConnectionCount,
                         currentConnectioncount);
             } else {
-                Connection session = new DefaultConnection(ctx.channel());
-                ConnectionManager.addConnection(ctx.channel(), session);
-                AttributeHelper.setConnection(ctx.channel(), session);
+                Connection connection = new DefaultConnection(ctx.channel());
+                ConnectionManager.addConnection(ctx.channel(), connection);
+                AttributeHelper.setConnection(ctx.channel(), connection);
             }
         }
 
