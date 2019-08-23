@@ -1,9 +1,10 @@
 package com.dinstone.photon.handler;
 
+import java.util.concurrent.Executor;
+
 import com.dinstone.photon.AttributeHelper;
 import com.dinstone.photon.connection.Connection;
 import com.dinstone.photon.connection.ResponseFuture;
-import com.dinstone.photon.processor.MessageProcessor;
 
 import io.netty.channel.ChannelHandlerContext;
 
@@ -11,19 +12,19 @@ public class MessageContext {
 
     private ChannelHandlerContext channelContext;
 
-    private MessageProcessor messageProcessor;
+    private Executor defaultExecutor;
 
-    public MessageContext(ChannelHandlerContext channelContext, MessageProcessor messageProcessor) {
+    public MessageContext(ChannelHandlerContext channelContext, Executor defaultExecutor) {
         this.channelContext = channelContext;
-        this.messageProcessor = messageProcessor;
+        this.defaultExecutor = defaultExecutor;
     }
 
     public ChannelHandlerContext getChannelContext() {
         return channelContext;
     }
 
-    public MessageProcessor getMessageProcessor() {
-        return messageProcessor;
+    public Executor getDefaultExecutor() {
+        return defaultExecutor;
     }
 
     public ResponseFuture removeResponseFuture(int id) {

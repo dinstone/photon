@@ -203,7 +203,7 @@ public class Acceptor {
 
             MessageHandler<Object> messageHandler = HandlerManager.find(msg.getClass());
             if (messageHandler != null) {
-                messageHandler.handle(new MessageContext(ctx, messageProcessor), msg);
+                messageHandler.handle(new MessageContext(ctx, executorService), messageProcessor, msg);
             }
 
         }
