@@ -4,7 +4,7 @@ import javax.net.ssl.TrustManagerFactory;
 
 import io.netty.handler.ssl.util.InsecureTrustManagerFactory;
 
-public class ConnectOptions extends TcpSslOptions {
+public class ConnectOptions extends PhotonOptions {
 
     /**
      * The default value of connect timeout = 3000 ms
@@ -59,11 +59,6 @@ public class ConnectOptions extends TcpSslOptions {
 
     public void setTrustManagerFactory(TrustManagerFactory trustManagerFactory) {
         this.trustManagerFactory = trustManagerFactory;
-    }
-
-    public int getProcessorSize() {
-        // TODO Auto-generated method stub
-        return 0;
     }
 
 }

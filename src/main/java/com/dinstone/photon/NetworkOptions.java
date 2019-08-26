@@ -3,6 +3,21 @@ package com.dinstone.photon;
 public abstract class NetworkOptions {
 
     /**
+     * The default value of TCP-no-delay = true (Nagle disabled)
+     */
+    public static final boolean DEFAULT_TCP_NO_DELAY = true;
+
+    /**
+     * The default value of TCP keep alive = false
+     */
+    public static final boolean DEFAULT_TCP_KEEP_ALIVE = false;
+
+    /**
+     * The default value of SO_linger = -1
+     */
+    public static final int DEFAULT_SO_LINGER = -1;
+
+    /**
      * The default value of TCP send buffer size
      */
     public static final int DEFAULT_SEND_BUFFER_SIZE = -1;
@@ -33,6 +48,10 @@ public abstract class NetworkOptions {
     private boolean reuseAddress;
     private boolean logActivity;
 
+    private boolean tcpNoDelay;
+    private boolean tcpKeepAlive;
+    private int soLinger;
+
     /**
      * Default constructor
      */
@@ -42,6 +61,10 @@ public abstract class NetworkOptions {
         reuseAddress = DEFAULT_REUSE_ADDRESS;
         trafficClass = DEFAULT_TRAFFIC_CLASS;
         logActivity = DEFAULT_LOG_ENABLED;
+
+        tcpNoDelay = DEFAULT_TCP_NO_DELAY;
+        tcpKeepAlive = DEFAULT_TCP_KEEP_ALIVE;
+        soLinger = DEFAULT_SO_LINGER;
     }
 
     public int getSendBufferSize() {
@@ -82,6 +105,30 @@ public abstract class NetworkOptions {
 
     public void setLogActivity(boolean logActivity) {
         this.logActivity = logActivity;
+    }
+
+    public boolean isTcpNoDelay() {
+        return tcpNoDelay;
+    }
+
+    public void setTcpNoDelay(boolean tcpNoDelay) {
+        this.tcpNoDelay = tcpNoDelay;
+    }
+
+    public boolean isTcpKeepAlive() {
+        return tcpKeepAlive;
+    }
+
+    public void setTcpKeepAlive(boolean tcpKeepAlive) {
+        this.tcpKeepAlive = tcpKeepAlive;
+    }
+
+    public int getSoLinger() {
+        return soLinger;
+    }
+
+    public void setSoLinger(int soLinger) {
+        this.soLinger = soLinger;
     }
 
 }

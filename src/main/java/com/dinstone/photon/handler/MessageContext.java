@@ -1,5 +1,6 @@
 package com.dinstone.photon.handler;
 
+import java.util.Map;
 import java.util.concurrent.Executor;
 
 import com.dinstone.photon.AttributeHelper;
@@ -27,12 +28,12 @@ public class MessageContext {
         return defaultExecutor;
     }
 
-    public ResponseFuture removeResponseFuture(int id) {
-        return AttributeHelper.futureMap(channelContext.channel()).remove(id);
-    }
-
     public Connection getConnection() {
         return AttributeHelper.getConnection(channelContext.channel());
+    }
+
+    public Map<Integer, ResponseFuture> getResponseFutures() {
+        return AttributeHelper.futureMap(channelContext.channel());
     }
 
 }
