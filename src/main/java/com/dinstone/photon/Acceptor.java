@@ -21,6 +21,8 @@ import com.dinstone.photon.transport.TransportEncoder;
 
 import io.netty.bootstrap.ServerBootstrap;
 import io.netty.buffer.ByteBufAllocator;
+import io.netty.buffer.PooledByteBufAllocator;
+import io.netty.buffer.UnpooledByteBufAllocator;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelInboundHandlerAdapter;
 import io.netty.channel.ChannelInitializer;
@@ -58,7 +60,6 @@ public class Acceptor {
 
         bossGroup = new NioEventLoopGroup(options.getAcceptSize(), new DefaultThreadFactory("N4A-Boss"));
         workGroup = new NioEventLoopGroup(options.getWorkerSize(), new DefaultThreadFactory("N4A-Work"));
-
         bootstrap = new ServerBootstrap().group(bossGroup, workGroup);
         bootstrap.channel(NioServerSocketChannel.class).childHandler(new ChannelInitializer<SocketChannel>() {
 
@@ -75,7 +76,6 @@ public class Acceptor {
                 ch.pipeline().addLast("ServerHandler", new ServerHandler());
             }
         });
-
         applyConnectionOptions(bootstrap);
 
         int processorSize = options.getProcessorSize();
@@ -126,7 +126,11 @@ public class Acceptor {
         if (options.getTrafficClass() != -1) {
             bootstrap.childOption(ChannelOption.IP_TOS, options.getTrafficClass());
         }
-        bootstrap.childOption(ChannelOption.ALLOCATOR, ByteBufAllocator.DEFAULT);
+        if (options.isUsePooledBuffers()) {
+            bootstrap.childOption(ChannelOption.ALLOCATOR, PooledByteBufAllocator.DEFAULT);
+        } else {
+            bootstrap.childOption(ChannelOption.ALLOCATOR, UnpooledByteBufAllocator.DEFAULT);
+        }
         bootstrap.childOption(ChannelOption.SO_KEEPALIVE, options.isTcpKeepAlive());
     }
 

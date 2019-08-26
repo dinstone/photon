@@ -8,7 +8,7 @@ public class ResponseHandler implements MessageHandler<Response> {
 
     @Override
     public void handle(MessageContext context, MessageProcessor processor, Response response) {
-        ResponseFuture future = context.removeResponseFuture(response.getId());
+        ResponseFuture future = context.getResponseFutures().remove(response.getId());
         if (future != null) {
             future.setResult(response);
         }

@@ -38,6 +38,8 @@ import com.dinstone.photon.transport.TransportEncoder;
 
 import io.netty.bootstrap.Bootstrap;
 import io.netty.buffer.ByteBufAllocator;
+import io.netty.buffer.PooledByteBufAllocator;
+import io.netty.buffer.UnpooledByteBufAllocator;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelFuture;
 import io.netty.channel.ChannelHandlerContext;
@@ -124,8 +126,12 @@ public class Connector {
         if (options.getTrafficClass() != -1) {
             bootstrap.option(ChannelOption.IP_TOS, options.getTrafficClass());
         }
+        if (options.isUsePooledBuffers()) {
+            bootstrap.option(ChannelOption.ALLOCATOR, PooledByteBufAllocator.DEFAULT);
+        } else {
+            bootstrap.option(ChannelOption.ALLOCATOR, UnpooledByteBufAllocator.DEFAULT);
+        }
         bootstrap.option(ChannelOption.CONNECT_TIMEOUT_MILLIS, options.getConnectTimeout());
-        bootstrap.option(ChannelOption.ALLOCATOR, ByteBufAllocator.DEFAULT);
     }
 
     protected SSLEngine createSslEngine(ByteBufAllocator byteBufAllocator) throws Exception {
