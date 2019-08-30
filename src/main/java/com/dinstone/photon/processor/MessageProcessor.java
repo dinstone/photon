@@ -5,6 +5,6 @@ import com.dinstone.photon.message.Message;
 
 public interface MessageProcessor {
 
-    void process(MessageContext context, Message message);
+    void process(MessageContext context, Message message) throws Exception;
 
 }

@@ -8,7 +8,11 @@ public class NoticeHandler implements MessageHandler<Notice> {
     @Override
     public void handle(MessageContext context, MessageProcessor processor, Notice msg) {
 
-        processor.process(context, msg);
+        try {
+            processor.process(context, msg);
+        } catch (Exception e) {
+            // ignore
+        }
     }
 
 }
