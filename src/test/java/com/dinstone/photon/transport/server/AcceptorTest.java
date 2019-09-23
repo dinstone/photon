@@ -53,13 +53,13 @@ public class AcceptorTest {
                 Notice notice = new Notice();
                 notice.setAddress("");
                 notice.setContent(request.getContent());
-                context.getChannelContext().writeAndFlush(notice);
+                context.getConnection().write(notice);
 
                 Response response = new Response();
                 response.setId(request.getId());
                 response.setStatus(Status.SUCCESS);
                 response.setContent(request.getContent());
-                context.getChannelContext().writeAndFlush(response);
+                context.getConnection().write(response);
             }
 
             @Override

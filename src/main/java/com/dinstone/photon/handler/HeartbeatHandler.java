@@ -23,7 +23,7 @@ public class HeartbeatHandler implements MessageHandler<Heartbeat> {
     @Override
     public void handle(MessageContext context, MessageProcessor processor, Heartbeat heartbeat) {
         if (heartbeat.isPing()) {
-            context.getChannelContext().writeAndFlush(heartbeat.pong());
+            context.getConnection().write(heartbeat.pong());
         } else {
             // ignore
         }

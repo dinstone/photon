@@ -19,21 +19,29 @@ import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.UndeclaredThrowableException;
 
 import com.dinstone.photon.message.Request;
+import com.dinstone.photon.message.Response;
+import com.dinstone.photon.message.Status;
 import com.dinstone.photon.processor.MessageProcessor;
 
 public class RequestHandler implements MessageHandler<Request> {
 
     @Override
-    public void handle(MessageContext context, MessageProcessor processor, Request msg) {
+    public void handle(MessageContext context, MessageProcessor processor, Request request) {
 
         try {
-            processor.process(context, msg);
+            processor.process(context, request);
         } catch (Throwable e) {
-            Throwable t = null;
             if (e instanceof InvocationTargetException) {
-                t = getTargetException((InvocationTargetException) e);
+                e = getTargetException((InvocationTargetException) e);
             }
-            
+
+            Response response = new Response();
+            response.setId(request.getId());
+            response.setHeaders(request.getHeaders());
+            response.setStatus(Status.ERROR);
+            response.setException(e);
+
+            context.getConnection().write(response);
         }
 
     }

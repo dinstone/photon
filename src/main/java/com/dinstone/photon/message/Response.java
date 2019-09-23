@@ -19,6 +19,8 @@ public class Response extends BurdenMessage {
 
     private Status status;
 
+    private Throwable exception;
+
     public Response() {
         super(Type.RESPONSE);
     }
@@ -29,6 +31,14 @@ public class Response extends BurdenMessage {
 
     public void setStatus(Status status) {
         this.status = status;
+    }
+
+    public Throwable getException() {
+        return exception;
+    }
+
+    public void setException(Throwable exception) {
+        this.exception = exception;
     }
 
 }
