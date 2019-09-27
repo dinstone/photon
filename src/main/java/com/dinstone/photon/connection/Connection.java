@@ -15,6 +15,8 @@
  */
 package com.dinstone.photon.connection;
 
+import java.net.InetSocketAddress;
+
 import com.dinstone.photon.message.Message;
 import com.dinstone.photon.message.Notice;
 import com.dinstone.photon.message.Request;
@@ -28,12 +30,18 @@ public interface Connection {
 
     boolean isActive();
 
+    public void destroy();
+
+    public InetSocketAddress getRemoteAddress();
+
+    public InetSocketAddress getLocalAddress();
+
     void notify(Notice notice);
 
     ChannelFuture write(Message message);
 
     Response sync(Request request) throws Exception;
-    
+
     ResponseFuture async(Request request) throws Exception;
 
 }

@@ -15,6 +15,7 @@
  */
 package com.dinstone.photon.connection;
 
+import java.net.InetSocketAddress;
 import java.util.concurrent.TimeUnit;
 
 import com.dinstone.loghub.Logger;
@@ -110,6 +111,21 @@ public class DefaultConnection implements Connection {
         ResponseFuture future = new ResponseFuture(messageId);
         AttributeHelper.futureMap(channel).put(future.getFutureId(), future);
         return future;
+    }
+
+    @Override
+    public InetSocketAddress getRemoteAddress() {
+        return (InetSocketAddress) channel.remoteAddress();
+    }
+
+    @Override
+    public InetSocketAddress getLocalAddress() {
+        return (InetSocketAddress) channel.localAddress();
+    }
+
+    @Override
+    public void destroy() {
+        channel.close();
     }
 
 }
