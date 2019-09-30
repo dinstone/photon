@@ -232,11 +232,9 @@ public class Connector {
 
         @Override
         public void channelRead(ChannelHandlerContext ctx, Object msg) throws Exception {
-            LOG.info("client received message : {}", msg);
-
             MessageHandler<Object> messageHandler = HandlerManager.find(msg.getClass());
             if (messageHandler != null) {
-                messageHandler.handle(new MessageContext(ctx, executorService), messageProcessor, msg);
+                messageHandler.handle(messageProcessor, new MessageContext(ctx, executorService), msg);
             }
         }
 

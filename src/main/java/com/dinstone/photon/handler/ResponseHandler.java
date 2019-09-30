@@ -22,12 +22,11 @@ import com.dinstone.photon.processor.MessageProcessor;
 public class ResponseHandler implements MessageHandler<Response> {
 
     @Override
-    public void handle(MessageContext context, MessageProcessor processor, Response response) {
+    public void handle(MessageProcessor processor, MessageContext context, Response response) {
         ResponseFuture future = context.getResponseFutures().remove(response.getId());
         if (future != null) {
             future.setResult(response);
         }
-
     }
 
 }

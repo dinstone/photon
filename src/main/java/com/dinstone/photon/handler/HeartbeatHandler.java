@@ -21,7 +21,7 @@ import com.dinstone.photon.processor.MessageProcessor;
 public class HeartbeatHandler implements MessageHandler<Heartbeat> {
 
     @Override
-    public void handle(MessageContext context, MessageProcessor processor, Heartbeat heartbeat) {
+    public void handle(MessageProcessor processor, MessageContext context, Heartbeat heartbeat) {
         if (heartbeat.isPing()) {
             context.getConnection().write(heartbeat.pong());
         } else {

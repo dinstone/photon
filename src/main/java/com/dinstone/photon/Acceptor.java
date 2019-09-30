@@ -115,7 +115,7 @@ public class Acceptor {
         } catch (Exception e) {
             throw new RuntimeException("can't bind service on " + sa, e);
         }
-        LOG.info("netty acceptance bind on {}", sa);
+        LOG.info("netty acceptor bind on {}", sa);
 
         return this;
     }
@@ -218,11 +218,9 @@ public class Acceptor {
 
         @Override
         public void channelRead(final ChannelHandlerContext ctx, final Object msg) throws Exception {
-            LOG.info("server received message : {}", msg);
-
             MessageHandler<Object> messageHandler = HandlerManager.find(msg.getClass());
             if (messageHandler != null) {
-                messageHandler.handle(new MessageContext(ctx, executorService), messageProcessor, msg);
+                messageHandler.handle(messageProcessor, new MessageContext(ctx, executorService), msg);
             }
 
         }

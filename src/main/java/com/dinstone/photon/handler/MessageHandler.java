@@ -19,5 +19,5 @@ import com.dinstone.photon.processor.MessageProcessor;
 
 public interface MessageHandler<T> {
 
-    public void handle(final MessageContext context, MessageProcessor processor, T msg);
+    public void handle(MessageProcessor processor, MessageContext context, T msg);
 }

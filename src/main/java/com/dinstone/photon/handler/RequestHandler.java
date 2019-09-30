@@ -26,7 +26,7 @@ import com.dinstone.photon.processor.MessageProcessor;
 public class RequestHandler implements MessageHandler<Request> {
 
     @Override
-    public void handle(MessageContext context, MessageProcessor processor, Request request) {
+    public void handle(MessageProcessor processor, MessageContext context, Request request) {
 
         try {
             processor.process(context, request);

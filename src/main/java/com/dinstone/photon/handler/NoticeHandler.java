@@ -21,7 +21,7 @@ import com.dinstone.photon.processor.MessageProcessor;
 public class NoticeHandler implements MessageHandler<Notice> {
 
     @Override
-    public void handle(MessageContext context, MessageProcessor processor, Notice msg) {
+    public void handle(MessageProcessor processor, MessageContext context, Notice msg) {
 
         try {
             processor.process(context, msg);
