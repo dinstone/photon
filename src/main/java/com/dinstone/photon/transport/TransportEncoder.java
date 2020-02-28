@@ -15,7 +15,8 @@
  */
 package com.dinstone.photon.transport;
 
-import com.dinstone.photon.codec.AbstractCodec;
+import com.dinstone.photon.codec.CodecManager;
+import com.dinstone.photon.codec.MessageCodec;
 import com.dinstone.photon.message.Message;
 
 import io.netty.buffer.ByteBuf;
@@ -24,6 +25,7 @@ import io.netty.handler.codec.MessageToByteEncoder;
 
 public class TransportEncoder extends MessageToByteEncoder<Message> {
 
+    private static final byte[] PLACEHOLDER = new byte[4];
     /** 2GB */
     private int maxSize = Integer.MAX_VALUE;
 
@@ -39,13 +41,24 @@ public class TransportEncoder extends MessageToByteEncoder<Message> {
 
     @Override
     protected void encode(ChannelHandlerContext ctx, Message message, ByteBuf out) throws Exception {
-        ByteBuf buffer = AbstractCodec.encodeMessage(message);
-        int length = buffer.readableBytes();
-        if (length > maxSize) {
-            throw new IllegalArgumentException("The encoded data is too big: " + length + " (>" + maxSize + ")");
+        MessageCodec<Message> codec = CodecManager.find(message.getType());
+        if (codec == null) {
+            throw new IllegalStateException("can't find message codec for " + message.getType());
+        } else {
+            int swi = out.writerIndex();
+            out.writeBytes(PLACEHOLDER);
+
+            // message encode
+            codec.encode(message, out);
+
+            int ewi = out.writerIndex();
+            int len = ewi - swi - 4;
+            if (len > maxSize) {
+                throw new IllegalArgumentException("encoded data is too big: " + len + " (>" + maxSize + ")");
+            }
+
+            out.setInt(swi, len);
         }
-        out.writeInt(length);
-        out.writeBytes(buffer);
     }
 
 }

@@ -25,7 +25,6 @@ import com.dinstone.photon.message.Message;
 import com.dinstone.photon.message.Notice;
 import com.dinstone.photon.message.Request;
 import com.dinstone.photon.message.Response;
-import com.dinstone.photon.message.Status;
 
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelFuture;
@@ -67,7 +66,7 @@ public class DefaultConnection implements Connection {
             @Override
             public void operationComplete(ChannelFuture future) throws Exception {
                 if (!future.isSuccess()) {
-                    LOG.warn("send notice error", future.cause());
+                    LOG.warn("send notice message error", future.cause());
                 }
             }
 
@@ -83,13 +82,10 @@ public class DefaultConnection implements Connection {
             @Override
             public void operationComplete(ChannelFuture future) throws Exception {
                 if (!future.isSuccess()) {
-                    Response result = new Response();
-                    result.setId(request.getId());
-                    result.setStatus(Status.ERROR);
-                    responseFuture.setResult(result);
-
-                    removeFuture(request.getId());
-                    LOG.warn("send request error", future.cause());
+                    String message = "send request message error";
+                    responseFuture.setResult(new RuntimeException(message, future.cause()));
+                    removeFuture(responseFuture.getFutureId());
+                    LOG.warn(message, future.cause());
                 }
             }
 
@@ -109,7 +105,7 @@ public class DefaultConnection implements Connection {
 
     private ResponseFuture createFuture(int messageId) {
         ResponseFuture future = new ResponseFuture(messageId);
-        AttributeHelper.futureMap(channel).put(future.getFutureId(), future);
+        AttributeHelper.futureMap(channel).put(messageId, future);
         return future;
     }
 

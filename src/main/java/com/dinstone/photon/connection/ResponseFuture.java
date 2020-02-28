@@ -22,7 +22,6 @@ import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
 import com.dinstone.photon.message.Response;
-import com.dinstone.photon.message.Status;
 
 /**
  * @author guojf
@@ -38,7 +37,7 @@ public class ResponseFuture {
 
     private int futureId;
 
-    private Response response;
+    private Object result;
 
     /**
      *
@@ -51,7 +50,7 @@ public class ResponseFuture {
         return futureId;
     }
 
-    public Response get() throws InterruptedException {
+    public Response get() throws Throwable {
         lock.lock();
         try {
             while (!done) {
@@ -64,7 +63,7 @@ public class ResponseFuture {
 
     }
 
-    public Response get(long timeout, TimeUnit unit) throws InterruptedException, TimeoutException {
+    public Response get(long timeout, TimeUnit unit) throws Exception {
         lock.lock();
         try {
             if (!done) {
@@ -79,29 +78,33 @@ public class ResponseFuture {
         }
     }
 
-    public void setResult(Response result) {
-        setValue(result);
+    public void setResult(Response response) {
+        setValue(response);
     }
 
-    private Response getValue() {
-        if (response.getStatus() != Status.SUCCESS) {
-            throw new RuntimeException(response.getStatus().name());
+    public void setResult(Exception exception) {
+        setValue(exception);
+    }
+
+    private Response getValue() throws Exception {
+        if (result instanceof Exception) {
+            throw (Exception) result;
         } else {
-            return response;
+            return (Response) result;
         }
     }
 
     /**
      * @param result
      */
-    private void setValue(Response result) {
+    private void setValue(Object result) {
         lock.lock();
         try {
             if (done) {
                 return;
             }
 
-            this.response = result;
+            this.result = result;
             done = true;
             this.ready.signalAll();
         } finally {

@@ -15,6 +15,8 @@
  */
 package com.dinstone.photon.codec;
 
+import java.util.List;
+
 import com.dinstone.photon.message.Message;
 import com.dinstone.photon.message.Message.Type;
 import com.dinstone.photon.message.Notice;
@@ -33,7 +35,7 @@ public class NoticeCodec extends AbstractCodec<Notice> {
         if (VERSION != version) {
             throw new IllegalArgumentException("invalid message version " + version + " for " + type);
         }
-        
+
         Notice notice = new Notice();
         // message id
         notice.setId(in.readInt());
@@ -64,6 +66,43 @@ public class NoticeCodec extends AbstractCodec<Notice> {
         writeContent(out, message.getContent());
 
         return out;
+    }
+
+    @Override
+    public void encode(Notice message, ByteBuf out) {
+        out.writeByte(message.getType().getValue());
+        out.writeByte(message.getVersion());
+        out.writeInt(message.getId());
+        writeString(out, message.getAddress());
+
+        // headers
+        writeHeaders(out, message.getHeaders());
+        // content
+        writeContent(out, message.getContent());
+    }
+
+    @Override
+    public void decode(ByteBuf in, List<Object> out) {
+        Type type = Message.Type.valueOf(in.readByte());
+        byte version = in.readByte();
+        if (VERSION != version) {
+            throw new IllegalArgumentException("invalid message version " + version + " for " + type);
+        }
+
+        Notice notice = new Notice();
+        // message id
+        notice.setId(in.readInt());
+        // address
+        String address = readString(in);
+        notice.setAddress(address);
+
+        // headers
+        notice.setHeaders(readHeaders(in));
+        // content
+        byte[] content = readContent(in);
+        notice.setContent(content);
+
+        out.add(notice);
     }
 
 }

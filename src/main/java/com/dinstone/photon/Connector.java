@@ -185,10 +185,25 @@ public class Connector {
     public Connection connect(SocketAddress sa) throws Exception {
         checkMessageProcessor();
 
-        // connect to peer
+        // wait connect to peer
         ChannelFuture channelFuture = bootstrap.connect(sa).awaitUninterruptibly();
+
+        if (!channelFuture.isDone()) {
+            String message = "create connection to " + sa + " timeout";
+            LOG.warn(message);
+            throw new RuntimeException(message);
+        }
+
+        if (channelFuture.isCancelled()) {
+            String message = "create connection to " + sa + " cancelled";
+            LOG.warn(message);
+            throw new RuntimeException(message);
+        }
+
         if (!channelFuture.isSuccess()) {
-            throw new RuntimeException(channelFuture.cause());
+            String message = "create connection to " + sa + " error";
+            LOG.warn(message);
+            throw new RuntimeException(message, channelFuture.cause());
         }
 
         Channel channel = channelFuture.channel();
@@ -196,7 +211,7 @@ public class Connector {
         ConnectionManager.addConnection(channel, connection);
         AttributeHelper.setConnection(channel, connection);
 
-        LOG.debug("session connect {} to {}", channel.localAddress(), channel.remoteAddress());
+        LOG.debug("connection created from {} to {}", channel.localAddress(), channel.remoteAddress());
         return connection;
     }
 

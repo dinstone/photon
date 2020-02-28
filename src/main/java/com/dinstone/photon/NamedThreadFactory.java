@@ -29,7 +29,7 @@ public class NamedThreadFactory implements ThreadFactory {
     }
 
     public Thread newThread(Runnable r) {
-        return new Thread(r, prex + index.incrementAndGet());
+        return new Thread(r, prex + "-" + index.incrementAndGet());
     }
 
 }

@@ -33,9 +33,9 @@ public abstract class PhotonOptions extends NetworkOptions {
     public static final int DEFAULT_IDLE_TIMEOUT = 30;
 
     /**
-     * Default processor thread size = 20
+     * Default processor thread size = 4
      */
-    private static final int DEFAULT_PROCESSOR_SIZE = 20;
+    private static final int DEFAULT_PROCESSOR_SIZE = 4;
 
     private boolean usePooledBuffers;
     private boolean enableSsl;
