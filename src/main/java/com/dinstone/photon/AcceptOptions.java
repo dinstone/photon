@@ -48,12 +48,19 @@ public class AcceptOptions extends PhotonOptions {
      */
     public static final ClientAuth DEFAULT_CLIENT_AUTH = ClientAuth.NONE;
 
+    /**
+     * zero is no limit
+     */
+    private static final int DEFAULT_CONNECTION_LIMIT = 0;
+
     private int acceptSize;
     private int workerSize;
     private int acceptBacklog;
     private ClientAuth clientAuth;
     private PrivateKey privateKey;
     private X509Certificate[] certChain;
+
+    private int connectionLimit;
 
     public AcceptOptions() {
         super();
@@ -62,6 +69,8 @@ public class AcceptOptions extends PhotonOptions {
 
         acceptBacklog = DEFAULT_ACCEPT_BACKLOG;
         clientAuth = DEFAULT_CLIENT_AUTH;
+
+        connectionLimit = DEFAULT_CONNECTION_LIMIT;
     }
 
     public int getAcceptSize() {
@@ -110,6 +119,14 @@ public class AcceptOptions extends PhotonOptions {
 
     public void setCertChain(X509Certificate[] certChain) {
         this.certChain = certChain;
+    }
+
+    public int getConnectionLimit() {
+        return connectionLimit;
+    }
+
+    public void setConnectionLimit(int connectionLimit) {
+        this.connectionLimit = connectionLimit;
     }
 
 }

@@ -75,7 +75,7 @@ public class Connector {
     public Connector(final ConnectOptions connectOptions) {
         this.options = connectOptions;
 
-        workGroup = new NioEventLoopGroup(options.getEventLoopSize(), new DefaultThreadFactory("N4C-Work"));
+        workGroup = new NioEventLoopGroup(options.getEventLoopSize(), new DefaultThreadFactory("PCT-Work"));
         bootstrap = new Bootstrap().group(workGroup).channel(NioSocketChannel.class);
         bootstrap.handler(new ChannelInitializer<SocketChannel>() {
 
@@ -94,16 +94,16 @@ public class Connector {
                 ch.pipeline().addLast("ClientHandler", new ClientHandler());
             }
         });
-        applyConnectionOptions(bootstrap);
+        applyConnectionOptions(bootstrap, connectOptions);
 
         int processorSize = options.getProcessorSize();
         if (processorSize > 0) {
-            NamedThreadFactory threadFactory = new NamedThreadFactory("N4A-Processor");
+            NamedThreadFactory threadFactory = new NamedThreadFactory("PBT-Processor");
             executorService = Executors.newFixedThreadPool(processorSize, threadFactory);
         }
     }
 
-    private void applyConnectionOptions(Bootstrap bootstrap) {
+    private void applyConnectionOptions(Bootstrap bootstrap, ConnectOptions options) {
         bootstrap.option(ChannelOption.SO_REUSEADDR, options.isReuseAddress());
         bootstrap.option(ChannelOption.TCP_NODELAY, options.isTcpNoDelay());
         bootstrap.option(ChannelOption.SO_KEEPALIVE, options.isTcpKeepAlive());

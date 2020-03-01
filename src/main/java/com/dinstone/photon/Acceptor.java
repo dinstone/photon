@@ -73,8 +73,8 @@ public class Acceptor {
     public Acceptor(AcceptOptions acceptOptions) {
         this.options = acceptOptions;
 
-        bossGroup = new NioEventLoopGroup(options.getAcceptSize(), new DefaultThreadFactory("N4A-Boss"));
-        workGroup = new NioEventLoopGroup(options.getWorkerSize(), new DefaultThreadFactory("N4A-Work"));
+        bossGroup = new NioEventLoopGroup(options.getAcceptSize(), new DefaultThreadFactory("PAT-Boss"));
+        workGroup = new NioEventLoopGroup(options.getWorkerSize(), new DefaultThreadFactory("PAT-Work"));
         bootstrap = new ServerBootstrap().group(bossGroup, workGroup);
         bootstrap.channel(NioServerSocketChannel.class).childHandler(new ChannelInitializer<SocketChannel>() {
 
@@ -91,11 +91,11 @@ public class Acceptor {
                 ch.pipeline().addLast("ServerHandler", new ServerHandler());
             }
         });
-        applyConnectionOptions(bootstrap);
+        applyConnectionOptions(bootstrap, acceptOptions);
 
         int processorSize = options.getProcessorSize();
         if (processorSize > 0) {
-            NamedThreadFactory threadFactory = new NamedThreadFactory("N4A-Processor");
+            NamedThreadFactory threadFactory = new NamedThreadFactory("PBT-Processor");
             executorService = Executors.newFixedThreadPool(processorSize, threadFactory);
         }
     }
@@ -115,12 +115,12 @@ public class Acceptor {
         } catch (Exception e) {
             throw new RuntimeException("can't bind service on " + sa, e);
         }
-        LOG.info("netty acceptor bind on {}", sa);
+        LOG.info("photon acceptor bind on {}", sa);
 
         return this;
     }
 
-    private void applyConnectionOptions(ServerBootstrap bootstrap) {
+    private void applyConnectionOptions(ServerBootstrap bootstrap, AcceptOptions options) {
         if (options.getSoLinger() != -1) {
             bootstrap.option(ChannelOption.SO_LINGER, options.getSoLinger());
         }
@@ -181,7 +181,11 @@ public class Acceptor {
 
     private class ServerHandler extends ChannelInboundHandlerAdapter {
 
-        private final int maxConnectionCount = 4;
+        private int connectionLimit;
+
+        public ServerHandler() {
+            connectionLimit = options.getConnectionLimit();
+        }
 
         @Override
         public void userEventTriggered(ChannelHandlerContext ctx, Object evt) throws Exception {
@@ -197,11 +201,10 @@ public class Acceptor {
 
         @Override
         public void channelActive(ChannelHandlerContext ctx) throws Exception {
-            int currentConnectioncount = ConnectionManager.connectionCount();
-            if (currentConnectioncount >= maxConnectionCount) {
+            int connectionCount = ConnectionManager.connectionCount();
+            if (connectionLimit > 0 && connectionCount >= connectionLimit) {
                 ctx.close();
-                LOG.warn("connection count is too big: limit={},current={}", maxConnectionCount,
-                        currentConnectioncount);
+                LOG.warn("connection count is more than limit: limit={},count={}", connectionLimit, connectionCount);
             } else {
                 Connection connection = new DefaultConnection(ctx.channel());
                 ConnectionManager.addConnection(ctx.channel(), connection);
