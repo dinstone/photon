@@ -43,6 +43,7 @@ public interface Message {
          * the value to get
          *
          * @return the value
+         * 
          * @see Type#value
          */
         public byte getValue() {

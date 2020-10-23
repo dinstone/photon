@@ -28,6 +28,7 @@ public class NamedThreadFactory implements ThreadFactory {
         this.prex = prex;
     }
 
+    @Override
     public Thread newThread(Runnable r) {
         return new Thread(r, prex + "-" + index.incrementAndGet());
     }

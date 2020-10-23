@@ -31,6 +31,7 @@ public abstract class BurdenMessage implements Message {
         this.type = type;
     }
 
+    @Override
     public byte getVersion() {
         return version;
     }
@@ -39,6 +40,7 @@ public abstract class BurdenMessage implements Message {
         this.version = version;
     }
 
+    @Override
     public int getId() {
         return id;
     }
@@ -47,6 +49,7 @@ public abstract class BurdenMessage implements Message {
         this.id = id;
     }
 
+    @Override
     public Headers getHeaders() {
         return headers;
     }
@@ -55,6 +58,7 @@ public abstract class BurdenMessage implements Message {
         this.headers = headers;
     }
 
+    @Override
     public byte[] getContent() {
         return content;
     }
@@ -63,6 +67,7 @@ public abstract class BurdenMessage implements Message {
         this.content = content;
     }
 
+    @Override
     public Type getType() {
         return type;
     }

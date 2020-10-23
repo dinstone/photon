@@ -19,6 +19,7 @@ package com.dinstone.photon.message;
  * response status
  *
  * @author guojinfei
+ * 
  * @version 1.0.0.2014-6-23
  */
 public enum Status {
@@ -37,6 +38,7 @@ public enum Status {
      * the value to get
      *
      * @return the value
+     * 
      * @see Status#value
      */
     public byte getValue() {

@@ -27,6 +27,7 @@ public abstract class ControlMessage implements Message {
         this.type = type;
     }
 
+    @Override
     public byte getVersion() {
         return version;
     }
@@ -35,6 +36,7 @@ public abstract class ControlMessage implements Message {
         this.version = version;
     }
 
+    @Override
     public int getId() {
         return id;
     }
@@ -43,6 +45,7 @@ public abstract class ControlMessage implements Message {
         this.id = id;
     }
 
+    @Override
     public Type getType() {
         return type;
     }

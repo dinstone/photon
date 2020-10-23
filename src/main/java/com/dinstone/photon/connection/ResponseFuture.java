@@ -25,6 +25,7 @@ import com.dinstone.photon.message.Response;
 
 /**
  * @author guojf
+ * 
  * @version 1.0.0.2013-5-2
  */
 public class ResponseFuture {

@@ -33,8 +33,7 @@ public class AcceptOptions extends PhotonOptions {
     public static final int DEFAULT_WORKER_SIZE = 0;
 
     /**
-     * The default host to listen on = "0.0.0.0" (meaning listen on all available
-     * interfaces).
+     * The default host to listen on = "0.0.0.0" (meaning listen on all available interfaces).
      */
     public static final String DEFAULT_HOST = "0.0.0.0";
 
