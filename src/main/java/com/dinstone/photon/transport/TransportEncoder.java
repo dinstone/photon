@@ -54,7 +54,7 @@ public class TransportEncoder extends MessageToByteEncoder<Message> {
             int ewi = out.writerIndex();
             int len = ewi - swi - 4;
             if (len > maxSize) {
-                throw new IllegalArgumentException("encoded data is too big: " + len + " (>" + maxSize + ")");
+                throw new IllegalStateException("encoded data is too big: " + len + " (>" + maxSize + ")");
             }
 
             out.setInt(swi, len);

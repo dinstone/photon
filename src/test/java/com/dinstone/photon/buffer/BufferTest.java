@@ -15,7 +15,7 @@
  */
 package com.dinstone.photon.buffer;
 
-import java.util.Map.Entry;
+import java.util.ArrayList;
 
 import org.junit.Test;
 
@@ -27,7 +27,6 @@ import com.dinstone.photon.message.Request;
 
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.ByteBufAllocator;
-import io.netty.util.CharsetUtil;
 
 public class BufferTest {
 
@@ -97,24 +96,13 @@ public class BufferTest {
         System.out.println("one exe take " + (e - s) + " ms");
     }
 
-    private void encodeMessage(Request message, ByteBuf out) {
-        int s = out.writerIndex();
-
-        out.writeBytes(new byte[4]);
-        out.writeByte(message.getType().getValue());
-        out.writeByte(message.getVersion());
-        out.writeInt(message.getId());
-        out.writeInt(message.getTimeout());
-
-        // headers
-        writeHeaders(out, message.getHeaders());
-        // content
-        writeContent(out, message.getContent());
-
-        int len = out.writerIndex() - s - 4;
-
-        out.setInt(s, len);
-
+    private void encodeMessage(Message message, ByteBuf out) {
+        MessageCodec<Message> codec = CodecManager.find(message.getType());
+        if (codec != null) {
+            codec.encode(message, out);
+        } else {
+            throw new IllegalStateException("can't find message codec for " + message.getType());
+        }
     }
 
     @Test
@@ -191,69 +179,12 @@ public class BufferTest {
         System.out.println("tow exe take " + (e - s) + " ms");
     }
 
-    protected void writeString(ByteBuf buff, String str) {
-        byte[] strBytes = str.getBytes(CharsetUtil.UTF_8);
-        buff.writeInt(strBytes.length);
-        buff.writeBytes(strBytes);
-    }
-
-    protected String readString(ByteBuf in) {
-        byte[] content = new byte[in.readInt()];
-        in.readBytes(content);
-        return new String(content, CharsetUtil.UTF_8);
-    }
-
-    protected byte[] readContent(ByteBuf in) {
-        int len = in.readInt();
-        if (len > 0) {
-            byte[] content = new byte[len];
-            in.readBytes(content);
-            return content;
-        }
-        return null;
-    }
-
-    protected void writeContent(ByteBuf out, byte[] content) {
-        if (content != null && content.length > 0) {
-            out.writeInt(content.length);
-            out.writeBytes(content);
-        } else {
-            out.writeInt(0);
-        }
-    }
-
-    protected Headers readHeaders(ByteBuf in) {
-        int count = in.readInt();
-        if (count > 0) {
-            Headers headers = new Headers();
-            for (int i = 0; i < count; i++) {
-                String key = readString(in);
-                String value = readString(in);
-                headers.put(key, value);
-            }
-            return headers;
-        }
-
-        return null;
-    }
-
-    protected void writeHeaders(ByteBuf out, Headers headers) {
-        if (headers == null || headers.isEmpty()) {
-            out.writeInt(0);
-        } else {
-            // count
-            out.writeInt(headers.size());
-            for (Entry<String, String> element : headers.entrySet()) {
-                writeString(out, element.getKey());
-                writeString(out, element.getValue());
-            }
-        }
-    }
-
     public static ByteBuf encodeMessage(Message message) {
+        ByteBuf out = ByteBufAllocator.DEFAULT.ioBuffer();
         MessageCodec<Message> codec = CodecManager.find(message.getType());
         if (codec != null) {
-            return codec.encode(message);
+            codec.encode(message, out);
+            return out;
         } else {
             throw new IllegalStateException("can't find message codec for " + message.getType());
         }
@@ -265,9 +196,11 @@ public class BufferTest {
         MessageCodec<Message> codec = CodecManager.find(messageType);
         if (codec != null) {
             in.resetReaderIndex();
-            return codec.decode(in);
+            codec.decode(in, new ArrayList<Object>());
         } else {
             throw new IllegalStateException("can't find message codec for " + messageType);
         }
+
+        return null;
     }
 }

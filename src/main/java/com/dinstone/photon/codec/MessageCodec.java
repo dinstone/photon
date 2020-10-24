@@ -21,10 +21,6 @@ import io.netty.buffer.ByteBuf;
 
 public interface MessageCodec<M> {
 
-    M decode(ByteBuf in);
-
-    ByteBuf encode(M message);
-
     void encode(M message, ByteBuf out);
 
     void decode(ByteBuf in, List<Object> out);
