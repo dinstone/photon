@@ -15,17 +15,33 @@
  */
 package com.dinstone.photon.handler;
 
+import java.util.concurrent.Executor;
+
+import com.dinstone.photon.AttributeHelper;
 import com.dinstone.photon.connection.ResponseFuture;
 import com.dinstone.photon.message.Response;
 import com.dinstone.photon.processor.MessageProcessor;
 
+import io.netty.channel.ChannelHandlerContext;
+
 public class ResponseHandler implements MessageHandler<Response> {
 
     @Override
-    public void handle(MessageProcessor processor, MessageContext context, Response response) {
-        ResponseFuture future = context.getResponseFutures().remove(response.getId());
+    public void handle(Executor executor, MessageProcessor processor, ChannelHandlerContext ctx,
+            final Response response) {
+        final ResponseFuture future = AttributeHelper.futureMap(ctx.channel()).remove(response.getMsgId());
         if (future != null) {
-            future.setResult(response);
+            if (executor != null) {
+                executor.execute(new Runnable() {
+
+                    @Override
+                    public void run() {
+                        future.setResponse(response);
+                    }
+                });
+            } else {
+                future.setResponse(response);
+            }
         }
     }
 

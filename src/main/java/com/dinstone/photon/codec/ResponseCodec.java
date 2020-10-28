@@ -32,13 +32,14 @@ public class ResponseCodec extends AbstractCodec<Response> {
     public void encode(Response message, ByteBuf out) {
         out.writeByte(message.getType().getValue());
         out.writeByte(message.getVersion());
-        out.writeInt(message.getId());
+        out.writeInt(message.getMsgId());
+        out.writeByte(message.getCodec());
         out.writeByte(message.getStatus().getValue());
 
         // headers
-        writeHeaders(out, message.getHeaders());
+        writeData(out, message.getHeaders());
         // content
-        writeContent(out, message.getContent());
+        writeData(out, message.getContent());
     }
 
     @Override
@@ -51,14 +52,15 @@ public class ResponseCodec extends AbstractCodec<Response> {
 
         Response response = new Response();
         // message id
-        response.setId(in.readInt());
+        response.setMsgId(in.readInt());
+        // codec
+        response.setCodec(in.readByte());
         // status
         response.setStatus(Status.valueOf(in.readByte()));
         // headers
-        response.setHeaders(readHeaders(in));
+        response.setHeaders(readData(in));
         // content
-        byte[] content = readContent(in);
-        response.setContent(content);
+        response.setContent(readData(in));
 
         out.add(response);
     }

@@ -15,61 +15,40 @@
  */
 package com.dinstone.photon.message;
 
-public abstract class BurdenMessage implements Message {
+public abstract class BurdenMessage extends AbstractMessage {
 
-    private byte version = 0x1;
+    private byte codec;
 
-    private Type type;
-
-    private int id;
-
-    private Headers headers;
+    private byte[] headers;
 
     private byte[] content;
 
-    public BurdenMessage(Type type) {
-        this.type = type;
+    public BurdenMessage(Type type, byte version) {
+        super(type, version);
     }
 
-    @Override
-    public byte getVersion() {
-        return version;
+    public byte getCodec() {
+        return codec;
     }
 
-    public void setVersion(byte version) {
-        this.version = version;
+    public void setCodec(byte codec) {
+        this.codec = codec;
     }
 
-    @Override
-    public int getId() {
-        return id;
-    }
-
-    public void setId(int id) {
-        this.id = id;
-    }
-
-    @Override
-    public Headers getHeaders() {
+    public byte[] getHeaders() {
         return headers;
     }
 
-    public void setHeaders(Headers headers) {
+    public void setHeaders(byte[] headers) {
         this.headers = headers;
     }
 
-    @Override
     public byte[] getContent() {
         return content;
     }
 
     public void setContent(byte[] content) {
         this.content = content;
-    }
-
-    @Override
-    public Type getType() {
-        return type;
     }
 
 }

@@ -22,14 +22,13 @@ import com.dinstone.loghub.Logger;
 import com.dinstone.loghub.LoggerFactory;
 import com.dinstone.photon.AcceptOptions;
 import com.dinstone.photon.Acceptor;
-import com.dinstone.photon.handler.MessageContext;
-import com.dinstone.photon.message.Message;
 import com.dinstone.photon.message.Notice;
 import com.dinstone.photon.message.Request;
 import com.dinstone.photon.message.Response;
 import com.dinstone.photon.message.Status;
 import com.dinstone.photon.processor.MessageProcessor;
 
+import io.netty.channel.ChannelHandlerContext;
 import io.netty.handler.ssl.util.SelfSignedCertificate;
 
 public class AcceptorTest {
@@ -44,33 +43,24 @@ public class AcceptorTest {
         Acceptor acceptor = new Acceptor(acceptOptions);
         acceptor.setMessageProcessor(new MessageProcessor() {
 
-            public void process(MessageContext context, Notice notice) {
-                LOG.info("notice is {}", notice.getContent());
-            }
-
-            public void process(MessageContext context, Request request) {
-                LOG.info("response is {}", request.getContent());
-                Notice notice = new Notice();
-                notice.setAddress("");
-                notice.setContent(request.getContent());
-                context.getConnection().write(notice);
-
-                Response response = new Response();
-                response.setId(request.getId());
-                response.setStatus(Status.SUCCESS);
-                response.setContent(request.getContent());
-                context.getConnection().write(response);
+            @Override
+            public void process(ChannelHandlerContext ctx, Notice msg) {
+                LOG.info("notice is {}", msg.getContent());
             }
 
             @Override
-            public void process(MessageContext context, Message message) {
-                if (message instanceof Request) {
-                    process(context, (Request) message);
-                }
+            public void process(ChannelHandlerContext ctx, Request msg) {
+                LOG.info("Request is {},{}", msg.getMsgId(), msg.getCodec());
+                Notice notice = new Notice();
+                notice.setAddress("");
+                notice.setContent(msg.getContent());
+                ctx.writeAndFlush(notice);
 
-                if (message instanceof Notice) {
-                    process(context, (Notice) message);
-                }
+                Response response = new Response();
+                response.setMsgId(msg.getMsgId());
+                response.setStatus(Status.SUCCESS);
+                response.setContent(msg.getContent());
+                ctx.writeAndFlush(response);
             }
         });
 

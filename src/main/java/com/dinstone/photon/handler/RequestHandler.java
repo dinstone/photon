@@ -17,34 +17,16 @@ package com.dinstone.photon.handler;
 
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.UndeclaredThrowableException;
+import java.util.concurrent.Executor;
 
 import com.dinstone.photon.message.Request;
 import com.dinstone.photon.message.Response;
 import com.dinstone.photon.message.Status;
 import com.dinstone.photon.processor.MessageProcessor;
 
+import io.netty.channel.ChannelHandlerContext;
+
 public class RequestHandler implements MessageHandler<Request> {
-
-    @Override
-    public void handle(MessageProcessor processor, MessageContext context, Request request) {
-
-        try {
-            processor.process(context, request);
-        } catch (Throwable e) {
-            if (e instanceof InvocationTargetException) {
-                e = getTargetException((InvocationTargetException) e);
-            }
-
-            Response response = new Response();
-            response.setId(request.getId());
-            response.setHeaders(request.getHeaders());
-            response.setStatus(Status.ERROR);
-            response.setException(e);
-
-            context.getConnection().write(response);
-        }
-
-    }
 
     private Throwable getTargetException(InvocationTargetException e) {
         Throwable t = e.getTargetException();
@@ -56,6 +38,35 @@ public class RequestHandler implements MessageHandler<Request> {
             }
         }
         return t;
+    }
+
+    @Override
+    public void handle(Executor executor, final MessageProcessor processor, final ChannelHandlerContext ctx,
+            final Request request) {
+        try {
+            if (executor != null) {
+                executor.execute(new Runnable() {
+
+                    @Override
+                    public void run() {
+                        processor.process(ctx, request);
+                    }
+                });
+            } else {
+                processor.process(ctx, request);
+            }
+        } catch (Throwable e) {
+            if (e instanceof InvocationTargetException) {
+                e = getTargetException((InvocationTargetException) e);
+            }
+
+            Response response = new Response();
+            response.setMsgId(request.getMsgId());
+            response.setStatus(Status.ERROR);
+            response.setException(e);
+
+            ctx.writeAndFlush(response);
+        }
     }
 
 }

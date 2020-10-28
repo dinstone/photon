@@ -22,7 +22,7 @@ public class Response extends BurdenMessage {
     private Throwable exception;
 
     public Response() {
-        super(Type.RESPONSE);
+        super(Type.RESPONSE, (byte) 0x1);
     }
 
     public Status getStatus() {

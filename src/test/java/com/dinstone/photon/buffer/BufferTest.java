@@ -15,14 +15,19 @@
  */
 package com.dinstone.photon.buffer;
 
+import static org.junit.Assert.assertEquals;
+
+import java.io.UnsupportedEncodingException;
 import java.util.ArrayList;
+import java.util.List;
 
 import org.junit.Test;
 
-import com.dinstone.photon.codec.CodecManager;
+import com.dinstone.photon.codec.Codecs;
 import com.dinstone.photon.codec.MessageCodec;
-import com.dinstone.photon.message.Headers;
+import com.dinstone.photon.codec.NoticeCodec;
 import com.dinstone.photon.message.Message;
+import com.dinstone.photon.message.Notice;
 import com.dinstone.photon.message.Request;
 
 import io.netty.buffer.ByteBuf;
@@ -31,15 +36,28 @@ import io.netty.buffer.ByteBufAllocator;
 public class BufferTest {
 
     @Test
-    public void oneHotBufferTest() {
-        Request request = new Request();
-        request.setId(1);
-        Headers headers = new Headers();
-        headers.put("service", "com.dinstone.focus.example.DemoService");
-        headers.put("method", "hello");
-        headers.put("rpc.codec", "json");
+    public void noticTest() throws UnsupportedEncodingException {
+        Notice notice = new Notice();
+        notice.setMsgId(123);
+        notice.setAddress("");
+        notice.setContent("123adfads".getBytes());
 
-        request.setHeaders(headers);
+        NoticeCodec nc = new NoticeCodec();
+        ByteBuf out = ByteBufAllocator.DEFAULT.ioBuffer();
+        nc.encode(notice, out);
+
+        List<Object> ol = new ArrayList<Object>();
+        nc.decode(out, ol);
+
+        assertEquals(1, ol.size());
+    }
+
+    @Test
+    public void oneHotBufferTest() throws UnsupportedEncodingException {
+        Request request = new Request();
+        request.setMsgId(1);
+
+        request.setHeaders("".getBytes("UTF-8"));
         request.setTimeout(10000);
         request.setContent(
                 "Hello World, this is buffer test message,Hello World,Hello World, this is buffer test message,Hello World, Hello World, this is buffer test message,Hello World,  this is buffer test message,Hello World, this is buffer test message"
@@ -64,15 +82,11 @@ public class BufferTest {
     }
 
     @Test
-    public void oneBufferTest() {
+    public void oneBufferTest() throws UnsupportedEncodingException {
         Request request = new Request();
-        request.setId(1);
-        Headers headers = new Headers();
-        headers.put("service", "com.dinstone.focus.example.DemoService");
-        headers.put("method", "hello");
-        headers.put("rpc.codec", "json");
+        request.setMsgId(1);
+        request.setHeaders("".getBytes("UTF-8"));
 
-        request.setHeaders(headers);
         request.setTimeout(10000);
         request.setContent(
                 "Hello World, this is buffer test message,Hello World,Hello World, this is buffer test message,Hello World, Hello World, this is buffer test message,Hello World,  this is buffer test message,Hello World, this is buffer test message"
@@ -97,7 +111,7 @@ public class BufferTest {
     }
 
     private void encodeMessage(Message message, ByteBuf out) {
-        MessageCodec<Message> codec = CodecManager.find(message.getType());
+        MessageCodec<Message> codec = Codecs.find(message.getType());
         if (codec != null) {
             codec.encode(message, out);
         } else {
@@ -106,15 +120,10 @@ public class BufferTest {
     }
 
     @Test
-    public void towHotBufferTest() {
+    public void towHotBufferTest() throws UnsupportedEncodingException {
         Request request = new Request();
-        request.setId(1);
-        Headers headers = new Headers();
-        headers.put("service", "com.dinstone.focus.example.DemoService");
-        headers.put("method", "hello");
-        headers.put("rpc.codec", "json");
-
-        request.setHeaders(headers);
+        request.setMsgId(1);
+        request.setHeaders("".getBytes("UTF-8"));
         request.setTimeout(10000);
         request.setContent(
                 "Hello World, this is buffer test message,Hello World,Hello World, this is buffer test message,Hello World, Hello World, this is buffer test message,Hello World,  this is buffer test message,Hello World, this is buffer test message"
@@ -145,13 +154,7 @@ public class BufferTest {
     @Test
     public void towBufferTest() {
         Request request = new Request();
-        request.setId(1);
-        Headers headers = new Headers();
-        headers.put("service", "com.dinstone.focus.example.DemoService");
-        headers.put("method", "hello");
-        headers.put("rpc.codec", "json");
-
-        request.setHeaders(headers);
+        request.setMsgId(1);
         request.setTimeout(10000);
         request.setContent(
                 "Hello World, this is buffer test message,Hello World,Hello World, this is buffer test message,Hello World, Hello World, this is buffer test message,Hello World,  this is buffer test message,Hello World, this is buffer test message"
@@ -181,7 +184,7 @@ public class BufferTest {
 
     public static ByteBuf encodeMessage(Message message) {
         ByteBuf out = ByteBufAllocator.DEFAULT.ioBuffer();
-        MessageCodec<Message> codec = CodecManager.find(message.getType());
+        MessageCodec<Message> codec = Codecs.find(message.getType());
         if (codec != null) {
             codec.encode(message, out);
             return out;
@@ -193,7 +196,7 @@ public class BufferTest {
     public static Message decodeMessage(ByteBuf in) {
         in.markReaderIndex();
         Message.Type messageType = Message.Type.valueOf(in.readByte());
-        MessageCodec<Message> codec = CodecManager.find(messageType);
+        MessageCodec<Message> codec = Codecs.find(messageType);
         if (codec != null) {
             in.resetReaderIndex();
             codec.decode(in, new ArrayList<Object>());

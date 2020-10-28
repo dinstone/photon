@@ -28,7 +28,6 @@ import com.dinstone.photon.connection.Connection;
 import com.dinstone.photon.connection.ConnectionManager;
 import com.dinstone.photon.connection.DefaultConnection;
 import com.dinstone.photon.handler.HandlerManager;
-import com.dinstone.photon.handler.MessageContext;
 import com.dinstone.photon.handler.MessageHandler;
 import com.dinstone.photon.processor.MessageProcessor;
 import com.dinstone.photon.transport.TransportDecoder;
@@ -223,9 +222,8 @@ public class Acceptor {
         public void channelRead(final ChannelHandlerContext ctx, final Object msg) throws Exception {
             MessageHandler<Object> messageHandler = HandlerManager.find(msg.getClass());
             if (messageHandler != null) {
-                messageHandler.handle(messageProcessor, new MessageContext(ctx, executorService), msg);
+                messageHandler.handle(executorService, messageProcessor, ctx, msg);
             }
-
         }
 
         @Override

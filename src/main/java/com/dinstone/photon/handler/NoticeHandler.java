@@ -15,18 +15,28 @@
  */
 package com.dinstone.photon.handler;
 
+import java.util.concurrent.Executor;
+
 import com.dinstone.photon.message.Notice;
 import com.dinstone.photon.processor.MessageProcessor;
+
+import io.netty.channel.ChannelHandlerContext;
 
 public class NoticeHandler implements MessageHandler<Notice> {
 
     @Override
-    public void handle(MessageProcessor processor, MessageContext context, Notice msg) {
+    public void handle(Executor executor, final MessageProcessor processor, final ChannelHandlerContext ctx,
+            final Notice msg) {
+        if (executor != null) {
+            executor.execute(new Runnable() {
 
-        try {
-            processor.process(context, msg);
-        } catch (Exception e) {
-            // ignore
+                @Override
+                public void run() {
+                    processor.process(ctx, msg);
+                }
+            });
+        } else {
+            processor.process(ctx, msg);
         }
     }
 

@@ -75,7 +75,7 @@ public class DefaultConnection implements Connection {
 
     @Override
     public ResponseFuture async(final Request request) throws Exception {
-        final ResponseFuture responseFuture = createFuture(request.getId());
+        final ResponseFuture responseFuture = createFuture(request.getMsgId());
 
         channel.writeAndFlush(request).addListener(new GenericFutureListener<ChannelFuture>() {
 
@@ -83,7 +83,7 @@ public class DefaultConnection implements Connection {
             public void operationComplete(ChannelFuture future) throws Exception {
                 if (!future.isSuccess()) {
                     String message = "send request message error";
-                    responseFuture.setResult(new RuntimeException(message, future.cause()));
+                    responseFuture.setFailure(new RuntimeException(message, future.cause()));
                     removeFuture(responseFuture.getFutureId());
                     LOG.warn(message, future.cause());
                 }

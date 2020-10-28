@@ -20,7 +20,7 @@ public class Request extends BurdenMessage {
     private int timeout;
 
     public Request() {
-        super(Type.REQUEST);
+        super(Type.REQUEST, (byte) 0x1);
     }
 
     public int getTimeout() {

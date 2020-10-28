@@ -17,15 +17,15 @@ package com.dinstone.photon.message;
 
 public interface Message {
 
-    int getId();
+    int getMsgId();
 
     Type getType();
 
     byte getVersion();
 
-    Headers getHeaders();
-
-    Object getContent();
+    // Headers getHeaders();
+    //
+    // Object getContent();
 
     public enum Type {
         HEARTBEAT((byte) 0), // MEP: long connection parttern

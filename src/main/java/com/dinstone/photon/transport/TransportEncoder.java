@@ -15,7 +15,7 @@
  */
 package com.dinstone.photon.transport;
 
-import com.dinstone.photon.codec.CodecManager;
+import com.dinstone.photon.codec.Codecs;
 import com.dinstone.photon.codec.MessageCodec;
 import com.dinstone.photon.message.Message;
 
@@ -41,7 +41,7 @@ public class TransportEncoder extends MessageToByteEncoder<Message> {
 
     @Override
     protected void encode(ChannelHandlerContext ctx, Message message, ByteBuf out) throws Exception {
-        MessageCodec<Message> codec = CodecManager.find(message.getType());
+        MessageCodec<Message> codec = Codecs.find(message.getType());
         if (codec == null) {
             throw new IllegalStateException("can't find message codec for " + message.getType());
         } else {

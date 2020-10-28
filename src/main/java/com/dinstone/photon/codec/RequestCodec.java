@@ -31,13 +31,14 @@ public class RequestCodec extends AbstractCodec<Request> {
     public void encode(Request message, ByteBuf out) {
         out.writeByte(message.getType().getValue());
         out.writeByte(message.getVersion());
-        out.writeInt(message.getId());
+        out.writeInt(message.getMsgId());
+        out.writeByte(message.getCodec());
         out.writeInt(message.getTimeout());
 
         // headers
-        writeHeaders(out, message.getHeaders());
+        writeData(out, message.getHeaders());
         // content
-        writeContent(out, message.getContent());
+        writeData(out, message.getContent());
     }
 
     @Override
@@ -50,15 +51,15 @@ public class RequestCodec extends AbstractCodec<Request> {
 
         Request request = new Request();
         // message id
-        request.setId(in.readInt());
+        request.setMsgId(in.readInt());
+        // codec
+        request.setCodec(in.readByte());
         // timout
         request.setTimeout(in.readInt());
         // headers
-        request.setHeaders(readHeaders(in));
-
+        request.setHeaders(readData(in));
         // content
-        byte[] content = readContent(in);
-        request.setContent(content);
+        request.setContent(readData(in));
 
         out.add(request);
     }

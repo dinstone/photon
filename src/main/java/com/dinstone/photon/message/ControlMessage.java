@@ -15,48 +15,9 @@
  */
 package com.dinstone.photon.message;
 
-public abstract class ControlMessage implements Message {
+public abstract class ControlMessage extends AbstractMessage {
 
-    private byte version = 0x1;
-
-    private Type type;
-
-    private int id;
-
-    public ControlMessage(Type type) {
-        this.type = type;
-    }
-
-    @Override
-    public byte getVersion() {
-        return version;
-    }
-
-    public void setVersion(byte version) {
-        this.version = version;
-    }
-
-    @Override
-    public int getId() {
-        return id;
-    }
-
-    public void setId(int id) {
-        this.id = id;
-    }
-
-    @Override
-    public Type getType() {
-        return type;
-    }
-
-    @Override
-    public Headers getHeaders() {
-        return null;
-    }
-
-    @Override
-    public Object getContent() {
-        return null;
+    public ControlMessage(Type type, byte version) {
+        super(type, version);
     }
 }

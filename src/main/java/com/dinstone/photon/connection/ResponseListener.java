@@ -13,16 +13,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.dinstone.photon.handler;
+package com.dinstone.photon.connection;
 
-import java.util.concurrent.Executor;
+public interface ResponseListener {
 
-import com.dinstone.photon.processor.MessageProcessor;
-
-import io.netty.channel.ChannelHandlerContext;
-
-public interface MessageHandler<T> {
-
-    public void handle(Executor executor, MessageProcessor processor, ChannelHandlerContext ctx, T msg);
+    void complete(ResponseFuture future);
 
 }

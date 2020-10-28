@@ -31,7 +31,7 @@ public class HeatbeatCodec implements MessageCodec<Heartbeat> {
     public void encode(Heartbeat message, ByteBuf out) {
         out.writeByte(message.getType().getValue());
         out.writeByte(message.getVersion());
-        out.writeInt(message.getId());
+        out.writeInt(message.getMsgId());
         out.writeBoolean(message.getTick());
     }
 

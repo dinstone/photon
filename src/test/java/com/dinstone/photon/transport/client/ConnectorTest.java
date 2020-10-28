@@ -22,12 +22,14 @@ import com.dinstone.loghub.LoggerFactory;
 import com.dinstone.photon.ConnectOptions;
 import com.dinstone.photon.Connector;
 import com.dinstone.photon.connection.Connection;
-import com.dinstone.photon.handler.MessageContext;
-import com.dinstone.photon.message.Message;
+import com.dinstone.photon.connection.ResponseFuture;
+import com.dinstone.photon.connection.ResponseListener;
 import com.dinstone.photon.message.Notice;
 import com.dinstone.photon.message.Request;
 import com.dinstone.photon.message.Response;
 import com.dinstone.photon.processor.MessageProcessor;
+
+import io.netty.channel.ChannelHandlerContext;
 
 public class ConnectorTest {
     private static final Logger LOG = LoggerFactory.getLogger(ConnectorTest.class);
@@ -39,26 +41,42 @@ public class ConnectorTest {
         connector.setMessageProcessor(new MessageProcessor() {
 
             @Override
-            public void process(MessageContext context, Message message) {
-                if (message instanceof Notice) {
-                    LOG.info("notice is {}", message.getContent());
-                }
-                if (message instanceof Request) {
-                    LOG.info("response is {}", message.getContent());
-                }
+            public void process(ChannelHandlerContext ctx, Notice msg) {
+                LOG.info("notice is {}", msg.getContent());
+
             }
+
+            @Override
+            public void process(ChannelHandlerContext ctx, Request msg) {
+                LOG.info("Request is {}", msg.getContent());
+            }
+
         });
 
-        Connection session = connector.connect(new InetSocketAddress("127.0.0.1", 4444));
-        LOG.info("channel active is {}", session.isActive());
+        Connection connection = connector.connect(new InetSocketAddress("127.0.0.1", 4444));
+        LOG.info("channel active is {}", connection.isActive());
 
         Request request = new Request();
-        request.setId(1);
+        request.setMsgId(1);
+        request.setCodec((byte) 1);
         request.setTimeout(10000);
         request.setContent("Hello World".getBytes());
 
-        Response response = session.sync(request);
-        LOG.info("response is {}", response.getContent());
+        Response response = connection.sync(request);
+        LOG.info("sync response is {}", response.getContent());
+
+        connection.async(request).addListener(new ResponseListener() {
+
+            @Override
+            public void complete(ResponseFuture future) {
+                try {
+                    Response response = future.get();
+                    LOG.info("async response is {}", response.getContent());
+                } catch (Throwable e) {
+                    e.printStackTrace();
+                }
+            }
+        });
 
         System.in.read();
 

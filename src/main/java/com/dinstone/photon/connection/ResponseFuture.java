@@ -15,6 +15,8 @@
  */
 package com.dinstone.photon.connection;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 import java.util.concurrent.locks.Condition;
@@ -39,6 +41,8 @@ public class ResponseFuture {
     private int futureId;
 
     private Object result;
+
+    private List<ResponseListener> listeners;
 
     /**
      *
@@ -79,16 +83,16 @@ public class ResponseFuture {
         }
     }
 
-    public void setResult(Response response) {
+    public void setResponse(Response response) {
         setValue(response);
     }
 
-    public void setResult(Exception exception) {
+    public void setFailure(Exception exception) {
         setValue(exception);
     }
 
     private Response getValue() throws Exception {
-        if (result instanceof Exception) {
+        if (result instanceof Throwable) {
             throw (Exception) result;
         } else {
             return (Response) result;
@@ -111,7 +115,47 @@ public class ResponseFuture {
         } finally {
             lock.unlock();
         }
+        if (listeners != null) {
+            for (ResponseListener listener : listeners) {
+                notifyListener(listener);
+            }
+            listeners = null;
+        }
+    }
 
+    private void notifyListener(ResponseListener listener) {
+        if (listener != null) {
+            try {
+                listener.complete(this);
+            } catch (Exception e) {
+            }
+        }
+    }
+
+    public ResponseFuture addListener(ResponseListener listener) {
+        if (listener == null) {
+            throw new IllegalArgumentException("listener is null");
+        }
+
+        boolean notifyNow = false;
+        lock.lock();
+        try {
+            if (done) {
+                notifyNow = true;
+            } else {
+                if (listeners == null) {
+                    listeners = new ArrayList<>(1);
+                }
+                listeners.add(listener);
+            }
+        } finally {
+            lock.unlock();
+        }
+
+        if (notifyNow) {
+            notifyListener(listener);
+        }
+        return this;
     }
 
 }

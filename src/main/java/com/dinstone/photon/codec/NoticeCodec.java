@@ -31,13 +31,14 @@ public class NoticeCodec extends AbstractCodec<Notice> {
     public void encode(Notice message, ByteBuf out) {
         out.writeByte(message.getType().getValue());
         out.writeByte(message.getVersion());
-        out.writeInt(message.getId());
+        out.writeInt(message.getMsgId());
+        out.writeByte(message.getCodec());
         writeString(out, message.getAddress());
 
         // headers
-        writeHeaders(out, message.getHeaders());
+        writeData(out, message.getHeaders());
         // content
-        writeContent(out, message.getContent());
+        writeData(out, message.getContent());
     }
 
     @Override
@@ -50,16 +51,15 @@ public class NoticeCodec extends AbstractCodec<Notice> {
 
         Notice notice = new Notice();
         // message id
-        notice.setId(in.readInt());
+        notice.setMsgId(in.readInt());
+        notice.setCodec(in.readByte());
         // address
         String address = readString(in);
         notice.setAddress(address);
-
         // headers
-        notice.setHeaders(readHeaders(in));
+        notice.setHeaders(readData(in));
         // content
-        byte[] content = readContent(in);
-        notice.setContent(content);
+        notice.setContent(readData(in));
 
         out.add(notice);
     }
