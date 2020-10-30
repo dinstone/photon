@@ -22,8 +22,8 @@ import io.netty.channel.ChannelHandlerContext;
 
 public interface MessageProcessor {
 
-    void process(ChannelHandlerContext ctx, Notice msg);
+    void process(ChannelHandlerContext ctx, Notice notice);
 
-    void process(ChannelHandlerContext ctx, Request msg);
+    void process(ChannelHandlerContext ctx, Request request);
 
 }

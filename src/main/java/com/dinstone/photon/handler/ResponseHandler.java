@@ -19,7 +19,9 @@ import java.util.concurrent.Executor;
 
 import com.dinstone.photon.AttributeHelper;
 import com.dinstone.photon.connection.ResponseFuture;
+import com.dinstone.photon.exception.ExceptionCodec;
 import com.dinstone.photon.message.Response;
+import com.dinstone.photon.message.Status;
 import com.dinstone.photon.processor.MessageProcessor;
 
 import io.netty.channel.ChannelHandlerContext;
@@ -36,13 +38,22 @@ public class ResponseHandler implements MessageHandler<Response> {
 
                     @Override
                     public void run() {
-                        future.setResponse(response);
+                        resolveResponse(future, response);
                     }
+
                 });
             } else {
-                future.setResponse(response);
+                resolveResponse(future, response);
             }
         }
     }
 
+    private void resolveResponse(final ResponseFuture future, final Response response) {
+        Status status = response.getStatus();
+        if (status == Status.SUCCESS) {
+            future.setResponse(response);
+        } else {
+            future.setFailure(ExceptionCodec.decode(response.getContent()));
+        }
+    }
 }

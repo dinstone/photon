@@ -26,7 +26,7 @@ public enum Status {
     SUCCESS((byte) 0), //
     UNKNOWN((byte) 1), //
     TIMEOUT((byte) 2), //
-    ERROR((byte) 3); //
+    FAILURE((byte) 3); //
 
     private byte value;
 
@@ -54,7 +54,7 @@ public enum Status {
         case 2:
             return TIMEOUT;
         case 3:
-            return ERROR;
+            return FAILURE;
 
         default:
             break;

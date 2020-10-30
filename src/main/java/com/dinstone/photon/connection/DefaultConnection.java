@@ -17,6 +17,7 @@ package com.dinstone.photon.connection;
 
 import java.net.InetSocketAddress;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
 
 import com.dinstone.loghub.Logger;
 import com.dinstone.loghub.LoggerFactory;
@@ -96,7 +97,12 @@ public class DefaultConnection implements Connection {
 
     @Override
     public Response sync(final Request request) throws Exception {
-        return async(request).get(request.getTimeout(), TimeUnit.MILLISECONDS);
+        try {
+            return async(request).get(request.getTimeout(), TimeUnit.MILLISECONDS);
+        } catch (TimeoutException e) {
+            removeFuture(request.getMsgId());
+            throw e;
+        }
     }
 
     private ResponseFuture removeFuture(int messageId) {

@@ -32,8 +32,59 @@ import com.dinstone.photon.message.Request;
 
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.ByteBufAllocator;
+import io.netty.buffer.ByteBufUtil;
 
 public class BufferTest {
+
+    @Test
+    public void customBuffer() {
+        byte[] bs = "123adfads".getBytes();
+
+        ByteBuf out = ByteBufAllocator.DEFAULT.ioBuffer();
+        out.writeInt(bs.length);
+        out.writeBytes(bs);
+
+        common(out);
+        common(out);
+
+        perfect(out);
+        perfect(out);
+    }
+
+    private void perfect(ByteBuf out) {
+        long s = System.currentTimeMillis();
+        int c = 0;
+        while (c < 1000000) {
+            out.markReaderIndex();
+            int len = out.readInt();
+            if (len > 0) {
+                byte[] bs = ByteBufUtil.getBytes(out, out.readerIndex(), len);
+            }
+            out.resetReaderIndex();
+
+            c++;
+        }
+        long e = System.currentTimeMillis();
+        System.out.println("perfect " + (e - s) + " ms");
+    }
+
+    private void common(ByteBuf out) {
+        long s = System.currentTimeMillis();
+        int c = 0;
+        while (c < 1000000) {
+            out.markReaderIndex();
+            int len = out.readInt();
+            if (len > 0) {
+                byte[] content = new byte[len];
+                out.readBytes(content);
+            }
+            out.resetReaderIndex();
+
+            c++;
+        }
+        long e = System.currentTimeMillis();
+        System.out.println("common " + (e - s) + " ms");
+    }
 
     @Test
     public void noticTest() throws UnsupportedEncodingException {
