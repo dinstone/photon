@@ -23,10 +23,9 @@ package com.dinstone.photon.message;
  * @version 1.0.0.2014-6-23
  */
 public enum Status {
-    SUCCESS((byte) 0), //
-    UNKNOWN((byte) 1), //
-    TIMEOUT((byte) 2), //
-    FAILURE((byte) 3); //
+    SUCCESS((byte) 0), // message handle success
+    FAILURE((byte) 1), // message handle failure
+    TIMEOUT((byte) 2); // message handle timeout
 
     private byte value;
 
@@ -50,12 +49,9 @@ public enum Status {
         case 0:
             return SUCCESS;
         case 1:
-            return UNKNOWN;
+            return FAILURE;
         case 2:
             return TIMEOUT;
-        case 3:
-            return FAILURE;
-
         default:
             break;
         }

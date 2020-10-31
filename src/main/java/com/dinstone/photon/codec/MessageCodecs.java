@@ -20,7 +20,7 @@ import java.util.concurrent.ConcurrentHashMap;
 
 import com.dinstone.photon.message.Message;
 
-public class Codecs {
+public class MessageCodecs {
 
     private static final Map<Message.Type, MessageCodec<?>> TYPE_CODEC_MAP = new ConcurrentHashMap<>();
 

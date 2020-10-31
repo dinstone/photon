@@ -16,31 +16,19 @@
 package com.dinstone.photon.handler;
 
 import java.lang.reflect.InvocationTargetException;
-import java.lang.reflect.UndeclaredThrowableException;
 import java.util.concurrent.Executor;
+import java.util.concurrent.RejectedExecutionException;
 
-import com.dinstone.photon.exception.ExceptionCodec;
 import com.dinstone.photon.exception.ExchangeException;
 import com.dinstone.photon.message.Request;
 import com.dinstone.photon.message.Response;
 import com.dinstone.photon.message.Status;
 import com.dinstone.photon.processor.MessageProcessor;
+import com.dinstone.photon.util.ExceptionUtil;
 
 import io.netty.channel.ChannelHandlerContext;
 
 public class RequestHandler implements MessageHandler<Request> {
-
-    private Throwable getTargetException(InvocationTargetException e) {
-        Throwable t = e.getTargetException();
-        if (t instanceof UndeclaredThrowableException) {
-            UndeclaredThrowableException ut = (UndeclaredThrowableException) t;
-            t = ut.getCause();
-            if (t instanceof InvocationTargetException) {
-                return getTargetException((InvocationTargetException) t);
-            }
-        }
-        return t;
-    }
 
     @Override
     public void handle(Executor executor, final MessageProcessor processor, final ChannelHandlerContext ctx,
@@ -59,14 +47,19 @@ public class RequestHandler implements MessageHandler<Request> {
             }
         } catch (Throwable e) {
             if (e instanceof InvocationTargetException) {
-                e = getTargetException((InvocationTargetException) e);
+                e = ExceptionUtil.getTargetException((InvocationTargetException) e);
             }
-
+            ExchangeException exception = null;
+            if (e instanceof RejectedExecutionException) {
+                // server is busy
+                exception = new ExchangeException(101, null, e);
+            } else {
+                exception = new ExchangeException(100, null, e);
+            }
             Response response = new Response();
             response.setMsgId(request.getMsgId());
-            response.setStatus(Status.UNKNOWN);
-            ExchangeException exception = new ExchangeException(199, null, e);
-            response.setContent(ExceptionCodec.encode(exception));
+            response.setStatus(Status.FAILURE);
+            response.setContent(ExchangeException.encode(exception));
 
             ctx.writeAndFlush(response);
         }

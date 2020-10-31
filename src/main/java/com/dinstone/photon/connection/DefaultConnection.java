@@ -21,11 +21,11 @@ import java.util.concurrent.TimeoutException;
 
 import com.dinstone.loghub.Logger;
 import com.dinstone.loghub.LoggerFactory;
-import com.dinstone.photon.AttributeHelper;
 import com.dinstone.photon.message.Message;
 import com.dinstone.photon.message.Notice;
 import com.dinstone.photon.message.Request;
 import com.dinstone.photon.message.Response;
+import com.dinstone.photon.util.AttributeHelper;
 
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelFuture;
@@ -106,12 +106,12 @@ public class DefaultConnection implements Connection {
     }
 
     private ResponseFuture removeFuture(int messageId) {
-        return AttributeHelper.futureMap(channel).remove(messageId);
+        return AttributeHelper.futures(channel).remove(messageId);
     }
 
     private ResponseFuture createFuture(int messageId) {
         ResponseFuture future = new ResponseFuture(messageId);
-        AttributeHelper.futureMap(channel).put(messageId, future);
+        AttributeHelper.futures(channel).put(messageId, future);
         return future;
     }
 

@@ -33,6 +33,8 @@ import com.dinstone.photon.message.Heartbeat;
 import com.dinstone.photon.processor.MessageProcessor;
 import com.dinstone.photon.transport.TransportDecoder;
 import com.dinstone.photon.transport.TransportEncoder;
+import com.dinstone.photon.util.AttributeHelper;
+import com.dinstone.photon.util.NamedThreadFactory;
 
 import io.netty.bootstrap.Bootstrap;
 import io.netty.buffer.ByteBufAllocator;

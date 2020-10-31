@@ -17,12 +17,12 @@ package com.dinstone.photon.handler;
 
 import java.util.concurrent.Executor;
 
-import com.dinstone.photon.AttributeHelper;
 import com.dinstone.photon.connection.ResponseFuture;
-import com.dinstone.photon.exception.ExceptionCodec;
+import com.dinstone.photon.exception.ExchangeException;
 import com.dinstone.photon.message.Response;
 import com.dinstone.photon.message.Status;
 import com.dinstone.photon.processor.MessageProcessor;
+import com.dinstone.photon.util.AttributeHelper;
 
 import io.netty.channel.ChannelHandlerContext;
 
@@ -31,7 +31,7 @@ public class ResponseHandler implements MessageHandler<Response> {
     @Override
     public void handle(Executor executor, MessageProcessor processor, ChannelHandlerContext ctx,
             final Response response) {
-        final ResponseFuture future = AttributeHelper.futureMap(ctx.channel()).remove(response.getMsgId());
+        final ResponseFuture future = AttributeHelper.futures(ctx.channel()).remove(response.getMsgId());
         if (future != null) {
             if (executor != null) {
                 executor.execute(new Runnable() {
@@ -53,7 +53,7 @@ public class ResponseHandler implements MessageHandler<Response> {
         if (status == Status.SUCCESS) {
             future.setResponse(response);
         } else {
-            future.setFailure(ExceptionCodec.decode(response.getContent()));
+            future.setFailure(ExchangeException.decode(response.getContent()));
         }
     }
 }

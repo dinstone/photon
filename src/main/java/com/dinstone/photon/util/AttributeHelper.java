@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.dinstone.photon;
+package com.dinstone.photon.util;
 
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
@@ -27,19 +27,19 @@ import io.netty.util.AttributeKey;
 
 public class AttributeHelper {
 
-    private static final AttributeKey<Connection> SESSION_KEY = AttributeKey.valueOf("session.key");
+    private static final AttributeKey<Connection> CONNECTION_KEY = AttributeKey.valueOf("connection.key");
 
     private static final AttributeKey<Map<Integer, ResponseFuture>> FUTURE_KEY = AttributeKey.valueOf("future.key");
 
-    public static void setConnection(Channel channel, Connection session) {
-        channel.attr(AttributeHelper.SESSION_KEY).set(session);
+    public static void setConnection(Channel channel, Connection connection) {
+        channel.attr(AttributeHelper.CONNECTION_KEY).set(connection);
     }
 
     public static Connection getConnection(Channel channel) {
-        return channel.attr(AttributeHelper.SESSION_KEY).get();
+        return channel.attr(AttributeHelper.CONNECTION_KEY).get();
     }
 
-    public static Map<Integer, ResponseFuture> futureMap(Channel channel) {
+    public static Map<Integer, ResponseFuture> futures(Channel channel) {
         Attribute<Map<Integer, ResponseFuture>> attr = channel.attr(AttributeHelper.FUTURE_KEY);
         Map<Integer, ResponseFuture> futureMap = attr.get();
         if (futureMap == null) {

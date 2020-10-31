@@ -15,7 +15,19 @@
  */
 package com.dinstone.photon.exception;
 
-public class ExchangeException extends Exception {
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+
+import com.dinstone.photon.util.ByteStreamUtil;
+import com.dinstone.photon.util.ExceptionUtil;
+
+/**
+ * 
+ * @author dinstone
+ *
+ */
+public class ExchangeException extends RuntimeException {
     /**  */
     private static final long serialVersionUID = 1L;
 
@@ -58,25 +70,33 @@ public class ExchangeException extends Exception {
         if (msg != null) {
             return msg;
         }
-        return findMessage(getCause());
+        return ExceptionUtil.getMessage(getCause());
     }
 
-    /**
-     * find not empty message
-     * 
-     * @param cause
-     * 
-     * @return
-     */
-    private String findMessage(Throwable cause) {
-        if (cause == null) {
-            return null;
+    public static byte[] encode(ExchangeException exception) {
+        try {
+            ByteArrayOutputStream bao = new ByteArrayOutputStream();
+            ByteStreamUtil.writeInt(bao, exception.getCode());
+            ByteStreamUtil.writeString(bao, exception.getMessage());
+
+            return bao.toByteArray();
+        } catch (IOException e) {
         }
-        String msg = cause.getMessage();
-        if (msg != null) {
-            return msg;
+        return null;
+    }
+
+    public static ExchangeException decode(byte[] encoded) {
+        try {
+            if (encoded != null) {
+                ByteArrayInputStream bai = new ByteArrayInputStream(encoded);
+                int code = ByteStreamUtil.readInt(bai);
+                String message = ByteStreamUtil.readString(bai);
+                return new ExchangeException(code, message);
+            }
+            return new ExchangeException(199, "unkown exception");
+        } catch (Exception e) {
+            return new ExchangeException(199, "unkown exception", e);
         }
-        return findMessage(cause.getCause());
     }
 
 }

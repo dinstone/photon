@@ -18,9 +18,9 @@ package com.dinstone.photon.handler;
 import java.util.Map;
 import java.util.concurrent.Executor;
 
-import com.dinstone.photon.AttributeHelper;
 import com.dinstone.photon.connection.Connection;
 import com.dinstone.photon.connection.ResponseFuture;
+import com.dinstone.photon.util.AttributeHelper;
 
 import io.netty.channel.ChannelHandlerContext;
 
@@ -48,7 +48,7 @@ public class MessageContext {
     }
 
     public Map<Integer, ResponseFuture> getResponseFutures() {
-        return AttributeHelper.futureMap(channelContext.channel());
+        return AttributeHelper.futures(channelContext.channel());
     }
 
 }

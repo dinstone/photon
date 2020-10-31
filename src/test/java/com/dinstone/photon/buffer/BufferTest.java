@@ -23,7 +23,7 @@ import java.util.List;
 
 import org.junit.Test;
 
-import com.dinstone.photon.codec.Codecs;
+import com.dinstone.photon.codec.MessageCodecs;
 import com.dinstone.photon.codec.MessageCodec;
 import com.dinstone.photon.codec.NoticeCodec;
 import com.dinstone.photon.message.Message;
@@ -162,7 +162,7 @@ public class BufferTest {
     }
 
     private void encodeMessage(Message message, ByteBuf out) {
-        MessageCodec<Message> codec = Codecs.find(message.getType());
+        MessageCodec<Message> codec = MessageCodecs.find(message.getType());
         if (codec != null) {
             codec.encode(message, out);
         } else {
@@ -235,7 +235,7 @@ public class BufferTest {
 
     public static ByteBuf encodeMessage(Message message) {
         ByteBuf out = ByteBufAllocator.DEFAULT.ioBuffer();
-        MessageCodec<Message> codec = Codecs.find(message.getType());
+        MessageCodec<Message> codec = MessageCodecs.find(message.getType());
         if (codec != null) {
             codec.encode(message, out);
             return out;
@@ -247,7 +247,7 @@ public class BufferTest {
     public static Message decodeMessage(ByteBuf in) {
         in.markReaderIndex();
         Message.Type messageType = Message.Type.valueOf(in.readByte());
-        MessageCodec<Message> codec = Codecs.find(messageType);
+        MessageCodec<Message> codec = MessageCodecs.find(messageType);
         if (codec != null) {
             in.resetReaderIndex();
             codec.decode(in, new ArrayList<Object>());
