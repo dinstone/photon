@@ -19,7 +19,8 @@ import java.lang.reflect.InvocationTargetException;
 import java.util.concurrent.Executor;
 import java.util.concurrent.RejectedExecutionException;
 
-import com.dinstone.photon.exception.ExchangeException;
+import com.dinstone.photon.ExchangeException;
+import com.dinstone.photon.codec.ExceptionCodec;
 import com.dinstone.photon.message.Request;
 import com.dinstone.photon.message.Response;
 import com.dinstone.photon.message.Status;
@@ -59,7 +60,7 @@ public class RequestHandler implements MessageHandler<Request> {
             Response response = new Response();
             response.setMsgId(request.getMsgId());
             response.setStatus(Status.FAILURE);
-            response.setContent(ExchangeException.encode(exception));
+            response.setContent(ExceptionCodec.encode(exception));
 
             ctx.writeAndFlush(response);
         }

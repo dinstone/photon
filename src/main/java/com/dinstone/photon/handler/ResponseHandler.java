@@ -17,8 +17,8 @@ package com.dinstone.photon.handler;
 
 import java.util.concurrent.Executor;
 
+import com.dinstone.photon.codec.ExceptionCodec;
 import com.dinstone.photon.connection.ResponseFuture;
-import com.dinstone.photon.exception.ExchangeException;
 import com.dinstone.photon.message.Response;
 import com.dinstone.photon.message.Status;
 import com.dinstone.photon.processor.MessageProcessor;
@@ -53,7 +53,7 @@ public class ResponseHandler implements MessageHandler<Response> {
         if (status == Status.SUCCESS) {
             future.setResponse(response);
         } else {
-            future.setFailure(ExchangeException.decode(response.getContent()));
+            future.setFailure(ExceptionCodec.decode(response.getContent()));
         }
     }
 }

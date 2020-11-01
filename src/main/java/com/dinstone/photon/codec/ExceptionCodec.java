@@ -13,72 +13,22 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.dinstone.photon.exception;
+package com.dinstone.photon.codec;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 
+import com.dinstone.photon.ExchangeException;
 import com.dinstone.photon.util.ByteStreamUtil;
-import com.dinstone.photon.util.ExceptionUtil;
 
-/**
- * 
- * @author dinstone
- *
- */
-public class ExchangeException extends RuntimeException {
-    /**  */
-    private static final long serialVersionUID = 1L;
-
-    private int code;
-
-    /**
-     * @param message
-     */
-    public ExchangeException(int code, String message) {
-        this(code, message, null);
-    }
-
-    public ExchangeException(int code, Throwable cause) {
-        this(code, null, cause);
-    }
-
-    /**
-     * @param message
-     * @param cause
-     */
-    public ExchangeException(int code, String message, Throwable cause) {
-        super(message, cause);
-        this.code = code;
-    }
-
-    /**
-     * the code to get
-     * 
-     * @return the code
-     * 
-     * @see FocusException#code
-     */
-    public int getCode() {
-        return code;
-    }
-
-    @Override
-    public String getMessage() {
-        String msg = super.getMessage();
-        if (msg != null) {
-            return msg;
-        }
-        return ExceptionUtil.getMessage(getCause());
-    }
+public class ExceptionCodec {
 
     public static byte[] encode(ExchangeException exception) {
         try {
             ByteArrayOutputStream bao = new ByteArrayOutputStream();
             ByteStreamUtil.writeInt(bao, exception.getCode());
             ByteStreamUtil.writeString(bao, exception.getMessage());
-
             return bao.toByteArray();
         } catch (IOException e) {
         }
