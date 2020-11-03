@@ -53,9 +53,9 @@ public class RequestHandler implements MessageHandler<Request> {
             ExchangeException exception = null;
             if (e instanceof RejectedExecutionException) {
                 // server is busy
-                exception = new ExchangeException(101, null, e);
+                exception = new ExchangeException(101, "server is busy :" + ExceptionUtil.getMessage(e));
             } else {
-                exception = new ExchangeException(100, null, e);
+                exception = new ExchangeException(100, "server error :" + ExceptionUtil.getMessage(e));
             }
             Response response = new Response();
             response.setMsgId(request.getMsgId());
