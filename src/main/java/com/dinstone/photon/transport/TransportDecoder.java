@@ -17,8 +17,8 @@ package com.dinstone.photon.transport;
 
 import java.util.List;
 
-import com.dinstone.photon.codec.MessageCodecs;
 import com.dinstone.photon.codec.MessageCodec;
+import com.dinstone.photon.codec.MessageCodecs;
 import com.dinstone.photon.message.Message;
 import com.dinstone.photon.message.Message.Type;
 
@@ -56,10 +56,14 @@ public class TransportDecoder extends ByteToMessageDecoder {
                 return;
             }
 
-            byte messageType = in.getByte(in.readerIndex());
-            MessageCodec<Message> codec = MessageCodecs.find(Type.valueOf(messageType));
+            byte version = in.readByte();
+            if (Message.VERSION != version) {
+                throw new IllegalStateException("invalid message version " + version);
+            }
+            byte type = in.readByte();
+            MessageCodec<Message> codec = MessageCodecs.find(Type.valueOf(type));
             if (codec == null) {
-                throw new IllegalStateException("can't find message codec for " + messageType);
+                throw new IllegalStateException("can't find message codec for " + type);
             } else {
                 codec.decode(in, out);
             }

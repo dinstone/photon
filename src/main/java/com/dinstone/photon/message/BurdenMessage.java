@@ -23,8 +23,8 @@ public abstract class BurdenMessage extends AbstractMessage {
 
     private byte[] content;
 
-    public BurdenMessage(Type type, byte version) {
-        super(type, version);
+    public BurdenMessage(Type type) {
+        super(type);
     }
 
     public byte getCodec() {

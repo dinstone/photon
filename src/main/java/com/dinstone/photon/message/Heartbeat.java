@@ -23,7 +23,7 @@ public class Heartbeat extends ControlMessage {
     private boolean tick;
 
     public Heartbeat(int messageId, boolean tick) {
-        super(Type.HEARTBEAT, (byte) 0x1);
+        super(Type.HEARTBEAT);
         this.msgId = messageId;
         this.tick = tick;
     }

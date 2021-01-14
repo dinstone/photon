@@ -17,7 +17,7 @@ package com.dinstone.photon.message;
 
 public abstract class ControlMessage extends AbstractMessage {
 
-    public ControlMessage(Type type, byte version) {
-        super(type, version);
+    public ControlMessage(Type type) {
+        super(type);
     }
 }

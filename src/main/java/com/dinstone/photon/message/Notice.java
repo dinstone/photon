@@ -20,7 +20,7 @@ public class Notice extends BurdenMessage {
     private String address;
 
     public Notice() {
-        super(Type.NOTICE, (byte) 0x1);
+        super(Type.NOTICE);
     }
 
     public String getAddress() {

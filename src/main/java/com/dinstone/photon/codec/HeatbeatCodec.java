@@ -18,31 +18,19 @@ package com.dinstone.photon.codec;
 import java.util.List;
 
 import com.dinstone.photon.message.Heartbeat;
-import com.dinstone.photon.message.Message;
-import com.dinstone.photon.message.Message.Type;
 
 import io.netty.buffer.ByteBuf;
 
-public class HeatbeatCodec implements MessageCodec<Heartbeat> {
-
-    private static final byte VERSION = 1;
+public class HeatbeatCodec extends AbstractCodec<Heartbeat> {
 
     @Override
     public void encode(Heartbeat message, ByteBuf out) {
-        out.writeByte(message.getType().getValue());
-        out.writeByte(message.getVersion());
         out.writeInt(message.getMsgId());
         out.writeBoolean(message.getTick());
     }
 
     @Override
     public void decode(ByteBuf in, List<Object> out) {
-        Type type = Message.Type.valueOf(in.readByte());
-        byte version = in.readByte();
-        if (VERSION != version) {
-            throw new IllegalArgumentException("invalid message version " + version + " for " + type);
-        }
-
         int messageId = in.readInt();
         boolean tick = in.readBoolean();
         out.add(new Heartbeat(messageId, tick));

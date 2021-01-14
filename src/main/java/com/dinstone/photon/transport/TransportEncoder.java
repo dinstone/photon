@@ -15,8 +15,8 @@
  */
 package com.dinstone.photon.transport;
 
-import com.dinstone.photon.codec.MessageCodecs;
 import com.dinstone.photon.codec.MessageCodec;
+import com.dinstone.photon.codec.MessageCodecs;
 import com.dinstone.photon.message.Message;
 
 import io.netty.buffer.ByteBuf;
@@ -26,6 +26,7 @@ import io.netty.handler.codec.MessageToByteEncoder;
 public class TransportEncoder extends MessageToByteEncoder<Message> {
 
     private static final byte[] PLACEHOLDER = new byte[4];
+
     /** 2GB */
     private int maxSize = Integer.MAX_VALUE;
 
@@ -46,8 +47,13 @@ public class TransportEncoder extends MessageToByteEncoder<Message> {
             throw new IllegalStateException("can't find message codec for " + message.getType());
         } else {
             int swi = out.writerIndex();
+            // length
             out.writeBytes(PLACEHOLDER);
 
+            // version
+            out.writeByte(message.getVersion());
+            // type
+            out.writeByte(message.getType().getValue());
             // message encode
             codec.encode(message, out);
 

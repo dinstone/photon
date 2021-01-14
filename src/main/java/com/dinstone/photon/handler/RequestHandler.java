@@ -23,7 +23,7 @@ import com.dinstone.photon.ExchangeException;
 import com.dinstone.photon.codec.ExceptionCodec;
 import com.dinstone.photon.message.Request;
 import com.dinstone.photon.message.Response;
-import com.dinstone.photon.message.Status;
+import com.dinstone.photon.message.Response.Status;
 import com.dinstone.photon.processor.MessageProcessor;
 import com.dinstone.photon.util.ExceptionUtil;
 
@@ -36,10 +36,16 @@ public class RequestHandler implements MessageHandler<Request> {
             final Request request) {
         try {
             if (executor != null) {
+                long s = System.currentTimeMillis();
                 executor.execute(new Runnable() {
 
                     @Override
                     public void run() {
+                        long e = System.currentTimeMillis();
+                        if (request.getTimeout() > 0 && e - s >= request.getTimeout()) {
+                            // timeout
+                            return;
+                        }
                         processor.process(ctx, request);
                     }
                 });

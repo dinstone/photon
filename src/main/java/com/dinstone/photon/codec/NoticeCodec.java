@@ -17,20 +17,14 @@ package com.dinstone.photon.codec;
 
 import java.util.List;
 
-import com.dinstone.photon.message.Message;
-import com.dinstone.photon.message.Message.Type;
 import com.dinstone.photon.message.Notice;
 
 import io.netty.buffer.ByteBuf;
 
 public class NoticeCodec extends AbstractCodec<Notice> {
 
-    private static final byte VERSION = 1;
-
     @Override
     public void encode(Notice message, ByteBuf out) {
-        out.writeByte(message.getType().getValue());
-        out.writeByte(message.getVersion());
         out.writeInt(message.getMsgId());
         out.writeByte(message.getCodec());
         writeString(out, message.getAddress());
@@ -43,12 +37,6 @@ public class NoticeCodec extends AbstractCodec<Notice> {
 
     @Override
     public void decode(ByteBuf in, List<Object> out) {
-        Type type = Message.Type.valueOf(in.readByte());
-        byte version = in.readByte();
-        if (VERSION != version) {
-            throw new IllegalArgumentException("invalid message version " + version + " for " + type);
-        }
-
         Notice notice = new Notice();
         // message id
         notice.setMsgId(in.readInt());

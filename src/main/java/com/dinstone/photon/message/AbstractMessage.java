@@ -17,16 +17,13 @@ package com.dinstone.photon.message;
 
 public abstract class AbstractMessage implements Message {
 
-    protected int msgId;
-
     protected Type type;
 
-    protected byte version;
+    protected int msgId;
 
-    public AbstractMessage(Type type, byte version) {
+    public AbstractMessage(Type type) {
         super();
         this.type = type;
-        this.version = version;
     }
 
     public int getMsgId() {
@@ -42,8 +39,4 @@ public abstract class AbstractMessage implements Message {
         return type;
     }
 
-    @Override
-    public byte getVersion() {
-        return version;
-    }
 }

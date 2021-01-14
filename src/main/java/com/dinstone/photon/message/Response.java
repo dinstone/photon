@@ -20,7 +20,7 @@ public class Response extends BurdenMessage {
     private Status status;
 
     public Response() {
-        super(Type.RESPONSE, (byte) 0x1);
+        super(Type.RESPONSE);
     }
 
     public Status getStatus() {
@@ -29,6 +29,44 @@ public class Response extends BurdenMessage {
 
     public void setStatus(Status status) {
         this.status = status;
+    }
+
+    public enum Status {
+        SUCCESS((byte) 0), // message handle success
+        FAILURE((byte) 1), // message handle failure
+        TIMEOUT((byte) 2); // message handle timeout
+
+        private byte value;
+
+        private Status(byte value) {
+            this.value = value;
+        }
+
+        /**
+         * the value to get
+         *
+         * @return the value
+         * 
+         * @see Status#value
+         */
+        public byte getValue() {
+            return value;
+        }
+
+        public static Status valueOf(byte value) {
+            switch (value) {
+            case 0:
+                return SUCCESS;
+            case 1:
+                return FAILURE;
+            case 2:
+                return TIMEOUT;
+            default:
+                break;
+            }
+            throw new IllegalArgumentException("unsupported message type [" + value + "]");
+        }
+
     }
 
 }

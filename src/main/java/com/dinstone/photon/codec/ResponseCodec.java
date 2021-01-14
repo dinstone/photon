@@ -17,21 +17,15 @@ package com.dinstone.photon.codec;
 
 import java.util.List;
 
-import com.dinstone.photon.message.Message;
-import com.dinstone.photon.message.Message.Type;
 import com.dinstone.photon.message.Response;
-import com.dinstone.photon.message.Status;
+import com.dinstone.photon.message.Response.Status;
 
 import io.netty.buffer.ByteBuf;
 
 public class ResponseCodec extends AbstractCodec<Response> {
 
-    private static final byte VERSION = 1;
-
     @Override
     public void encode(Response message, ByteBuf out) {
-        out.writeByte(message.getType().getValue());
-        out.writeByte(message.getVersion());
         out.writeInt(message.getMsgId());
         out.writeByte(message.getCodec());
         out.writeByte(message.getStatus().getValue());
@@ -44,12 +38,6 @@ public class ResponseCodec extends AbstractCodec<Response> {
 
     @Override
     public void decode(ByteBuf in, List<Object> out) {
-        Type type = Message.Type.valueOf(in.readByte());
-        byte version = in.readByte();
-        if (VERSION != version) {
-            throw new IllegalArgumentException("invalid message version " + version + " for " + type);
-        }
-
         Response response = new Response();
         // message id
         response.setMsgId(in.readInt());
