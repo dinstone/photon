@@ -33,27 +33,12 @@ public class ResponseHandler implements MessageHandler<Response> {
             final Response response) {
         final ResponseFuture future = AttributeHelper.futures(ctx.channel()).remove(response.getMsgId());
         if (future != null) {
-            if (executor != null) {
-                executor.execute(new Runnable() {
-
-                    @Override
-                    public void run() {
-                        resolveResponse(future, response);
-                    }
-
-                });
+            if (response.getStatus() == Status.SUCCESS) {
+                future.setResponse(response);
             } else {
-                resolveResponse(future, response);
+                future.setFailure(ExceptionCodec.decode(response.getContent()));
             }
         }
     }
 
-    private void resolveResponse(final ResponseFuture future, final Response response) {
-        Status status = response.getStatus();
-        if (status == Status.SUCCESS) {
-            future.setResponse(response);
-        } else {
-            future.setFailure(ExceptionCodec.decode(response.getContent()));
-        }
-    }
 }

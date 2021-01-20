@@ -21,8 +21,8 @@ import io.netty.buffer.ByteBuf;
 
 public interface MessageCodec<M> {
 
-    void encode(M message, ByteBuf out);
+    void encode(M message, ByteBuf out) throws Exception;
 
-    void decode(ByteBuf in, List<Object> out);
+    void decode(ByteBuf in, List<Object> out) throws Exception;
 
 }

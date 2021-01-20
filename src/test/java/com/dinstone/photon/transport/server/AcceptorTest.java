@@ -17,6 +17,7 @@ package com.dinstone.photon.transport.server;
 
 import java.net.InetSocketAddress;
 import java.security.cert.X509Certificate;
+import java.util.concurrent.Executor;
 
 import com.dinstone.loghub.Logger;
 import com.dinstone.loghub.LoggerFactory;
@@ -44,22 +45,18 @@ public class AcceptorTest {
         acceptor.setMessageProcessor(new MessageProcessor() {
 
             @Override
-            public void process(ChannelHandlerContext ctx, Notice msg) {
-                LOG.info("notice is {}", msg.getContent());
-            }
-
-            @Override
-            public void process(ChannelHandlerContext ctx, Request msg) {
-                LOG.info("Request is {},{}", msg.getMsgId(), msg.getCodec());
+            public void process(Executor executor, ChannelHandlerContext ctx, Object msg) {
+                Request req = (Request) msg;
+                LOG.info("Request is {},{}", req.getMsgId(), req.getCodec());
                 Notice notice = new Notice();
                 notice.setAddress("");
-                notice.setContent(msg.getContent());
+                notice.setContent(req.getContent());
                 ctx.writeAndFlush(notice);
 
                 Response response = new Response();
-                response.setMsgId(msg.getMsgId());
+                response.setMsgId(req.getMsgId());
                 response.setStatus(Status.SUCCESS);
-                response.setContent(msg.getContent());
+                response.setContent(req.getContent());
                 ctx.writeAndFlush(response);
             }
         });

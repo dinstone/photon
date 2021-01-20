@@ -19,7 +19,7 @@ public abstract class BurdenMessage extends AbstractMessage {
 
     private byte codec;
 
-    private byte[] headers;
+    private Headers headers;
 
     private byte[] content;
 
@@ -35,11 +35,18 @@ public abstract class BurdenMessage extends AbstractMessage {
         this.codec = codec;
     }
 
-    public byte[] getHeaders() {
+    public Headers headers() {
+        if (headers == null) {
+            headers = new Headers();
+        }
         return headers;
     }
 
-    public void setHeaders(byte[] headers) {
+    public Headers getHeaders() {
+        return headers;
+    }
+
+    public void setHeaders(Headers headers) {
         this.headers = headers;
     }
 

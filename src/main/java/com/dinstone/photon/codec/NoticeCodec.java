@@ -17,6 +17,7 @@ package com.dinstone.photon.codec;
 
 import java.util.List;
 
+import com.dinstone.photon.message.Headers;
 import com.dinstone.photon.message.Notice;
 
 import io.netty.buffer.ByteBuf;
@@ -24,19 +25,19 @@ import io.netty.buffer.ByteBuf;
 public class NoticeCodec extends AbstractCodec<Notice> {
 
     @Override
-    public void encode(Notice message, ByteBuf out) {
+    public void encode(Notice message, ByteBuf out) throws Exception {
         out.writeInt(message.getMsgId());
         out.writeByte(message.getCodec());
         writeString(out, message.getAddress());
 
         // headers
-        writeData(out, message.getHeaders());
+        writeData(out, Headers.encode(message.getHeaders()));
         // content
         writeData(out, message.getContent());
     }
 
     @Override
-    public void decode(ByteBuf in, List<Object> out) {
+    public void decode(ByteBuf in, List<Object> out) throws Exception {
         Notice notice = new Notice();
         // message id
         notice.setMsgId(in.readInt());
@@ -45,7 +46,7 @@ public class NoticeCodec extends AbstractCodec<Notice> {
         String address = readString(in);
         notice.setAddress(address);
         // headers
-        notice.setHeaders(readData(in));
+        notice.setHeaders(Headers.decode(readData(in)));
         // content
         notice.setContent(readData(in));
 

@@ -17,6 +17,7 @@ package com.dinstone.photon.codec;
 
 import java.util.List;
 
+import com.dinstone.photon.message.Headers;
 import com.dinstone.photon.message.Request;
 
 import io.netty.buffer.ByteBuf;
@@ -24,19 +25,19 @@ import io.netty.buffer.ByteBuf;
 public class RequestCodec extends AbstractCodec<Request> {
 
     @Override
-    public void encode(Request message, ByteBuf out) {
+    public void encode(Request message, ByteBuf out) throws Exception {
         out.writeInt(message.getMsgId());
         out.writeByte(message.getCodec());
         out.writeInt(message.getTimeout());
 
         // headers
-        writeData(out, message.getHeaders());
+        writeData(out, Headers.encode(message.getHeaders()));
         // content
         writeData(out, message.getContent());
     }
 
     @Override
-    public void decode(ByteBuf in, List<Object> out) {
+    public void decode(ByteBuf in, List<Object> out) throws Exception {
         Request request = new Request();
         // message id
         request.setMsgId(in.readInt());
@@ -45,7 +46,7 @@ public class RequestCodec extends AbstractCodec<Request> {
         // timout
         request.setTimeout(in.readInt());
         // headers
-        request.setHeaders(readData(in));
+        request.setHeaders(Headers.decode(readData(in)));
         // content
         request.setContent(readData(in));
 

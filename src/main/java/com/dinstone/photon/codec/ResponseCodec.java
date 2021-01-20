@@ -17,6 +17,7 @@ package com.dinstone.photon.codec;
 
 import java.util.List;
 
+import com.dinstone.photon.message.Headers;
 import com.dinstone.photon.message.Response;
 import com.dinstone.photon.message.Response.Status;
 
@@ -25,19 +26,19 @@ import io.netty.buffer.ByteBuf;
 public class ResponseCodec extends AbstractCodec<Response> {
 
     @Override
-    public void encode(Response message, ByteBuf out) {
+    public void encode(Response message, ByteBuf out) throws Exception {
         out.writeInt(message.getMsgId());
         out.writeByte(message.getCodec());
         out.writeByte(message.getStatus().getValue());
 
         // headers
-        writeData(out, message.getHeaders());
+        writeData(out, Headers.encode(message.getHeaders()));
         // content
         writeData(out, message.getContent());
     }
 
     @Override
-    public void decode(ByteBuf in, List<Object> out) {
+    public void decode(ByteBuf in, List<Object> out) throws Exception {
         Response response = new Response();
         // message id
         response.setMsgId(in.readInt());
@@ -46,7 +47,7 @@ public class ResponseCodec extends AbstractCodec<Response> {
         // status
         response.setStatus(Status.valueOf(in.readByte()));
         // headers
-        response.setHeaders(readData(in));
+        response.setHeaders(Headers.decode(readData(in)));
         // content
         response.setContent(readData(in));
 

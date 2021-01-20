@@ -17,15 +17,15 @@ package com.dinstone.photon.buffer;
 
 import static org.junit.Assert.assertEquals;
 
-import java.io.UnsupportedEncodingException;
 import java.util.ArrayList;
 import java.util.List;
 
 import org.junit.Test;
 
-import com.dinstone.photon.codec.MessageCodecs;
 import com.dinstone.photon.codec.MessageCodec;
+import com.dinstone.photon.codec.MessageCodecs;
 import com.dinstone.photon.codec.NoticeCodec;
+import com.dinstone.photon.message.Headers;
 import com.dinstone.photon.message.Message;
 import com.dinstone.photon.message.Notice;
 import com.dinstone.photon.message.Request;
@@ -87,7 +87,7 @@ public class BufferTest {
     }
 
     @Test
-    public void noticTest() throws UnsupportedEncodingException {
+    public void noticTest() throws Exception {
         Notice notice = new Notice();
         notice.setMsgId(123);
         notice.setAddress("");
@@ -104,11 +104,11 @@ public class BufferTest {
     }
 
     @Test
-    public void oneHotBufferTest() throws UnsupportedEncodingException {
+    public void oneHotBufferTest() throws Exception {
         Request request = new Request();
         request.setMsgId(1);
 
-        request.setHeaders("".getBytes("UTF-8"));
+        request.setHeaders(null);
         request.setTimeout(10000);
         request.setContent(
                 "Hello World, this is buffer test message,Hello World,Hello World, this is buffer test message,Hello World, Hello World, this is buffer test message,Hello World,  this is buffer test message,Hello World, this is buffer test message"
@@ -133,10 +133,10 @@ public class BufferTest {
     }
 
     @Test
-    public void oneBufferTest() throws UnsupportedEncodingException {
+    public void oneBufferTest() throws Exception {
         Request request = new Request();
         request.setMsgId(1);
-        request.setHeaders("".getBytes("UTF-8"));
+        request.setHeaders(new Headers());
 
         request.setTimeout(10000);
         request.setContent(
@@ -161,7 +161,7 @@ public class BufferTest {
         System.out.println("one exe take " + (e - s) + " ms");
     }
 
-    private void encodeMessage(Message message, ByteBuf out) {
+    private void encodeMessage(Message message, ByteBuf out) throws Exception {
         MessageCodec<Message> codec = MessageCodecs.find(message.getType());
         if (codec != null) {
             codec.encode(message, out);
@@ -171,10 +171,10 @@ public class BufferTest {
     }
 
     @Test
-    public void towHotBufferTest() throws UnsupportedEncodingException {
+    public void towHotBufferTest() throws Exception {
         Request request = new Request();
         request.setMsgId(1);
-        request.setHeaders("".getBytes("UTF-8"));
+        request.setHeaders(null);
         request.setTimeout(10000);
         request.setContent(
                 "Hello World, this is buffer test message,Hello World,Hello World, this is buffer test message,Hello World, Hello World, this is buffer test message,Hello World,  this is buffer test message,Hello World, this is buffer test message"
@@ -203,7 +203,7 @@ public class BufferTest {
     }
 
     @Test
-    public void towBufferTest() {
+    public void towBufferTest() throws Exception {
         Request request = new Request();
         request.setMsgId(1);
         request.setTimeout(10000);
@@ -233,7 +233,7 @@ public class BufferTest {
         System.out.println("tow exe take " + (e - s) + " ms");
     }
 
-    public static ByteBuf encodeMessage(Message message) {
+    public static ByteBuf encodeMessage(Message message) throws Exception {
         ByteBuf out = ByteBufAllocator.DEFAULT.ioBuffer();
         MessageCodec<Message> codec = MessageCodecs.find(message.getType());
         if (codec != null) {
@@ -244,7 +244,7 @@ public class BufferTest {
         }
     }
 
-    public static Message decodeMessage(ByteBuf in) {
+    public static Message decodeMessage(ByteBuf in) throws Exception {
         in.markReaderIndex();
         Message.Type messageType = Message.Type.valueOf(in.readByte());
         MessageCodec<Message> codec = MessageCodecs.find(messageType);

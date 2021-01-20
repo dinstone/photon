@@ -27,17 +27,7 @@ public class NoticeHandler implements MessageHandler<Notice> {
     @Override
     public void handle(Executor executor, final MessageProcessor processor, final ChannelHandlerContext ctx,
             final Notice msg) {
-        if (executor != null) {
-            executor.execute(new Runnable() {
-
-                @Override
-                public void run() {
-                    processor.process(ctx, msg);
-                }
-            });
-        } else {
-            processor.process(ctx, msg);
-        }
+        processor.process(executor, ctx, msg);
     }
 
 }
