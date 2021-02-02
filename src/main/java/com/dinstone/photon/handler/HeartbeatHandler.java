@@ -15,8 +15,6 @@
  */
 package com.dinstone.photon.handler;
 
-import java.util.concurrent.Executor;
-
 import com.dinstone.photon.message.Heartbeat;
 import com.dinstone.photon.processor.MessageProcessor;
 
@@ -25,7 +23,7 @@ import io.netty.channel.ChannelHandlerContext;
 public class HeartbeatHandler implements MessageHandler<Heartbeat> {
 
     @Override
-    public void handle(Executor executor, MessageProcessor processor, ChannelHandlerContext ctx, Heartbeat heartbeat) {
+    public void handle(MessageProcessor processor, ChannelHandlerContext ctx, Heartbeat heartbeat) {
         if (heartbeat.isPing()) {
             ctx.writeAndFlush(heartbeat.pong());
         } else {

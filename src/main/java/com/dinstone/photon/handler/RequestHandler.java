@@ -16,7 +16,6 @@
 package com.dinstone.photon.handler;
 
 import java.lang.reflect.InvocationTargetException;
-import java.util.concurrent.Executor;
 import java.util.concurrent.RejectedExecutionException;
 
 import com.dinstone.photon.ExchangeException;
@@ -32,10 +31,9 @@ import io.netty.channel.ChannelHandlerContext;
 public class RequestHandler implements MessageHandler<Request> {
 
     @Override
-    public void handle(Executor executor, final MessageProcessor processor, final ChannelHandlerContext ctx,
-            final Request request) {
+    public void handle(final MessageProcessor processor, final ChannelHandlerContext ctx, final Request request) {
         try {
-            processor.process(executor, ctx, request);
+            processor.process(ctx, request);
         } catch (Throwable e) {
             if (e instanceof InvocationTargetException) {
                 e = ExceptionUtil.getTargetException((InvocationTargetException) e);

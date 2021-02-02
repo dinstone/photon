@@ -32,16 +32,9 @@ public abstract class PhotonOptions extends NetworkOptions {
      */
     public static final int DEFAULT_IDLE_TIMEOUT = 30;
 
-    /**
-     * Default processor thread size = 0
-     */
-    private static final int DEFAULT_PROCESSOR_SIZE = 0;
-
     private boolean usePooledBuffers;
     private boolean enableSsl;
     private int idleTimeout;
-
-    private int processorSize;
 
     public PhotonOptions() {
         super();
@@ -49,16 +42,6 @@ public abstract class PhotonOptions extends NetworkOptions {
         usePooledBuffers = DEFAULT_USE_POOLED_BUFFERS;
         idleTimeout = DEFAULT_IDLE_TIMEOUT;
         enableSsl = DEFAULT_ENABLE_SSL;
-
-        processorSize = DEFAULT_PROCESSOR_SIZE;
-    }
-
-    public int getProcessorSize() {
-        return processorSize;
-    }
-
-    public void setProcessorSize(int processorSize) {
-        this.processorSize = processorSize;
     }
 
     public boolean isUsePooledBuffers() {

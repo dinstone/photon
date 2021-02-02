@@ -15,12 +15,10 @@
  */
 package com.dinstone.photon.processor;
 
-import java.util.concurrent.Executor;
-
 import io.netty.channel.ChannelHandlerContext;
 
 public interface MessageProcessor {
 
-    void process(Executor executor, ChannelHandlerContext ctx, Object msg);
+    void process(ChannelHandlerContext ctx, Object msg);
 
 }

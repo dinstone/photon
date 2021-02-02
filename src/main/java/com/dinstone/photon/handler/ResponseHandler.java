@@ -15,8 +15,6 @@
  */
 package com.dinstone.photon.handler;
 
-import java.util.concurrent.Executor;
-
 import com.dinstone.photon.codec.ExceptionCodec;
 import com.dinstone.photon.connection.ResponseFuture;
 import com.dinstone.photon.message.Response;
@@ -29,8 +27,7 @@ import io.netty.channel.ChannelHandlerContext;
 public class ResponseHandler implements MessageHandler<Response> {
 
     @Override
-    public void handle(Executor executor, MessageProcessor processor, ChannelHandlerContext ctx,
-            final Response response) {
+    public void handle(MessageProcessor processor, ChannelHandlerContext ctx, final Response response) {
         final ResponseFuture future = AttributeHelper.futures(ctx.channel()).remove(response.getMsgId());
         if (future != null) {
             if (response.getStatus() == Status.SUCCESS) {

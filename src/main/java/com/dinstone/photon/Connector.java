@@ -16,9 +16,6 @@
 package com.dinstone.photon;
 
 import java.net.SocketAddress;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-import java.util.concurrent.TimeUnit;
 
 import javax.net.ssl.SSLEngine;
 
@@ -34,7 +31,6 @@ import com.dinstone.photon.processor.MessageProcessor;
 import com.dinstone.photon.transport.TransportDecoder;
 import com.dinstone.photon.transport.TransportEncoder;
 import com.dinstone.photon.util.AttributeHelper;
-import com.dinstone.photon.util.NamedThreadFactory;
 
 import io.netty.bootstrap.Bootstrap;
 import io.netty.buffer.ByteBufAllocator;
@@ -69,8 +65,6 @@ public class Connector {
 
     private int refCount;
 
-    private ExecutorService executorService;
-
     private MessageProcessor messageProcessor;
 
     public Connector(final ConnectOptions connectOptions) {
@@ -96,12 +90,6 @@ public class Connector {
             }
         });
         applyConnectionOptions(bootstrap, connectOptions);
-
-        int processorSize = options.getProcessorSize();
-        if (processorSize > 0) {
-            NamedThreadFactory threadFactory = new NamedThreadFactory("PBT-Processor");
-            executorService = Executors.newFixedThreadPool(processorSize, threadFactory);
-        }
     }
 
     private void applyConnectionOptions(Bootstrap bootstrap, ConnectOptions options) {
@@ -174,13 +162,9 @@ public class Connector {
         if (workGroup != null) {
             workGroup.shutdownGracefully();
         }
-        if (executorService != null) {
-            executorService.shutdownNow();
-            try {
-                executorService.awaitTermination(Integer.MAX_VALUE, TimeUnit.SECONDS);
-            } catch (InterruptedException e) {
-            }
-        }
+        // if (messageProcessor != null) {
+        // messageProcessor.destroy();
+        // }
     }
 
     public Connection connect(SocketAddress sa) throws Exception {
@@ -250,7 +234,7 @@ public class Connector {
         public void channelRead(ChannelHandlerContext ctx, Object msg) throws Exception {
             MessageHandler<Object> messageHandler = HandlerManager.find(msg.getClass());
             if (messageHandler != null) {
-                messageHandler.handle(executorService, messageProcessor, ctx, msg);
+                messageHandler.handle(messageProcessor, ctx, msg);
             }
         }
 

@@ -16,7 +16,6 @@
 package com.dinstone.photon.transport.client;
 
 import java.net.InetSocketAddress;
-import java.util.concurrent.Executor;
 
 import com.dinstone.loghub.Logger;
 import com.dinstone.loghub.LoggerFactory;
@@ -41,7 +40,7 @@ public class ConnectorTest {
         connector.setMessageProcessor(new MessageProcessor() {
 
             @Override
-            public void process(Executor executor, ChannelHandlerContext ctx, Object msg) {
+            public void process(ChannelHandlerContext ctx, Object msg) {
                 LOG.info("Request is {}", msg);
             }
 
