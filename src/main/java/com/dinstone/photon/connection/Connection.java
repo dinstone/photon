@@ -28,6 +28,8 @@ public interface Connection {
 
     String sessionId();
 
+    boolean isBusy();
+
     boolean isActive();
 
     public void destroy();

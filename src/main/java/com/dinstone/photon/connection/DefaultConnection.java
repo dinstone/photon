@@ -60,6 +60,16 @@ public class DefaultConnection implements Connection {
     }
 
     @Override
+    public boolean isBusy() {
+        return !channel.isWritable();
+    }
+
+    @Override
+    public void destroy() {
+        channel.close();
+    }
+
+    @Override
     public void notify(Notice notice) {
         ChannelFuture cf = channel.writeAndFlush(notice);
         cf.addListener(new GenericFutureListener<ChannelFuture>() {
@@ -123,11 +133,6 @@ public class DefaultConnection implements Connection {
     @Override
     public InetSocketAddress getLocalAddress() {
         return (InetSocketAddress) channel.localAddress();
-    }
-
-    @Override
-    public void destroy() {
-        channel.close();
     }
 
 }
