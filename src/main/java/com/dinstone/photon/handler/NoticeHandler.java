@@ -17,6 +17,7 @@ package com.dinstone.photon.handler;
 
 import com.dinstone.photon.message.Notice;
 import com.dinstone.photon.processor.MessageProcessor;
+import com.dinstone.photon.processor.ProcessContext;
 
 import io.netty.channel.ChannelHandlerContext;
 
@@ -24,7 +25,7 @@ public class NoticeHandler implements MessageHandler<Notice> {
 
     @Override
     public void handle(final MessageProcessor processor, final ChannelHandlerContext ctx, final Notice msg) {
-        processor.process(ctx, msg);
+        processor.process(new ProcessContext(ctx.channel()), msg);
     }
 
 }

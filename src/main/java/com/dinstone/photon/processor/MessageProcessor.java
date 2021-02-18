@@ -15,10 +15,8 @@
  */
 package com.dinstone.photon.processor;
 
-import io.netty.channel.ChannelHandlerContext;
-
 public interface MessageProcessor {
 
-    void process(ChannelHandlerContext ctx, Object msg);
+    void process(ProcessContext ctx, Object msg);
 
 }

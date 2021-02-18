@@ -50,7 +50,7 @@ public class DefaultConnection implements Connection {
     }
 
     @Override
-    public ChannelFuture write(Message msg) {
+    public ChannelFuture send(Message msg) {
         return channel.writeAndFlush(msg);
     }
 
@@ -70,18 +70,8 @@ public class DefaultConnection implements Connection {
     }
 
     @Override
-    public void notify(Notice notice) {
-        ChannelFuture cf = channel.writeAndFlush(notice);
-        cf.addListener(new GenericFutureListener<ChannelFuture>() {
-
-            @Override
-            public void operationComplete(ChannelFuture future) throws Exception {
-                if (!future.isSuccess()) {
-                    LOG.warn("send notice message error", future.cause());
-                }
-            }
-
-        });
+    public ChannelFuture notify(Notice notice) {
+        return channel.writeAndFlush(notice);
     }
 
     @Override

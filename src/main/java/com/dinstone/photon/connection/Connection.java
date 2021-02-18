@@ -38,9 +38,9 @@ public interface Connection {
 
     public InetSocketAddress getLocalAddress();
 
-    void notify(Notice notice);
+    ChannelFuture notify(Notice notice);
 
-    ChannelFuture write(Message message);
+    ChannelFuture send(Message message);
 
     Response sync(Request request) throws Exception;
 

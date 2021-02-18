@@ -24,6 +24,7 @@ import com.dinstone.photon.message.Request;
 import com.dinstone.photon.message.Response;
 import com.dinstone.photon.message.Response.Status;
 import com.dinstone.photon.processor.MessageProcessor;
+import com.dinstone.photon.processor.ProcessContext;
 import com.dinstone.photon.util.ExceptionUtil;
 
 import io.netty.channel.ChannelHandlerContext;
@@ -33,7 +34,9 @@ public class RequestHandler implements MessageHandler<Request> {
     @Override
     public void handle(final MessageProcessor processor, final ChannelHandlerContext ctx, final Request request) {
         try {
-            processor.process(ctx, request);
+            ProcessContext context = new ProcessContext(ctx.channel());
+            context.setTimeout(request.getTimeout());
+            processor.process(context, request);
         } catch (Throwable e) {
             if (e instanceof InvocationTargetException) {
                 e = ExceptionUtil.getTargetException((InvocationTargetException) e);
@@ -45,6 +48,7 @@ public class RequestHandler implements MessageHandler<Request> {
             } else {
                 exception = new ExchangeException(100, "server error :" + ExceptionUtil.getMessage(e));
             }
+
             Response response = new Response();
             response.setMsgId(request.getMsgId());
             response.setStatus(Status.FAILURE);

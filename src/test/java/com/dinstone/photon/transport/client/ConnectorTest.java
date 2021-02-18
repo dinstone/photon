@@ -27,8 +27,7 @@ import com.dinstone.photon.connection.ResponseListener;
 import com.dinstone.photon.message.Request;
 import com.dinstone.photon.message.Response;
 import com.dinstone.photon.processor.MessageProcessor;
-
-import io.netty.channel.ChannelHandlerContext;
+import com.dinstone.photon.processor.ProcessContext;
 
 public class ConnectorTest {
     private static final Logger LOG = LoggerFactory.getLogger(ConnectorTest.class);
@@ -40,7 +39,7 @@ public class ConnectorTest {
         connector.setMessageProcessor(new MessageProcessor() {
 
             @Override
-            public void process(ChannelHandlerContext ctx, Object msg) {
+            public void process(ProcessContext ctx, Object msg) {
                 LOG.info("Request is {}", msg);
             }
 
