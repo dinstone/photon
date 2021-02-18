@@ -27,20 +27,20 @@ public class ConnectOptions extends PhotonOptions {
     public static final int DEFAULT_CONNECT_TIMEOUT = 3000;
 
     /**
-     * The default value of eventloop size = 0
+     * The default value of eventloop size = 1
      */
-    public static final int DEFAULT_EVENTLOOP_SIZE = 0;
+    public static final int DEFAULT_EVENTLOOP_SIZE = 1;
 
-    private int connectTimeout;
     private int eventLoopSize;
+    private int connectTimeout;
     private String localAddress;
     private TrustManagerFactory trustManagerFactory;
 
     public ConnectOptions() {
         super();
 
-        connectTimeout = DEFAULT_CONNECT_TIMEOUT;
         eventLoopSize = DEFAULT_EVENTLOOP_SIZE;
+        connectTimeout = DEFAULT_CONNECT_TIMEOUT;
         trustManagerFactory = InsecureTrustManagerFactory.INSTANCE;
     }
 
