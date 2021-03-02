@@ -18,11 +18,11 @@ package com.dinstone.photon.connection;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
-import java.util.concurrent.TimeoutException;
 import java.util.concurrent.locks.Condition;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
+import com.dinstone.photon.ExchangeException;
 import com.dinstone.photon.message.Response;
 
 /**
@@ -74,7 +74,7 @@ public class ResponseFuture {
             if (!done) {
                 boolean success = ready.await(timeout, unit);
                 if (!success) {
-                    throw new TimeoutException("operation timeout (" + timeout + " " + unit + ")");
+                    throw new ExchangeException(102, "operation timeout (" + timeout + " " + unit + ")");
                 }
             }
             return getValue();
