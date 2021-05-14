@@ -28,7 +28,10 @@ import com.dinstone.photon.util.AttributeHelper;
 
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelFuture;
+import io.netty.util.concurrent.DefaultPromise;
+import io.netty.util.concurrent.Future;
 import io.netty.util.concurrent.GenericFutureListener;
+import io.netty.util.concurrent.Promise;
 
 public class DefaultConnection implements Connection {
 
@@ -74,8 +77,8 @@ public class DefaultConnection implements Connection {
     }
 
     @Override
-    public ResponseFuture async(final Request request) throws Exception {
-        final ResponseFuture responseFuture = createFuture(request.getMsgId());
+    public Future<Response> async(final Request request) throws Exception {
+        final Promise<Response> promise = createFuture(request.getMsgId());
 
         channel.writeAndFlush(request).addListener(new GenericFutureListener<ChannelFuture>() {
 
@@ -83,15 +86,15 @@ public class DefaultConnection implements Connection {
             public void operationComplete(ChannelFuture future) throws Exception {
                 if (!future.isSuccess()) {
                     String message = "send request message error";
-                    responseFuture.setFailure(new RuntimeException(message, future.cause()));
-                    removeFuture(responseFuture.getFutureId());
+                    promise.setFailure(new RuntimeException(message, future.cause()));
+                    removeFuture(request.getMsgId());
                     LOG.warn(message, future.cause());
                 }
             }
 
         });
 
-        return responseFuture;
+        return promise;
     }
 
     @Override
@@ -104,14 +107,14 @@ public class DefaultConnection implements Connection {
         }
     }
 
-    private ResponseFuture removeFuture(int messageId) {
-        return AttributeHelper.futures(channel).remove(messageId);
+    private Promise<Response> removeFuture(int messageId) {
+        return AttributeHelper.promises(channel).remove(messageId);
     }
 
-    private ResponseFuture createFuture(int messageId) {
-        ResponseFuture future = new ResponseFuture(messageId);
-        AttributeHelper.futures(channel).put(messageId, future);
-        return future;
+    private Promise<Response> createFuture(int messageId) {
+        Promise<Response> promise = new DefaultPromise<Response>(channel.eventLoop());
+        AttributeHelper.promises(channel).put(messageId, promise);
+        return promise;
     }
 
     @Override

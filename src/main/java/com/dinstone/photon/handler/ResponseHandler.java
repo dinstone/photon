@@ -16,24 +16,24 @@
 package com.dinstone.photon.handler;
 
 import com.dinstone.photon.codec.ExceptionCodec;
-import com.dinstone.photon.connection.ResponseFuture;
 import com.dinstone.photon.message.Response;
 import com.dinstone.photon.message.Response.Status;
 import com.dinstone.photon.processor.MessageProcessor;
 import com.dinstone.photon.util.AttributeHelper;
 
 import io.netty.channel.ChannelHandlerContext;
+import io.netty.util.concurrent.Promise;
 
 public class ResponseHandler implements MessageHandler<Response> {
 
     @Override
     public void handle(MessageProcessor processor, ChannelHandlerContext ctx, final Response response) {
-        final ResponseFuture future = AttributeHelper.futures(ctx.channel()).remove(response.getMsgId());
-        if (future != null) {
+        final Promise<Response> promise = AttributeHelper.promises(ctx.channel()).remove(response.getMsgId());
+        if (promise != null) {
             if (response.getStatus() == Status.SUCCESS) {
-                future.setResponse(response);
+                promise.setSuccess(response);
             } else {
-                future.setFailure(ExceptionCodec.decode(response.getContent()));
+                promise.setFailure(ExceptionCodec.decode(response.getContent()));
             }
         }
     }

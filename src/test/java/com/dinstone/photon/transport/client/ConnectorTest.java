@@ -22,12 +22,13 @@ import com.dinstone.loghub.LoggerFactory;
 import com.dinstone.photon.ConnectOptions;
 import com.dinstone.photon.Connector;
 import com.dinstone.photon.connection.Connection;
-import com.dinstone.photon.connection.ResponseFuture;
-import com.dinstone.photon.connection.ResponseListener;
 import com.dinstone.photon.message.Request;
 import com.dinstone.photon.message.Response;
 import com.dinstone.photon.processor.MessageProcessor;
 import com.dinstone.photon.processor.ProcessContext;
+
+import io.netty.util.concurrent.Future;
+import io.netty.util.concurrent.GenericFutureListener;
 
 public class ConnectorTest {
     private static final Logger LOG = LoggerFactory.getLogger(ConnectorTest.class);
@@ -57,16 +58,18 @@ public class ConnectorTest {
         Response response = connection.sync(request);
         LOG.info("sync response is {}", response.getContent());
 
-        connection.async(request).addListener(new ResponseListener() {
+        connection.async(request).addListener(new GenericFutureListener<Future<Response>>() {
 
             @Override
-            public void complete(ResponseFuture future) {
+            public void operationComplete(Future<Response> future) throws Exception {
                 try {
+                    LOG.info("thread {}", Thread.currentThread().getName());
                     Response response = future.get();
                     LOG.info("async response is {}", response.getContent());
                 } catch (Throwable e) {
                     e.printStackTrace();
                 }
+
             }
         });
 

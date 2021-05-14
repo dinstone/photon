@@ -23,6 +23,7 @@ import com.dinstone.photon.message.Request;
 import com.dinstone.photon.message.Response;
 
 import io.netty.channel.ChannelFuture;
+import io.netty.util.concurrent.Future;
 
 public interface Connection {
 
@@ -44,6 +45,6 @@ public interface Connection {
 
     Response sync(Request request) throws Exception;
 
-    ResponseFuture async(Request request) throws Exception;
+    Future<Response> async(Request request) throws Exception;
 
 }
