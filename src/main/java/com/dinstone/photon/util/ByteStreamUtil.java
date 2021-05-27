@@ -42,7 +42,9 @@ public class ByteStreamUtil {
         } else if (length == 0) {
             return "";
         } else {
-            return new String(bai.readNBytes(length), CharsetUtil.UTF_8);
+            byte[] readBytes = new byte[length];
+            bai.read(readBytes);
+            return new String(readBytes, CharsetUtil.UTF_8);
         }
     }
 
