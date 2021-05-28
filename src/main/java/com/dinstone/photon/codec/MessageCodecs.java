@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2018~2020 dinstone<dinstone@163.com>
+ * Copyright (C) 2018~2021 dinstone<dinstone@163.com>
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,32 +15,27 @@
  */
 package com.dinstone.photon.codec;
 
-import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
-
-import com.dinstone.photon.message.Message;
-
 public class MessageCodecs {
 
-    private static final Map<Message.Type, MessageCodec<?>> TYPE_CODEC_MAP = new ConcurrentHashMap<>();
-
-    static {
-        regist(Message.Type.HEARTBEAT, new HeatbeatCodec());
-        regist(Message.Type.REQUEST, new RequestCodec());
-        regist(Message.Type.RESPONSE, new ResponseCodec());
-        regist(Message.Type.NOTICE, new NoticeCodec());
-    }
-
-    public static <T> void regist(Message.Type messageType, MessageCodec<T> codec) {
-        if (TYPE_CODEC_MAP.containsKey(messageType)) {
-            throw new IllegalStateException("already a codec registered with type " + messageType);
-        }
-        TYPE_CODEC_MAP.put(messageType, codec);
-    }
-
-    @SuppressWarnings("unchecked")
-    public static <T> MessageCodec<T> find(Message.Type message) {
-        return (MessageCodec<T>) TYPE_CODEC_MAP.get(message);
-    }
+    // private static final Map<Message.Type, MessageCodec<?>> TYPE_CODEC_MAP = new ConcurrentHashMap<>();
+    //
+    // static {
+    // regist(Message.Type.HEARTBEAT, new HeatbeatCodec());
+    // regist(Message.Type.REQUEST, new RequestCodec());
+    // regist(Message.Type.RESPONSE, new ResponseCodec());
+    // regist(Message.Type.NOTICE, new NoticeCodec());
+    // }
+    //
+    // public static <T> void regist(Message.Type messageType, MessageCodec<T> codec) {
+    // if (TYPE_CODEC_MAP.containsKey(messageType)) {
+    // throw new IllegalStateException("already a codec registered with type " + messageType);
+    // }
+    // TYPE_CODEC_MAP.put(messageType, codec);
+    // }
+    //
+    // @SuppressWarnings("unchecked")
+    // public static <T> MessageCodec<T> find(Message.Type message) {
+    // return (MessageCodec<T>) TYPE_CODEC_MAP.get(message);
+    // }
 
 }

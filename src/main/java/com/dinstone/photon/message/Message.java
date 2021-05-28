@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2018~2020 dinstone<dinstone@163.com>
+ * Copyright (C) 2018~2021 dinstone<dinstone@163.com>
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,58 +15,54 @@
  */
 package com.dinstone.photon.message;
 
+import io.netty.buffer.ByteBuf;
+
 public interface Message {
 
-    byte VERSION = 1;
+    /**
+     * MEP: long connection parttern
+     */
+    byte HEARTBEAT = 0;
 
-    default byte getVersion() {
-        return VERSION;
-    }
+    /**
+     * MEP: the request of the request-respose parttern
+     */
+    byte REQUEST = 1;
 
-    Type getType();
+    /**
+     * MEP: the response of the request-respose parttern
+     */
+    byte RESPONSE = 2;
+
+    /**
+     * MEP: one-way or notify parttern
+     */
+    byte NOTICE = 3;
+
+    byte getVersion();
+
+    byte getType();
 
     int getMsgId();
 
-    public enum Type {
-        HEARTBEAT((byte) 0), // MEP: long connection parttern
-        REQUEST((byte) 1), // MEP: the request of the request-respose parttern
-        RESPONSE((byte) 2), // MEP: the response of the request-respose parttern
-        NOTICE((byte) 3); // MEP: one-way or notify parttern
+    void encode(ByteBuf oBuffer) throws Exception;
 
-        private byte value;
+    void decode(ByteBuf iBuffer) throws Exception;
 
-        private Type(byte value) {
-            this.value = value;
+    static Message create(byte version, byte type) {
+        switch (type) {
+        case 0:
+            return new Heartbeat();
+        case 1:
+            return new Request();
+        case 2:
+            return new Response();
+        case 3:
+            return new Notice();
+        default:
+            break;
         }
-
-        /**
-         * the value to get
-         *
-         * @return the value
-         * 
-         * @see Type#value
-         */
-        public byte getValue() {
-            return value;
-        }
-
-        public static Type valueOf(byte value) {
-            switch (value) {
-            case 0:
-                return HEARTBEAT;
-            case 1:
-                return REQUEST;
-            case 2:
-                return RESPONSE;
-            case 3:
-                return NOTICE;
-
-            default:
-                break;
-            }
-            throw new IllegalArgumentException("unsupported message type [" + value + "]");
-        }
-
+        throw new IllegalArgumentException("unsupported message type [" + type + "]");
     }
 
 }

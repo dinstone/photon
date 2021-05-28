@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2018~2020 dinstone<dinstone@163.com>
+ * Copyright (C) 2018~2021 dinstone<dinstone@163.com>
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,12 +15,14 @@
  */
 package com.dinstone.photon.message;
 
+import io.netty.buffer.ByteBuf;
+
 public class Response extends BurdenMessage {
 
     private Status status;
 
     public Response() {
-        super(Type.RESPONSE);
+        super(Message.RESPONSE);
     }
 
     public Status getStatus() {
@@ -66,6 +68,33 @@ public class Response extends BurdenMessage {
             }
             throw new IllegalArgumentException("unsupported message type [" + value + "]");
         }
+
+    }
+
+    @Override
+    public void encode(ByteBuf oBuffer) throws Exception {
+        super.encode(oBuffer);
+
+        oBuffer.writeByte(codec);
+        oBuffer.writeByte(status.getValue());
+
+        // headers
+        writeData(oBuffer, Headers.encode(headers));
+        // content
+        writeData(oBuffer, content);
+    }
+
+    @Override
+    public void decode(ByteBuf iBuffer) throws Exception {
+        super.decode(iBuffer);
+
+        codec = iBuffer.readByte();
+        // status
+        status = Status.valueOf(iBuffer.readByte());
+        // headers
+        headers = Headers.decode(readData(iBuffer));
+        // content
+        content = readData(iBuffer);
 
     }
 

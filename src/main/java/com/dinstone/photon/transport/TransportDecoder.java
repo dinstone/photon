@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2018~2020 dinstone<dinstone@163.com>
+ * Copyright (C) 2018~2021 dinstone<dinstone@163.com>
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,10 +17,7 @@ package com.dinstone.photon.transport;
 
 import java.util.List;
 
-import com.dinstone.photon.codec.MessageCodec;
-import com.dinstone.photon.codec.MessageCodecs;
 import com.dinstone.photon.message.Message;
-import com.dinstone.photon.message.Message.Type;
 
 import io.netty.buffer.ByteBuf;
 import io.netty.channel.ChannelHandlerContext;
@@ -56,17 +53,16 @@ public class TransportDecoder extends ByteToMessageDecoder {
                 return;
             }
 
+            // mark message start index
+            in.markReaderIndex();
             byte version = in.readByte();
-            if (Message.VERSION != version) {
-                throw new IllegalStateException("invalid message version " + version);
-            }
             byte type = in.readByte();
-            MessageCodec<Message> codec = MessageCodecs.find(Type.valueOf(type));
-            if (codec == null) {
-                throw new IllegalStateException("can't find message codec for " + type);
-            } else {
-                codec.decode(in, out);
-            }
+            Message message = Message.create(version, type);
+
+            // reset message start index
+            in.resetReaderIndex();
+            message.decode(in);
+            out.add(message);
         }
     }
 

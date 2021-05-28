@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2018~2020 dinstone<dinstone@163.com>
+ * Copyright (C) 2018~2021 dinstone<dinstone@163.com>
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,6 +15,8 @@
  */
 package com.dinstone.photon.message;
 
+import io.netty.buffer.ByteBuf;
+
 public class Heartbeat extends ControlMessage {
 
     /**
@@ -22,8 +24,12 @@ public class Heartbeat extends ControlMessage {
      */
     private boolean tick;
 
+    public Heartbeat() {
+        super(Message.HEARTBEAT);
+    }
+
     public Heartbeat(int messageId, boolean tick) {
-        super(Type.HEARTBEAT);
+        super(Message.HEARTBEAT);
         this.msgId = messageId;
         this.tick = tick;
     }
@@ -53,6 +59,20 @@ public class Heartbeat extends ControlMessage {
     @Override
     public String toString() {
         return "Heartbeat[id=" + getMsgId() + ",tick=" + tick + "]";
+    }
+
+    @Override
+    public void encode(ByteBuf oBuffer) throws Exception {
+        super.encode(oBuffer);
+
+        oBuffer.writeBoolean(tick);
+    }
+
+    @Override
+    public void decode(ByteBuf iBuffer) throws Exception {
+        super.decode(iBuffer);
+
+        tick = iBuffer.readBoolean();
     }
 
 }

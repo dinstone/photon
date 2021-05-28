@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2018~2020 dinstone<dinstone@163.com>
+ * Copyright (C) 2018~2021 dinstone<dinstone@163.com>
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,12 +15,14 @@
  */
 package com.dinstone.photon.message;
 
+import io.netty.buffer.ByteBuf;
+
 public class Request extends BurdenMessage {
 
     private int timeout;
 
     public Request() {
-        super(Type.REQUEST);
+        super(Message.REQUEST);
     }
 
     public int getTimeout() {
@@ -29,6 +31,32 @@ public class Request extends BurdenMessage {
 
     public void setTimeout(int timeout) {
         this.timeout = timeout;
+    }
+
+    @Override
+    public void encode(ByteBuf oBuffer) throws Exception {
+        super.encode(oBuffer);
+
+        oBuffer.writeByte(codec);
+        oBuffer.writeInt(timeout);
+
+        // headers
+        writeData(oBuffer, Headers.encode(headers));
+        // content
+        writeData(oBuffer, content);
+    }
+
+    @Override
+    public void decode(ByteBuf iBuffer) throws Exception {
+        super.decode(iBuffer);
+
+        codec = iBuffer.readByte();
+        // timout
+        timeout = iBuffer.readInt();
+        // headers
+        headers = Headers.decode(readData(iBuffer));
+        // content
+        content = readData(iBuffer);
     }
 
 }

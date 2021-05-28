@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2018~2020 dinstone<dinstone@163.com>
+ * Copyright (C) 2018~2021 dinstone<dinstone@163.com>
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,8 +22,6 @@ import java.util.List;
 
 import org.junit.Test;
 
-import com.dinstone.photon.codec.MessageCodec;
-import com.dinstone.photon.codec.MessageCodecs;
 import com.dinstone.photon.codec.NoticeCodec;
 import com.dinstone.photon.message.Headers;
 import com.dinstone.photon.message.Message;
@@ -58,7 +56,7 @@ public class BufferTest {
             out.markReaderIndex();
             int len = out.readInt();
             if (len > 0) {
-                byte[] bs = ByteBufUtil.getBytes(out, out.readerIndex(), len);
+                ByteBufUtil.getBytes(out, out.readerIndex(), len);
             }
             out.resetReaderIndex();
 
@@ -162,12 +160,7 @@ public class BufferTest {
     }
 
     private void encodeMessage(Message message, ByteBuf out) throws Exception {
-        MessageCodec<Message> codec = MessageCodecs.find(message.getType());
-        if (codec != null) {
-            codec.encode(message, out);
-        } else {
-            throw new IllegalStateException("can't find message codec for " + message.getType());
-        }
+        message.encode(out);
     }
 
     @Test
@@ -235,26 +228,15 @@ public class BufferTest {
 
     public static ByteBuf encodeMessage(Message message) throws Exception {
         ByteBuf out = ByteBufAllocator.DEFAULT.ioBuffer();
-        MessageCodec<Message> codec = MessageCodecs.find(message.getType());
-        if (codec != null) {
-            codec.encode(message, out);
-            return out;
-        } else {
-            throw new IllegalStateException("can't find message codec for " + message.getType());
-        }
+        message.encode(out);
+        return out;
     }
 
     public static Message decodeMessage(ByteBuf in) throws Exception {
         in.markReaderIndex();
-        Message.Type messageType = Message.Type.valueOf(in.readByte());
-        MessageCodec<Message> codec = MessageCodecs.find(messageType);
-        if (codec != null) {
-            in.resetReaderIndex();
-            codec.decode(in, new ArrayList<Object>());
-        } else {
-            throw new IllegalStateException("can't find message codec for " + messageType);
-        }
-
-        return null;
+        Message m = Message.create(in.readByte(), in.readByte());
+        in.resetReaderIndex();
+        m.decode(in);
+        return m;
     }
 }

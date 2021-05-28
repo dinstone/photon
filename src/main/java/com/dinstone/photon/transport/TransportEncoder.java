@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2018~2020 dinstone<dinstone@163.com>
+ * Copyright (C) 2018~2021 dinstone<dinstone@163.com>
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,8 +15,6 @@
  */
 package com.dinstone.photon.transport;
 
-import com.dinstone.photon.codec.MessageCodec;
-import com.dinstone.photon.codec.MessageCodecs;
 import com.dinstone.photon.message.Message;
 
 import io.netty.buffer.ByteBuf;
@@ -42,29 +40,20 @@ public class TransportEncoder extends MessageToByteEncoder<Message> {
 
     @Override
     protected void encode(ChannelHandlerContext ctx, Message message, ByteBuf out) throws Exception {
-        MessageCodec<Message> codec = MessageCodecs.find(message.getType());
-        if (codec == null) {
-            throw new IllegalStateException("can't find message codec for " + message.getType());
-        } else {
-            int swi = out.writerIndex();
-            // length
-            out.writeBytes(PLACEHOLDER);
+        int swi = out.writerIndex();
+        // length
+        out.writeBytes(PLACEHOLDER);
 
-            // version
-            out.writeByte(message.getVersion());
-            // type
-            out.writeByte(message.getType().getValue());
-            // message encode
-            codec.encode(message, out);
+        // message encode
+        message.encode(out);
 
-            int ewi = out.writerIndex();
-            int len = ewi - swi - 4;
-            if (len > maxSize) {
-                throw new IllegalStateException("encoded data is too big: " + len + " (>" + maxSize + ")");
-            }
-
-            out.setInt(swi, len);
+        int ewi = out.writerIndex();
+        int len = ewi - swi - 4;
+        if (len > maxSize) {
+            throw new IllegalStateException("encoded data is too big: " + len + " (>" + maxSize + ")");
         }
+
+        out.setInt(swi, len);
     }
 
 }

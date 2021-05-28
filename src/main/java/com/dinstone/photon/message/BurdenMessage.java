@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2018~2020 dinstone<dinstone@163.com>
+ * Copyright (C) 2018~2021 dinstone<dinstone@163.com>
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,13 +17,13 @@ package com.dinstone.photon.message;
 
 public abstract class BurdenMessage extends AbstractMessage {
 
-    private byte codec;
+    protected byte codec;
 
-    private Headers headers;
+    protected Headers headers;
 
-    private byte[] content;
+    protected byte[] content;
 
-    public BurdenMessage(Type type) {
+    public BurdenMessage(byte type) {
         super(type);
     }
 
