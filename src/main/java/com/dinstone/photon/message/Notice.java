@@ -17,7 +17,7 @@ package com.dinstone.photon.message;
 
 import io.netty.buffer.ByteBuf;
 
-public class Notice extends BurdenMessage {
+public class Notice extends LoadedMessage {
 
     private String address;
 

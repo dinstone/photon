@@ -22,12 +22,12 @@ import com.dinstone.loghub.Logger;
 import com.dinstone.loghub.LoggerFactory;
 import com.dinstone.photon.AcceptOptions;
 import com.dinstone.photon.Acceptor;
+import com.dinstone.photon.connection.Connection;
 import com.dinstone.photon.message.Notice;
 import com.dinstone.photon.message.Request;
 import com.dinstone.photon.message.Response;
 import com.dinstone.photon.message.Response.Status;
 import com.dinstone.photon.processor.MessageProcessor;
-import com.dinstone.photon.processor.ProcessContext;
 
 import io.netty.handler.ssl.util.SelfSignedCertificate;
 
@@ -44,19 +44,19 @@ public class AcceptorTest {
         acceptor.setMessageProcessor(new MessageProcessor() {
 
             @Override
-            public void process(ProcessContext ctx, Object msg) {
+            public void process(Connection connection, Object msg) {
                 Request req = (Request) msg;
                 LOG.info("Request is {},{}", req.getMsgId(), req.getCodec());
                 Notice notice = new Notice();
                 notice.setAddress("");
                 notice.setContent(req.getContent());
-                ctx.send(notice);
+                connection.send(notice);
 
                 Response response = new Response();
                 response.setMsgId(req.getMsgId());
                 response.setStatus(Status.SUCCESS);
                 response.setContent(req.getContent());
-                ctx.send(response);
+                connection.send(response);
             }
         });
 

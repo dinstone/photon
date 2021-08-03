@@ -15,7 +15,7 @@
  */
 package com.dinstone.photon.message;
 
-public abstract class BurdenMessage extends AbstractMessage {
+public abstract class LoadedMessage extends AbstractMessage {
 
     protected byte codec;
 
@@ -23,7 +23,7 @@ public abstract class BurdenMessage extends AbstractMessage {
 
     protected byte[] content;
 
-    public BurdenMessage(byte type) {
+    public LoadedMessage(byte type) {
         super(type);
     }
 

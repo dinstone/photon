@@ -15,8 +15,10 @@
  */
 package com.dinstone.photon.processor;
 
+import com.dinstone.photon.connection.Connection;
+
 public interface MessageProcessor {
 
-    void process(ProcessContext ctx, Object msg);
+    void process(Connection connection, Object msg);
 
 }

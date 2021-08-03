@@ -25,7 +25,6 @@ import com.dinstone.photon.connection.Connection;
 import com.dinstone.photon.message.Request;
 import com.dinstone.photon.message.Response;
 import com.dinstone.photon.processor.MessageProcessor;
-import com.dinstone.photon.processor.ProcessContext;
 
 import io.netty.util.concurrent.Future;
 import io.netty.util.concurrent.GenericFutureListener;
@@ -40,7 +39,7 @@ public class ConnectorTest {
         connector.setMessageProcessor(new MessageProcessor() {
 
             @Override
-            public void process(ProcessContext ctx, Object msg) {
+            public void process(Connection connection, Object msg) {
                 LOG.info("Request is {}", msg);
             }
 

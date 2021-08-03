@@ -17,12 +17,15 @@ package com.dinstone.photon.message;
 
 import io.netty.buffer.ByteBuf;
 
-public class Request extends BurdenMessage {
+public class Request extends LoadedMessage {
+
+    private long arrival;
 
     private int timeout;
 
     public Request() {
         super(Message.REQUEST);
+        arrival = System.currentTimeMillis();
     }
 
     public int getTimeout() {
@@ -31,6 +34,10 @@ public class Request extends BurdenMessage {
 
     public void setTimeout(int timeout) {
         this.timeout = timeout;
+    }
+
+    public boolean isTimeout() {
+        return (timeout > 0 && arrival - System.currentTimeMillis() >= timeout);
     }
 
     @Override

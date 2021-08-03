@@ -114,15 +114,15 @@ public class Headers implements Map<String, String> {
         return null;
     }
 
-    public static byte[] encode(Headers attach) throws IOException {
+    public static byte[] encode(Headers headers) throws IOException {
         ByteArrayOutputStream bao = new ByteArrayOutputStream();
-        if (attach == null || attach.isEmpty()) {
+        if (headers == null || headers.isEmpty()) {
             // count
             ByteStreamUtil.writeInt(bao, 0);
         } else {
             // count
-            ByteStreamUtil.writeInt(bao, attach.size());
-            for (Entry<String, String> element : attach.entrySet()) {
+            ByteStreamUtil.writeInt(bao, headers.size());
+            for (Entry<String, String> element : headers.entrySet()) {
                 ByteStreamUtil.writeString(bao, element.getKey());
                 ByteStreamUtil.writeString(bao, element.getValue());
             }

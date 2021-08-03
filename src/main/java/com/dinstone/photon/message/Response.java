@@ -17,7 +17,7 @@ package com.dinstone.photon.message;
 
 import io.netty.buffer.ByteBuf;
 
-public class Response extends BurdenMessage {
+public class Response extends LoadedMessage {
 
     private Status status;
 

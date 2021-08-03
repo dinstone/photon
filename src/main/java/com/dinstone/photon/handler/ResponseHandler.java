@@ -15,9 +15,7 @@
  */
 package com.dinstone.photon.handler;
 
-import com.dinstone.photon.codec.ExceptionCodec;
 import com.dinstone.photon.message.Response;
-import com.dinstone.photon.message.Response.Status;
 import com.dinstone.photon.processor.MessageProcessor;
 import com.dinstone.photon.util.AttributeHelper;
 
@@ -28,13 +26,9 @@ public class ResponseHandler implements MessageHandler<Response> {
 
     @Override
     public void handle(MessageProcessor processor, ChannelHandlerContext ctx, final Response response) {
-        final Promise<Response> promise = AttributeHelper.promises(ctx.channel()).remove(response.getMsgId());
+        Promise<Response> promise = AttributeHelper.promises(ctx.channel()).remove(response.getMsgId());
         if (promise != null) {
-            if (response.getStatus() == Status.SUCCESS) {
-                promise.setSuccess(response);
-            } else {
-                promise.setFailure(ExceptionCodec.decode(response.getContent()));
-            }
+            promise.setSuccess(response);
         }
     }
 
