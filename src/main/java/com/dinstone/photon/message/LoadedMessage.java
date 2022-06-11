@@ -15,6 +15,8 @@
  */
 package com.dinstone.photon.message;
 
+import java.io.IOException;
+
 public abstract class LoadedMessage extends AbstractMessage {
 
     protected byte codec;
@@ -42,12 +44,25 @@ public abstract class LoadedMessage extends AbstractMessage {
         return headers;
     }
 
-    public Headers getHeaders() {
-        return headers;
+    public byte[] getHeaders() {
+        try {
+            return Headers.encode(headers);
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
     }
 
-    public void setHeaders(Headers headers) {
-        this.headers = headers;
+    public void setHeaders(byte[] headers) {
+        try {
+            if (headers != null) {
+                Headers hs = Headers.decode(headers);
+                if (hs != null) {
+                    this.headers = hs;
+                }
+            }
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
     }
 
     public byte[] getContent() {

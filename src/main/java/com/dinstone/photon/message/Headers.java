@@ -27,7 +27,9 @@ import com.dinstone.photon.util.ByteStreamUtil;
 
 public class Headers implements Map<String, String> {
 
-    protected final Map<String, String> store = new HashMap<String, String>();
+    private static final byte[] EMPTY = new byte[] { 0, 0, 0, 0 };
+
+    private final Map<String, String> store = new HashMap<String, String>();
 
     public Headers() {
     }
@@ -115,19 +117,18 @@ public class Headers implements Map<String, String> {
     }
 
     public static byte[] encode(Headers headers) throws IOException {
-        ByteArrayOutputStream bao = new ByteArrayOutputStream();
         if (headers == null || headers.isEmpty()) {
-            // count
-            ByteStreamUtil.writeInt(bao, 0);
+            return EMPTY;
         } else {
+            ByteArrayOutputStream bao = new ByteArrayOutputStream();
             // count
             ByteStreamUtil.writeInt(bao, headers.size());
             for (Entry<String, String> element : headers.entrySet()) {
                 ByteStreamUtil.writeString(bao, element.getKey());
                 ByteStreamUtil.writeString(bao, element.getValue());
             }
+            return bao.toByteArray();
         }
-        return bao.toByteArray();
     }
 
 }

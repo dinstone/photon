@@ -18,53 +18,52 @@ package com.dinstone.photon.transport;
 import java.util.List;
 
 import com.dinstone.photon.message.Message;
+import com.dinstone.photon.transport.CustomeDecoder.CustomeState;
 
 import io.netty.buffer.ByteBuf;
 import io.netty.channel.ChannelHandlerContext;
-import io.netty.handler.codec.ByteToMessageDecoder;
-import io.netty.handler.codec.DecoderException;
+import io.netty.handler.codec.ReplayingDecoder;
 
-public class TransportDecoder extends ByteToMessageDecoder {
+public class CustomeDecoder extends ReplayingDecoder<CustomeState> {
 
-    /** 2GB */
-    private int maxSize = Integer.MAX_VALUE;
-
-    public TransportDecoder() {
+    public enum CustomeState {
+        read_message_type, read_message_content
     }
 
-    public TransportDecoder(int maxSize) {
-        if (maxSize <= 0) {
-            throw new IllegalArgumentException("maxSize: " + maxSize);
-        }
-        this.maxSize = maxSize;
+    private Message message;
+
+    public CustomeDecoder() {
+        super(CustomeState.read_message_type);
     }
 
     @Override
     protected void decode(ChannelHandlerContext ctx, ByteBuf in, List<Object> out) throws Exception {
-        if (in.readableBytes() > 4) {
-            in.markReaderIndex();
-            int length = in.readInt();
-            if (length > maxSize) {
-                throw new DecoderException("encoded data is too big: " + length + " (> " + maxSize + ")");
-            } else if (length < 1) {
-                throw new DecoderException("encoded data is too small: " + length + " (<1)");
-            }
-            if (in.readableBytes() < length) {
-                in.resetReaderIndex();
-                return;
-            }
-
-            // mark message start index
+        switch (state()) {
+        case read_message_type:
+            // mark
             in.markReaderIndex();
             byte version = in.readByte();
             byte type = in.readByte();
-            Message message = Message.create(version, type);
-
-            // reset message start index
+            // reset
             in.resetReaderIndex();
+
+            message = Message.create(version, type);
+            checkpoint(CustomeState.read_message_content);
+
+            break;
+        case read_message_content:
             message.decode(in);
             out.add(message);
+            checkpoint(CustomeState.read_message_type);
+
+            message = null;
+
+            break;
+        default:
+            // Shouldn't reach here.
+            throw new Error();
         }
+
     }
 
 }

@@ -17,7 +17,6 @@ package com.dinstone.photon.codec;
 
 import java.util.List;
 
-import com.dinstone.photon.message.Headers;
 import com.dinstone.photon.message.Response;
 import com.dinstone.photon.message.Response.Status;
 
@@ -32,7 +31,7 @@ public class ResponseCodec extends AbstractCodec<Response> {
         out.writeByte(message.getStatus().getValue());
 
         // headers
-        writeData(out, Headers.encode(message.getHeaders()));
+        writeData(out, message.getHeaders());
         // content
         writeData(out, message.getContent());
     }
@@ -47,7 +46,7 @@ public class ResponseCodec extends AbstractCodec<Response> {
         // status
         response.setStatus(Status.valueOf(in.readByte()));
         // headers
-        response.setHeaders(Headers.decode(readData(in)));
+        response.setHeaders(readData(in));
         // content
         response.setContent(readData(in));
 

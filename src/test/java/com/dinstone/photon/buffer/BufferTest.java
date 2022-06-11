@@ -23,7 +23,6 @@ import java.util.List;
 import org.junit.Test;
 
 import com.dinstone.photon.codec.NoticeCodec;
-import com.dinstone.photon.message.Headers;
 import com.dinstone.photon.message.Message;
 import com.dinstone.photon.message.Notice;
 import com.dinstone.photon.message.Request;
@@ -134,7 +133,6 @@ public class BufferTest {
     public void oneBufferTest() throws Exception {
         Request request = new Request();
         request.setMsgId(1);
-        request.setHeaders(new Headers());
 
         request.setTimeout(10000);
         request.setContent(

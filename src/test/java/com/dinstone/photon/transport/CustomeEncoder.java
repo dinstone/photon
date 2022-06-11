@@ -22,17 +22,17 @@ import io.netty.channel.ChannelHandlerContext;
 import io.netty.handler.codec.DecoderException;
 import io.netty.handler.codec.MessageToByteEncoder;
 
-public class TransportEncoder extends MessageToByteEncoder<Message> {
+public class CustomeEncoder extends MessageToByteEncoder<Message> {
 
     private static final byte[] PLACEHOLDER = new byte[4];
 
     /** 2GB */
     private int maxSize = Integer.MAX_VALUE;
 
-    public TransportEncoder() {
+    public CustomeEncoder() {
     }
 
-    public TransportEncoder(int maxSize) {
+    public CustomeEncoder(int maxSize) {
         if (maxSize <= 0) {
             throw new DecoderException("maxSize: " + maxSize);
         }
@@ -41,20 +41,8 @@ public class TransportEncoder extends MessageToByteEncoder<Message> {
 
     @Override
     protected void encode(ChannelHandlerContext ctx, Message message, ByteBuf out) throws Exception {
-        int swi = out.writerIndex();
-        // length
-        out.writeBytes(PLACEHOLDER);
-
         // message encode
         message.encode(out);
-
-        int ewi = out.writerIndex();
-        int len = ewi - swi - 4;
-        if (len > maxSize) {
-            throw new DecoderException("encoded data is too big: " + len + " (>" + maxSize + ")");
-        }
-
-        out.setInt(swi, len);
     }
 
 }

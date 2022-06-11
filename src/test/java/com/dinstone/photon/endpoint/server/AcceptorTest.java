@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.dinstone.photon.transport.server;
+package com.dinstone.photon.endpoint.server;
 
 import java.net.InetSocketAddress;
 import java.security.cert.X509Certificate;

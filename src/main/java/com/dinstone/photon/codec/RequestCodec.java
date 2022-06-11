@@ -17,7 +17,6 @@ package com.dinstone.photon.codec;
 
 import java.util.List;
 
-import com.dinstone.photon.message.Headers;
 import com.dinstone.photon.message.Request;
 
 import io.netty.buffer.ByteBuf;
@@ -31,7 +30,7 @@ public class RequestCodec extends AbstractCodec<Request> {
         out.writeInt(message.getTimeout());
 
         // headers
-        writeData(out, Headers.encode(message.getHeaders()));
+        writeData(out, message.getHeaders());
         // content
         writeData(out, message.getContent());
     }
@@ -46,7 +45,7 @@ public class RequestCodec extends AbstractCodec<Request> {
         // timout
         request.setTimeout(in.readInt());
         // headers
-        request.setHeaders(Headers.decode(readData(in)));
+        request.setHeaders(readData(in));
         // content
         request.setContent(readData(in));
 
