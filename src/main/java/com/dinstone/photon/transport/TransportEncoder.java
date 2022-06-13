@@ -19,7 +19,7 @@ import com.dinstone.photon.message.Message;
 
 import io.netty.buffer.ByteBuf;
 import io.netty.channel.ChannelHandlerContext;
-import io.netty.handler.codec.DecoderException;
+import io.netty.handler.codec.EncoderException;
 import io.netty.handler.codec.MessageToByteEncoder;
 
 public class TransportEncoder extends MessageToByteEncoder<Message> {
@@ -34,7 +34,7 @@ public class TransportEncoder extends MessageToByteEncoder<Message> {
 
     public TransportEncoder(int maxSize) {
         if (maxSize <= 0) {
-            throw new DecoderException("maxSize: " + maxSize);
+            throw new IllegalArgumentException("maxSize <= 0 :" + maxSize);
         }
         this.maxSize = maxSize;
     }
@@ -51,7 +51,7 @@ public class TransportEncoder extends MessageToByteEncoder<Message> {
         int ewi = out.writerIndex();
         int len = ewi - swi - 4;
         if (len > maxSize) {
-            throw new DecoderException("encoded data is too big: " + len + " (>" + maxSize + ")");
+            throw new EncoderException("encoded data is too big: " + len + " (>" + maxSize + ")");
         }
 
         out.setInt(swi, len);

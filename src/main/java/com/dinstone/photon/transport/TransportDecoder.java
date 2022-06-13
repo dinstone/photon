@@ -34,7 +34,7 @@ public class TransportDecoder extends ByteToMessageDecoder {
 
     public TransportDecoder(int maxSize) {
         if (maxSize <= 0) {
-            throw new IllegalArgumentException("maxSize: " + maxSize);
+            throw new IllegalArgumentException("maxSize <= 0 :" + maxSize);
         }
         this.maxSize = maxSize;
     }

@@ -17,7 +17,7 @@ package com.dinstone.photon.message;
 
 import io.netty.buffer.ByteBuf;
 
-public class Heartbeat extends ControlMessage {
+public class Heartbeat extends AbstractMessage {
 
     /**
      * true:ping / false:pong

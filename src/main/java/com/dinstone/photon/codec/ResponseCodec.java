@@ -27,7 +27,6 @@ public class ResponseCodec extends AbstractCodec<Response> {
     @Override
     public void encode(Response message, ByteBuf out) throws Exception {
         out.writeInt(message.getMsgId());
-        out.writeByte(message.getCodec());
         out.writeByte(message.getStatus().getValue());
 
         // headers
@@ -41,8 +40,6 @@ public class ResponseCodec extends AbstractCodec<Response> {
         Response response = new Response();
         // message id
         response.setMsgId(in.readInt());
-        // codec
-        response.setCodec(in.readByte());
         // status
         response.setStatus(Status.valueOf(in.readByte()));
         // headers

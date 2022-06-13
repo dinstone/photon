@@ -26,7 +26,6 @@ public class NoticeCodec extends AbstractCodec<Notice> {
     @Override
     public void encode(Notice message, ByteBuf out) throws Exception {
         out.writeInt(message.getMsgId());
-        out.writeByte(message.getCodec());
         writeString(out, message.getAddress());
 
         // headers
@@ -40,7 +39,6 @@ public class NoticeCodec extends AbstractCodec<Notice> {
         Notice notice = new Notice();
         // message id
         notice.setMsgId(in.readInt());
-        notice.setCodec(in.readByte());
         // address
         String address = readString(in);
         notice.setAddress(address);

@@ -17,7 +17,7 @@ package com.dinstone.photon.message;
 
 import io.netty.buffer.ByteBuf;
 
-public class Response extends LoadedMessage {
+public class Response extends AbstractMessage {
 
     private Status status;
 
@@ -75,7 +75,6 @@ public class Response extends LoadedMessage {
     public void encode(ByteBuf oBuffer) throws Exception {
         super.encode(oBuffer);
 
-        oBuffer.writeByte(codec);
         oBuffer.writeByte(status.getValue());
 
         // headers
@@ -88,7 +87,6 @@ public class Response extends LoadedMessage {
     public void decode(ByteBuf iBuffer) throws Exception {
         super.decode(iBuffer);
 
-        codec = iBuffer.readByte();
         // status
         status = Status.valueOf(iBuffer.readByte());
         // headers

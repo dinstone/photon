@@ -15,6 +15,8 @@
  */
 package com.dinstone.photon.util;
 
+import java.io.PrintWriter;
+import java.io.StringWriter;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.UndeclaredThrowableException;
 
@@ -54,6 +56,19 @@ public class ExceptionUtil {
             return msg;
         }
         return getMessage(cause.getCause());
+    }
+
+    /**
+     * get exception stack trace string
+     * 
+     * @param e
+     * 
+     * @return
+     */
+    public static String getStackTrace(Throwable e) {
+        StringWriter sw = new StringWriter();
+        e.printStackTrace(new PrintWriter(sw));
+        return sw.getBuffer().toString();
     }
 
 }

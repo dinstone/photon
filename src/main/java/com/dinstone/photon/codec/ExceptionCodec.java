@@ -21,6 +21,7 @@ import java.io.IOException;
 
 import com.dinstone.photon.ExchangeException;
 import com.dinstone.photon.util.ByteStreamUtil;
+import com.dinstone.photon.util.ExceptionUtil;
 
 public class ExceptionCodec {
 
@@ -29,6 +30,7 @@ public class ExceptionCodec {
             ByteArrayOutputStream bao = new ByteArrayOutputStream();
             ByteStreamUtil.writeInt(bao, exception.getCode());
             ByteStreamUtil.writeString(bao, exception.getMessage());
+            ByteStreamUtil.writeString(bao, ExceptionUtil.getStackTrace(exception));
             return bao.toByteArray();
         } catch (IOException e) {
         }
@@ -41,7 +43,8 @@ public class ExceptionCodec {
                 ByteArrayInputStream bai = new ByteArrayInputStream(encoded);
                 int code = ByteStreamUtil.readInt(bai);
                 String message = ByteStreamUtil.readString(bai);
-                return new ExchangeException(code, message);
+                String straces = ByteStreamUtil.readString(bai);
+                return new ExchangeException(code, message, straces);
             }
             return new ExchangeException(199, "unkown exception");
         } catch (Exception e) {

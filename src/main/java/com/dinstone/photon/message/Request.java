@@ -17,7 +17,7 @@ package com.dinstone.photon.message;
 
 import io.netty.buffer.ByteBuf;
 
-public class Request extends LoadedMessage {
+public class Request extends AbstractMessage {
 
     private long arrival;
 
@@ -44,7 +44,6 @@ public class Request extends LoadedMessage {
     public void encode(ByteBuf oBuffer) throws Exception {
         super.encode(oBuffer);
 
-        oBuffer.writeByte(codec);
         oBuffer.writeInt(timeout);
 
         // headers
@@ -57,7 +56,6 @@ public class Request extends LoadedMessage {
     public void decode(ByteBuf iBuffer) throws Exception {
         super.decode(iBuffer);
 
-        codec = iBuffer.readByte();
         // timout
         timeout = iBuffer.readInt();
         // headers

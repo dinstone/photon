@@ -15,6 +15,9 @@
  */
 package com.dinstone.photon;
 
+import java.io.PrintStream;
+import java.io.PrintWriter;
+
 import com.dinstone.photon.util.ExceptionUtil;
 
 /**
@@ -29,16 +32,24 @@ public class ExchangeException extends RuntimeException {
 
     private int code;
 
-    public ExchangeException(int code, String message) {
-        this(code, message, null);
-    }
+    private String traces;
 
-    public ExchangeException(int code, Throwable cause) {
-        this(code, null, cause);
+    public ExchangeException(int code, String message) {
+        super(message);
+        this.code = code;
     }
 
     public ExchangeException(int code, String message, Throwable cause) {
-        super(message, cause);
+        super(message, cause, false, false);
+        this.code = code;
+        if (cause != null) {
+            setStackTrace(cause.getStackTrace());
+        }
+    }
+
+    public ExchangeException(int code, String message, String traces) {
+        super(message, null, false, false);
+        this.traces = traces;
         this.code = code;
     }
 
@@ -60,6 +71,24 @@ public class ExchangeException extends RuntimeException {
             return msg;
         }
         return ExceptionUtil.getMessage(getCause());
+    }
+
+    @Override
+    public void printStackTrace(PrintStream s) {
+        if (traces != null) {
+            s.print(traces);
+        } else {
+            super.printStackTrace(s);
+        }
+    }
+
+    @Override
+    public void printStackTrace(PrintWriter s) {
+        if (traces != null) {
+            s.print(traces);
+        } else {
+            super.printStackTrace(s);
+        }
     }
 
 }

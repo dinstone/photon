@@ -26,7 +26,6 @@ public class RequestCodec extends AbstractCodec<Request> {
     @Override
     public void encode(Request message, ByteBuf out) throws Exception {
         out.writeInt(message.getMsgId());
-        out.writeByte(message.getCodec());
         out.writeInt(message.getTimeout());
 
         // headers
@@ -40,8 +39,6 @@ public class RequestCodec extends AbstractCodec<Request> {
         Request request = new Request();
         // message id
         request.setMsgId(in.readInt());
-        // codec
-        request.setCodec(in.readByte());
         // timout
         request.setTimeout(in.readInt());
         // headers

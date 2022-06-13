@@ -17,7 +17,7 @@ package com.dinstone.photon.message;
 
 import io.netty.buffer.ByteBuf;
 
-public class Notice extends LoadedMessage {
+public class Notice extends AbstractMessage {
 
     private String address;
 
@@ -37,7 +37,6 @@ public class Notice extends LoadedMessage {
     public void encode(ByteBuf oBuffer) throws Exception {
         super.encode(oBuffer);
 
-        oBuffer.writeByte(codec);
         writeString(oBuffer, address);
 
         // headers
@@ -50,7 +49,6 @@ public class Notice extends LoadedMessage {
     public void decode(ByteBuf iBuffer) throws Exception {
         super.decode(iBuffer);
 
-        codec = iBuffer.readByte();
         // address
         address = readString(iBuffer);
         // headers

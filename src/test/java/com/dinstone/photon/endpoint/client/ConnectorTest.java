@@ -50,7 +50,6 @@ public class ConnectorTest {
 
         Request request = new Request();
         request.setMsgId(1);
-        request.setCodec((byte) 1);
         request.setTimeout(10000);
         request.setContent("Hello World".getBytes());
 

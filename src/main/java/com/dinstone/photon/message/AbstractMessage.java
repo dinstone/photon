@@ -15,6 +15,8 @@
  */
 package com.dinstone.photon.message;
 
+import java.io.IOException;
+
 import io.netty.buffer.ByteBuf;
 import io.netty.util.CharsetUtil;
 
@@ -27,6 +29,10 @@ public abstract class AbstractMessage implements Message {
     protected byte type;
 
     protected int msgId;
+
+    protected Headers headers;
+
+    protected byte[] content;
 
     public AbstractMessage(byte type) {
         super();
@@ -47,6 +53,42 @@ public abstract class AbstractMessage implements Message {
 
     public void setMsgId(int msgId) {
         this.msgId = msgId;
+    }
+
+    public Headers headers() {
+        if (headers == null) {
+            headers = new Headers();
+        }
+        return headers;
+    }
+
+    public byte[] getHeaders() {
+        try {
+            return Headers.encode(headers);
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    public void setHeaders(byte[] headers) {
+        try {
+            if (headers != null) {
+                Headers hs = Headers.decode(headers);
+                if (hs != null) {
+                    this.headers = hs;
+                }
+            }
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    public byte[] getContent() {
+        return content;
+    }
+
+    public void setContent(byte[] content) {
+        this.content = content;
     }
 
     protected void writeString(ByteBuf buff, String str) {
