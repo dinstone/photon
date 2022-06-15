@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2018~2021 dinstone<dinstone@163.com>
+ * Copyright (C) 2018~2022 dinstone<dinstone@163.com>
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,32 +15,30 @@
  */
 package com.dinstone.photon.message;
 
-import io.netty.buffer.ByteBuf;
+public class Response extends Message {
 
-public class Response extends AbstractMessage {
-
-    private Status status;
+    private static final String status_name = ":status";
 
     public Response() {
-        super(Message.RESPONSE);
+        super(Message.DEFAULT_VERSION, Message.Type.RESPONSE);
     }
 
     public Status getStatus() {
-        return status;
+        return Status.valueOf(headers().getInt(status_name));
     }
 
     public void setStatus(Status status) {
-        this.status = status;
+        headers().setInt(status_name, status.value);
     }
 
     public enum Status {
-        SUCCESS((byte) 0), // message handle success
-        FAILURE((byte) 1), // message handle failure
-        TIMEOUT((byte) 2); // message handle timeout
+        SUCCESS(0), // message handle success
+        FAILURE(1), // message handle failure
+        TIMEOUT(2); // message handle timeout
 
-        private byte value;
+        private int value;
 
-        private Status(byte value) {
+        private Status(int value) {
             this.value = value;
         }
 
@@ -51,11 +49,11 @@ public class Response extends AbstractMessage {
          * 
          * @see Status#value
          */
-        public byte getValue() {
+        public int getValue() {
             return value;
         }
 
-        public static Status valueOf(byte value) {
+        public static Status valueOf(int value) {
             switch (value) {
             case 0:
                 return SUCCESS;
@@ -66,34 +64,8 @@ public class Response extends AbstractMessage {
             default:
                 break;
             }
-            throw new IllegalArgumentException("unsupported message type [" + value + "]");
+            throw new IllegalArgumentException("unsupported status type [" + value + "]");
         }
 
     }
-
-    @Override
-    public void encode(ByteBuf oBuffer) throws Exception {
-        super.encode(oBuffer);
-
-        oBuffer.writeByte(status.getValue());
-
-        // headers
-        writeData(oBuffer, Headers.encode(headers));
-        // content
-        writeData(oBuffer, content);
-    }
-
-    @Override
-    public void decode(ByteBuf iBuffer) throws Exception {
-        super.decode(iBuffer);
-
-        // status
-        status = Status.valueOf(iBuffer.readByte());
-        // headers
-        headers = Headers.decode(readData(iBuffer));
-        // content
-        content = readData(iBuffer);
-
-    }
-
 }

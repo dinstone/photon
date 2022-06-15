@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2018~2021 dinstone<dinstone@163.com>
+ * Copyright (C) 2018~2022 dinstone<dinstone@163.com>
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,15 +21,14 @@ import javax.net.ssl.SSLEngine;
 
 import com.dinstone.loghub.Logger;
 import com.dinstone.loghub.LoggerFactory;
+import com.dinstone.photon.codec.MessageDecoder;
+import com.dinstone.photon.codec.MessageEncoder;
 import com.dinstone.photon.connection.Connection;
 import com.dinstone.photon.connection.ConnectionManager;
 import com.dinstone.photon.connection.DefaultConnection;
-import com.dinstone.photon.handler.HandlerManager;
-import com.dinstone.photon.handler.MessageHandler;
-import com.dinstone.photon.processor.MessageProcessor;
-import com.dinstone.photon.transport.TransportDecoder;
-import com.dinstone.photon.transport.TransportEncoder;
-import com.dinstone.photon.util.AttributeHelper;
+import com.dinstone.photon.handler.DefaultMessageProcessor;
+import com.dinstone.photon.handler.MessageDispatcher;
+import com.dinstone.photon.utils.AttributeUtil;
 
 import io.netty.bootstrap.ServerBootstrap;
 import io.netty.buffer.ByteBufAllocator;
@@ -63,7 +62,7 @@ public class Acceptor {
 
     private ServerBootstrap bootstrap;
 
-    private MessageProcessor messageProcessor;
+    private MessageDispatcher messageDispatcher;
 
     public Acceptor(AcceptOptions acceptOptions) {
         this.options = acceptOptions;
@@ -79,8 +78,8 @@ public class Acceptor {
                     SSLEngine engine = createSslEngine(ch.alloc());
                     ch.pipeline().addFirst(new SslHandler(engine));
                 }
-                ch.pipeline().addLast("TransportDecoder", new TransportDecoder());
-                ch.pipeline().addLast("TransportEncoder", new TransportEncoder());
+                ch.pipeline().addLast("MessageDecoder", new MessageDecoder());
+                ch.pipeline().addLast("MessageEncoder", new MessageEncoder());
 
                 ch.pipeline().addLast("IdleStateHandler", new IdleStateHandler(2 * options.getIdleTimeout(), 0, 0));
                 ch.pipeline().addLast("ServerHandler", new ServerHandler());
@@ -93,11 +92,11 @@ public class Acceptor {
         if (messageProcessor == null) {
             throw new IllegalArgumentException("messageProcessor is null");
         }
-        this.messageProcessor = messageProcessor;
+        this.messageDispatcher = new MessageDispatcher(messageProcessor);
     }
 
     public Acceptor bind(SocketAddress sa) {
-        checkMessageProcessor();
+        checkMessageDispatcher();
 
         try {
             bootstrap.bind(sa).sync();
@@ -138,9 +137,9 @@ public class Acceptor {
         bootstrap.childOption(ChannelOption.SO_KEEPALIVE, options.isTcpKeepAlive());
     }
 
-    private void checkMessageProcessor() {
-        if (messageProcessor == null) {
-            throw new IllegalStateException("messageProcessor not set");
+    private void checkMessageDispatcher() {
+        if (messageDispatcher == null) {
+            messageDispatcher = new MessageDispatcher(new DefaultMessageProcessor());
         }
     }
 
@@ -189,7 +188,7 @@ public class Acceptor {
             } else {
                 Connection connection = new DefaultConnection(ctx.channel());
                 ConnectionManager.addConnection(ctx.channel(), connection);
-                AttributeHelper.setConnection(ctx.channel(), connection);
+                AttributeUtil.setConnection(ctx.channel(), connection);
             }
         }
 
@@ -202,10 +201,7 @@ public class Acceptor {
 
         @Override
         public void channelRead(final ChannelHandlerContext ctx, final Object msg) throws Exception {
-            MessageHandler<Object> messageHandler = HandlerManager.find(msg.getClass());
-            if (messageHandler != null) {
-                messageHandler.handle(messageProcessor, ctx, msg);
-            }
+            messageDispatcher.dispatch(ctx, msg);
         }
 
         @Override

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2018~2021 dinstone<dinstone@163.com>
+ * Copyright (C) 2018~2022 dinstone<dinstone@163.com>
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,12 +13,20 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.dinstone.photon.processor;
+package com.dinstone.photon;
 
-import com.dinstone.photon.connection.Connection;
+import java.net.ConnectException;
+import java.net.SocketAddress;
 
-public interface MessageProcessor {
+public class TimeoutConnectException extends ConnectException {
 
-    void process(Connection connection, Object msg);
+    /**
+     * 
+     */
+    private static final long serialVersionUID = 1L;
+
+    public TimeoutConnectException(SocketAddress remoteAddress) {
+        super("Connect timeout: " + remoteAddress);
+    }
 
 }

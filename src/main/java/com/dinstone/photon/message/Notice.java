@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2018~2021 dinstone<dinstone@163.com>
+ * Copyright (C) 2018~2022 dinstone<dinstone@163.com>
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,46 +15,20 @@
  */
 package com.dinstone.photon.message;
 
-import io.netty.buffer.ByteBuf;
+public class Notice extends Message {
 
-public class Notice extends AbstractMessage {
-
-    private String address;
+    private static final String topic_name = ":topic";
 
     public Notice() {
-        super(Message.NOTICE);
+        super(Message.DEFAULT_VERSION, Message.Type.NOTICE);
     }
 
     public String getAddress() {
-        return address;
+        return headers().get(topic_name);
     }
 
     public void setAddress(String address) {
-        this.address = address;
-    }
-
-    @Override
-    public void encode(ByteBuf oBuffer) throws Exception {
-        super.encode(oBuffer);
-
-        writeString(oBuffer, address);
-
-        // headers
-        writeData(oBuffer, Headers.encode(headers));
-        // content
-        writeData(oBuffer, content);
-    }
-
-    @Override
-    public void decode(ByteBuf iBuffer) throws Exception {
-        super.decode(iBuffer);
-
-        // address
-        address = readString(iBuffer);
-        // headers
-        headers = Headers.decode(readData(iBuffer));
-        // content
-        content = readData(iBuffer);
+        headers().set(topic_name, address);
     }
 
 }

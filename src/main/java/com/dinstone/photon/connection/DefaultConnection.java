@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2018~2021 dinstone<dinstone@163.com>
+ * Copyright (C) 2018~2022 dinstone<dinstone@163.com>
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,10 +21,9 @@ import java.util.concurrent.TimeUnit;
 import com.dinstone.loghub.Logger;
 import com.dinstone.loghub.LoggerFactory;
 import com.dinstone.photon.message.Message;
-import com.dinstone.photon.message.Notice;
 import com.dinstone.photon.message.Request;
 import com.dinstone.photon.message.Response;
-import com.dinstone.photon.util.AttributeHelper;
+import com.dinstone.photon.utils.AttributeUtil;
 
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelFuture;
@@ -37,23 +36,18 @@ public class DefaultConnection implements Connection {
 
     private static final Logger LOG = LoggerFactory.getLogger(DefaultConnection.class);
 
-    private String sessionId;
+    private String connectionId;
 
     private Channel channel;
 
     public DefaultConnection(Channel channel) {
         this.channel = channel;
-        this.sessionId = channel.id().asLongText();
+        this.connectionId = channel.id().asLongText();
     }
 
     @Override
-    public String sessionId() {
-        return sessionId;
-    }
-
-    @Override
-    public ChannelFuture send(Message msg) {
-        return channel.writeAndFlush(msg);
+    public String connectionId() {
+        return connectionId;
     }
 
     @Override
@@ -72,8 +66,28 @@ public class DefaultConnection implements Connection {
     }
 
     @Override
-    public ChannelFuture notify(Notice notice) {
-        return channel.writeAndFlush(notice);
+    public InetSocketAddress getRemoteAddress() {
+        return (InetSocketAddress) channel.remoteAddress();
+    }
+
+    @Override
+    public InetSocketAddress getLocalAddress() {
+        return (InetSocketAddress) channel.localAddress();
+    }
+
+    @Override
+    public ChannelFuture send(Message msg) {
+        return channel.writeAndFlush(msg);
+    }
+
+    @Override
+    public Response sync(final Request request) throws Exception {
+        try {
+            return async(request).get(request.getTimeout(), TimeUnit.MILLISECONDS);
+        } catch (Exception e) {
+            removeFuture(request.getMsgId());
+            throw e;
+        }
     }
 
     @Override
@@ -97,34 +111,14 @@ public class DefaultConnection implements Connection {
         return promise;
     }
 
-    @Override
-    public Response sync(final Request request) throws Exception {
-        try {
-            return async(request).get(request.getTimeout(), TimeUnit.MILLISECONDS);
-        } catch (Exception e) {
-            removeFuture(request.getMsgId());
-            throw e;
-        }
-    }
-
     private Promise<Response> removeFuture(int messageId) {
-        return AttributeHelper.promises(channel).remove(messageId);
+        return AttributeUtil.promises(channel).remove(messageId);
     }
 
     private Promise<Response> createFuture(int messageId) {
         Promise<Response> promise = new DefaultPromise<Response>(channel.eventLoop());
-        AttributeHelper.promises(channel).put(messageId, promise);
+        AttributeUtil.promises(channel).put(messageId, promise);
         return promise;
-    }
-
-    @Override
-    public InetSocketAddress getRemoteAddress() {
-        return (InetSocketAddress) channel.remoteAddress();
-    }
-
-    @Override
-    public InetSocketAddress getLocalAddress() {
-        return (InetSocketAddress) channel.localAddress();
     }
 
 }

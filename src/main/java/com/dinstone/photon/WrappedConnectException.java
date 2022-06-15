@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2018~2021 dinstone<dinstone@163.com>
+ * Copyright (C) 2018~2022 dinstone<dinstone@163.com>
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,16 +13,21 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.dinstone.photon.codec;
+package com.dinstone.photon;
 
-import java.util.List;
+import java.net.ConnectException;
+import java.net.SocketAddress;
 
-import io.netty.buffer.ByteBuf;
+public class WrappedConnectException extends ConnectException {
 
-public interface MessageCodec<M> {
+    /**
+     * 
+     */
+    private static final long serialVersionUID = 1L;
 
-    void encode(M message, ByteBuf out) throws Exception;
-
-    void decode(ByteBuf in, List<Object> out) throws Exception;
+    public WrappedConnectException(SocketAddress remoteAddress, Throwable cause) {
+        super("Connect failure: " + remoteAddress);
+        initCause(cause);
+    }
 
 }

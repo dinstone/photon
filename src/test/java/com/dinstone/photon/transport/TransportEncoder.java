@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2018~2021 dinstone<dinstone@163.com>
+ * Copyright (C) 2018~2022 dinstone<dinstone@163.com>
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,18 +19,19 @@ import com.dinstone.photon.message.Message;
 
 import io.netty.buffer.ByteBuf;
 import io.netty.channel.ChannelHandlerContext;
-import io.netty.handler.codec.EncoderException;
 import io.netty.handler.codec.MessageToByteEncoder;
 
-public class CustomeEncoder extends MessageToByteEncoder<Message> {
+public class TransportEncoder extends MessageToByteEncoder<Message> {
+
+    private static final byte[] PLACEHOLDER = new byte[4];
 
     /** 2GB */
     private int maxSize = Integer.MAX_VALUE;
 
-    public CustomeEncoder() {
+    public TransportEncoder() {
     }
 
-    public CustomeEncoder(int maxSize) {
+    public TransportEncoder(int maxSize) {
         if (maxSize <= 0) {
             throw new IllegalArgumentException("maxSize <= 0 :" + maxSize);
         }
@@ -39,14 +40,34 @@ public class CustomeEncoder extends MessageToByteEncoder<Message> {
 
     @Override
     protected void encode(ChannelHandlerContext ctx, Message message, ByteBuf out) throws Exception {
-        int swi = out.writerIndex();
-        // message encode
-        message.encode(out);
+        int wi = out.writerIndex();
+        out.writeInt(0);
 
-        int len = out.writerIndex() - swi;
-        if (len > maxSize) {
-            throw new EncoderException("encoded data is too big: " + len + " (>" + maxSize + ")");
+        // message version
+        out.writeByte(message.getVersion());
+        // message type
+        out.writeByte(message.getType().value());
+        // message id
+        out.writeInt(message.getMsgId());
+
+        // headers
+        int hi = out.writerIndex();
+        out.writeInt(0);
+        message.headers().encode(out);
+        int hl = out.writerIndex() - hi - 4;
+        out.setInt(hi, hl);
+
+        // content
+        byte[] c = message.getContent();
+        if (c != null && c.length > 0) {
+            out.writeInt(c.length);
+            out.writeBytes(c);
+        } else {
+            out.writeInt(0);
         }
+
+        int wl = out.writerIndex() - wi - 4;
+        out.setInt(wi, wl);
     }
 
 }

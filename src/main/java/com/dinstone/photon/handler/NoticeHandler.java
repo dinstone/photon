@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2018~2021 dinstone<dinstone@163.com>
+ * Copyright (C) 2018~2022 dinstone<dinstone@163.com>
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,9 +15,9 @@
  */
 package com.dinstone.photon.handler;
 
+import com.dinstone.photon.MessageProcessor;
 import com.dinstone.photon.message.Notice;
-import com.dinstone.photon.processor.MessageProcessor;
-import com.dinstone.photon.util.AttributeHelper;
+import com.dinstone.photon.utils.AttributeUtil;
 
 import io.netty.channel.ChannelHandlerContext;
 
@@ -25,7 +25,7 @@ public class NoticeHandler implements MessageHandler<Notice> {
 
     @Override
     public void handle(final MessageProcessor processor, final ChannelHandlerContext ctx, final Notice msg) {
-        processor.process(AttributeHelper.getConnection(ctx.channel()), msg);
+        processor.process(AttributeUtil.connection(ctx.channel()), msg);
     }
 
 }

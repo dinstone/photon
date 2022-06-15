@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2018~2021 dinstone<dinstone@163.com>
+ * Copyright (C) 2018~2022 dinstone<dinstone@163.com>
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -27,7 +27,7 @@ import io.netty.util.concurrent.Future;
 
 public interface Connection {
 
-    String sessionId();
+    String connectionId();
 
     boolean isBusy();
 
@@ -38,8 +38,6 @@ public interface Connection {
     public InetSocketAddress getRemoteAddress();
 
     public InetSocketAddress getLocalAddress();
-
-    ChannelFuture notify(Notice notice);
 
     ChannelFuture send(Message message);
 

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2018~2021 dinstone<dinstone@163.com>
+ * Copyright (C) 2018~2022 dinstone<dinstone@163.com>
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,16 +21,15 @@ import javax.net.ssl.SSLEngine;
 
 import com.dinstone.loghub.Logger;
 import com.dinstone.loghub.LoggerFactory;
+import com.dinstone.photon.codec.MessageDecoder;
+import com.dinstone.photon.codec.MessageEncoder;
 import com.dinstone.photon.connection.Connection;
 import com.dinstone.photon.connection.ConnectionManager;
 import com.dinstone.photon.connection.DefaultConnection;
-import com.dinstone.photon.handler.HandlerManager;
-import com.dinstone.photon.handler.MessageHandler;
+import com.dinstone.photon.handler.DefaultMessageProcessor;
+import com.dinstone.photon.handler.MessageDispatcher;
 import com.dinstone.photon.message.Heartbeat;
-import com.dinstone.photon.processor.MessageProcessor;
-import com.dinstone.photon.transport.TransportDecoder;
-import com.dinstone.photon.transport.TransportEncoder;
-import com.dinstone.photon.util.AttributeHelper;
+import com.dinstone.photon.utils.AttributeUtil;
 
 import io.netty.bootstrap.Bootstrap;
 import io.netty.buffer.ByteBufAllocator;
@@ -65,7 +64,7 @@ public class Connector {
 
     private int refCount;
 
-    private MessageProcessor messageProcessor;
+    private MessageDispatcher messageDispatcher;
 
     public Connector(final ConnectOptions connectOptions) {
         this.options = connectOptions;
@@ -81,8 +80,8 @@ public class Connector {
                     ch.pipeline().addFirst(new SslHandler(engine));
                 }
 
-                ch.pipeline().addLast("TransportDecoder", new TransportDecoder());
-                ch.pipeline().addLast("TransportEncoder", new TransportEncoder());
+                ch.pipeline().addLast("MessageDecoder", new MessageDecoder());
+                ch.pipeline().addLast("MessageEncoder", new MessageEncoder());
 
                 ch.pipeline().addLast("IdleStateHandler",
                         new IdleStateHandler(2 * options.getIdleTimeout(), options.getIdleTimeout(), 0));
@@ -132,7 +131,7 @@ public class Connector {
         if (messageProcessor == null) {
             throw new IllegalArgumentException("messageProcessor is null");
         }
-        this.messageProcessor = messageProcessor;
+        this.messageDispatcher = new MessageDispatcher(messageProcessor);
     }
 
     /**
@@ -162,53 +161,44 @@ public class Connector {
         if (workGroup != null) {
             workGroup.shutdownGracefully();
         }
-        // if (messageProcessor != null) {
-        // messageProcessor.destroy();
-        // }
     }
 
     public Connection connect(SocketAddress sa) throws Exception {
-        checkMessageProcessor();
+        checkMessageDispatcher();
 
         // wait connect to peer
         ChannelFuture channelFuture = bootstrap.connect(sa).awaitUninterruptibly();
 
         if (!channelFuture.isDone()) {
-            String message = "create connection to " + sa + " timeout";
-            LOG.warn(message);
-            throw new RuntimeException(message);
+            throw new TimeoutConnectException(sa);
         }
 
         if (channelFuture.isCancelled()) {
-            String message = "create connection to " + sa + " cancelled";
-            LOG.warn(message);
-            throw new RuntimeException(message);
+            throw new CancelledConnectException(sa);
         }
 
         if (!channelFuture.isSuccess()) {
-            String message = "create connection to " + sa + " error";
-            LOG.warn(message);
-            throw new RuntimeException(message, channelFuture.cause());
+            throw new WrappedConnectException(sa, channelFuture.cause());
         }
 
         Channel channel = channelFuture.channel();
         DefaultConnection connection = new DefaultConnection(channel);
         ConnectionManager.addConnection(channel, connection);
-        AttributeHelper.setConnection(channel, connection);
+        AttributeUtil.setConnection(channel, connection);
 
         LOG.debug("connection created from {} to {}", channel.localAddress(), channel.remoteAddress());
         return connection;
     }
 
-    private void checkMessageProcessor() {
-        if (messageProcessor == null) {
-            throw new IllegalStateException("messageProcessor not set");
+    private void checkMessageDispatcher() {
+        if (messageDispatcher == null) {
+            messageDispatcher = new MessageDispatcher(new DefaultMessageProcessor());
         }
     }
 
     public class ClientHandler extends ChannelInboundHandlerAdapter {
 
-        private Heartbeat heartbeat = new Heartbeat(0, true);
+        private Heartbeat heartbeat = new Heartbeat();
 
         @Override
         public void userEventTriggered(ChannelHandlerContext ctx, Object evt) throws Exception {
@@ -217,7 +207,7 @@ public class Connector {
                 if (event.state() == IdleState.READER_IDLE) {
                     ctx.close();
                 } else if (event.state() == IdleState.WRITER_IDLE) {
-                    ctx.writeAndFlush(heartbeat);
+                    ctx.writeAndFlush(heartbeat.ping());
                 }
             } else {
                 super.userEventTriggered(ctx, evt);
@@ -232,14 +222,11 @@ public class Connector {
 
         @Override
         public void channelRead(ChannelHandlerContext ctx, Object msg) throws Exception {
-            MessageHandler<Object> messageHandler = HandlerManager.find(msg.getClass());
-            if (messageHandler != null) {
-                messageHandler.handle(messageProcessor, ctx, msg);
-            }
+            messageDispatcher.dispatch(ctx, msg);
         }
 
         @Override
-        public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) { // (4)
+        public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) {
             LOG.error("Unhandled Exception", cause);
             ctx.close();
         }

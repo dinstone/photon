@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2018~2021 dinstone<dinstone@163.com>
+ * Copyright (C) 2018~2022 dinstone<dinstone@163.com>
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -24,7 +24,6 @@ import com.dinstone.photon.Connector;
 import com.dinstone.photon.connection.Connection;
 import com.dinstone.photon.message.Request;
 import com.dinstone.photon.message.Response;
-import com.dinstone.photon.processor.MessageProcessor;
 
 import io.netty.util.concurrent.Future;
 import io.netty.util.concurrent.GenericFutureListener;
@@ -36,14 +35,6 @@ public class ConnectorTest {
         ConnectOptions connectOptions = new ConnectOptions();
         connectOptions.setEnableSsl(true);
         Connector connector = new Connector(connectOptions);
-        connector.setMessageProcessor(new MessageProcessor() {
-
-            @Override
-            public void process(Connection connection, Object msg) {
-                LOG.info("Request is {}", msg);
-            }
-
-        });
 
         Connection connection = connector.connect(new InetSocketAddress("127.0.0.1", 4444));
         LOG.info("channel active is {}", connection.isActive());
@@ -54,8 +45,10 @@ public class ConnectorTest {
         request.setContent("Hello World".getBytes());
 
         Response response = connection.sync(request);
-        LOG.info("sync response is {}", response.getContent());
+        LOG.info("sync response is {}", response.headers());
 
+        request.setMsgId(2);
+        request.setTimeout(3000);
         connection.async(request).addListener(new GenericFutureListener<Future<Response>>() {
 
             @Override
@@ -63,7 +56,7 @@ public class ConnectorTest {
                 try {
                     LOG.info("thread {}", Thread.currentThread().getName());
                     Response response = future.get();
-                    LOG.info("async response is {}", response.getContent());
+                    LOG.info("async response is {}", response.headers());
                 } catch (Throwable e) {
                     e.printStackTrace();
                 }

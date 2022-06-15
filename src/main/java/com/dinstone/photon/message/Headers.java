@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2018~2021 dinstone<dinstone@163.com>
+ * Copyright (C) 2018~2022 dinstone<dinstone@163.com>
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,120 +15,154 @@
  */
 package com.dinstone.photon.message;
 
-import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
 import java.io.IOException;
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Set;
+import java.text.ParseException;
+import java.util.Date;
+import java.util.Map.Entry;
 
-import com.dinstone.photon.util.ByteStreamUtil;
+import com.dinstone.photon.utils.ByteBufferUtil;
 
-public class Headers implements Map<String, String> {
+import io.netty.buffer.ByteBuf;
+import io.netty.handler.codec.DateFormatter;
+import io.netty.handler.codec.DefaultHeaders;
+import io.netty.handler.codec.ValueConverter;
+import io.netty.util.internal.PlatformDependent;
 
-    private static final byte[] EMPTY = new byte[] { 0, 0, 0, 0 };
-
-    private final Map<String, String> store = new HashMap<String, String>();
+public class Headers extends DefaultHeaders<String, String, Headers> {
 
     public Headers() {
+        super(new StringValueConverter());
     }
 
-    public Headers(Map<String, String> other) {
-        if (other != null) {
-            store.putAll(other);
+    public Headers decode(ByteBuf bb) throws IOException {
+        int count = bb.readInt();
+        for (int i = 0; i < count; i++) {
+            String k = ByteBufferUtil.readString(bb);
+            String v = ByteBufferUtil.readString(bb);
+            this.add(k, v);
         }
+        return this;
     }
 
-    @Override
-    public int size() {
-        return store.size();
-    }
-
-    @Override
-    public boolean isEmpty() {
-        return store.isEmpty();
-    }
-
-    @Override
-    public boolean containsKey(Object key) {
-        return store.containsKey(key);
-    }
-
-    @Override
-    public boolean containsValue(Object value) {
-        return store.containsValue(value);
-    }
-
-    @Override
-    public String get(Object key) {
-        return store.get(key);
-    }
-
-    @Override
-    public String put(String key, String value) {
-        return store.put(key, value);
-    }
-
-    @Override
-    public String remove(Object key) {
-        return store.remove(key);
-    }
-
-    @Override
-    public void clear() {
-        store.clear();
-    }
-
-    @Override
-    public Set<String> keySet() {
-        return store.keySet();
-    }
-
-    @Override
-    public Collection<String> values() {
-        return store.values();
-    }
-
-    @Override
-    public Set<Entry<String, String>> entrySet() {
-        return store.entrySet();
-    }
-
-    @Override
-    public void putAll(Map<? extends String, ? extends String> m) {
-        store.putAll(m);
-    }
-
-    public static Headers decode(byte[] encoded) throws IOException {
-        if (encoded != null && encoded.length > 4) {
-            ByteArrayInputStream bai = new ByteArrayInputStream(encoded);
-            int count = ByteStreamUtil.readInt(bai);
-            Headers attach = new Headers();
-            for (int i = 0; i < count; i++) {
-                String k = ByteStreamUtil.readString(bai);
-                String v = ByteStreamUtil.readString(bai);
-                attach.put(k, v);
-            }
-            return attach;
-        }
-
-        return null;
-    }
-
-    public static byte[] encode(Headers headers) throws IOException {
-        if (headers == null || headers.isEmpty()) {
-            return EMPTY;
+    public Headers encode(ByteBuf bb) throws IOException {
+        if (this.isEmpty()) {
+            bb.writeInt(0);
         } else {
-            ByteArrayOutputStream bao = new ByteArrayOutputStream();
             // count
-            ByteStreamUtil.writeInt(bao, headers.size());
-            for (Entry<String, String> element : headers.entrySet()) {
-                ByteStreamUtil.writeString(bao, element.getKey());
-                ByteStreamUtil.writeString(bao, element.getValue());
+            bb.writeInt(this.size());
+            for (Entry<String, String> element : this) {
+                ByteBufferUtil.writeString(bb, element.getKey());
+                ByteBufferUtil.writeString(bb, element.getValue());
             }
-            return bao.toByteArray();
         }
+        return this;
+    }
+
+    static class StringValueConverter implements ValueConverter<String> {
+
+        @Override
+        public String convertObject(Object value) {
+            if (value instanceof String) {
+                return (String) value;
+            }
+            return value.toString();
+        }
+
+        @Override
+        public String convertInt(int value) {
+            return String.valueOf(value);
+        }
+
+        @Override
+        public String convertLong(long value) {
+            return String.valueOf(value);
+        }
+
+        @Override
+        public String convertDouble(double value) {
+            return String.valueOf(value);
+        }
+
+        @Override
+        public String convertChar(char value) {
+            return String.valueOf(value);
+        }
+
+        @Override
+        public String convertBoolean(boolean value) {
+            return String.valueOf(value);
+        }
+
+        @Override
+        public String convertFloat(float value) {
+            return String.valueOf(value);
+        }
+
+        @Override
+        public boolean convertToBoolean(String value) {
+            return Boolean.parseBoolean(value);
+        }
+
+        @Override
+        public String convertByte(byte value) {
+            return String.valueOf(value);
+        }
+
+        @Override
+        public byte convertToByte(String value) {
+            return Byte.parseByte(value);
+        }
+
+        @Override
+        public char convertToChar(String value) {
+            return value.charAt(0);
+        }
+
+        @Override
+        public String convertShort(short value) {
+            return String.valueOf(value);
+        }
+
+        @Override
+        public short convertToShort(String value) {
+            return Short.parseShort(value);
+        }
+
+        @Override
+        public int convertToInt(String value) {
+            return Integer.parseInt(value);
+        }
+
+        @Override
+        public long convertToLong(String value) {
+            return Long.parseLong(value);
+        }
+
+        @Override
+        public String convertTimeMillis(long value) {
+            return DateFormatter.format(new Date(value));
+        }
+
+        @Override
+        public long convertToTimeMillis(String value) {
+            Date date = DateFormatter.parseHttpDate(value);
+            if (date == null) {
+                PlatformDependent.throwException(new ParseException("header can't be parsed into a Date: " + value, 0));
+                return 0;
+            }
+            return date.getTime();
+        }
+
+        @Override
+        public float convertToFloat(String value) {
+            return Float.parseFloat(value);
+        }
+
+        @Override
+        public double convertToDouble(String value) {
+            return Double.parseDouble(value);
+        }
+
     }
 
 }

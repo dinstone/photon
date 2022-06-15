@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2018~2021 dinstone<dinstone@163.com>
+ * Copyright (C) 2018~2022 dinstone<dinstone@163.com>
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -23,11 +23,11 @@ import com.dinstone.loghub.LoggerFactory;
 import com.dinstone.photon.AcceptOptions;
 import com.dinstone.photon.Acceptor;
 import com.dinstone.photon.connection.Connection;
+import com.dinstone.photon.handler.DefaultMessageProcessor;
 import com.dinstone.photon.message.Notice;
 import com.dinstone.photon.message.Request;
 import com.dinstone.photon.message.Response;
 import com.dinstone.photon.message.Response.Status;
-import com.dinstone.photon.processor.MessageProcessor;
 
 import io.netty.handler.ssl.util.SelfSignedCertificate;
 
@@ -41,10 +41,10 @@ public class AcceptorTest {
         acceptOptions.setPrivateKey(cert.key());
         acceptOptions.setCertChain(new X509Certificate[] { cert.cert() });
         Acceptor acceptor = new Acceptor(acceptOptions);
-        acceptor.setMessageProcessor(new MessageProcessor() {
+        acceptor.setMessageProcessor(new DefaultMessageProcessor() {
 
             @Override
-            public void process(Connection connection, Object msg) {
+            public void process(Connection connection, Request msg) {
                 Request req = (Request) msg;
                 LOG.info("Request is {}", req.getMsgId());
                 Notice notice = new Notice();
@@ -58,6 +58,7 @@ public class AcceptorTest {
                 response.setContent(req.getContent());
                 connection.send(response);
             }
+
         });
 
         acceptor.bind(new InetSocketAddress("127.0.0.1", 4444));

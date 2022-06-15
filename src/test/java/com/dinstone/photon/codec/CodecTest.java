@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2018~2021 dinstone<dinstone@163.com>
+ * Copyright (C) 2018~2022 dinstone<dinstone@163.com>
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -27,8 +27,6 @@ import org.openjdk.jmh.runner.options.Options;
 import org.openjdk.jmh.runner.options.OptionsBuilder;
 
 import com.dinstone.photon.message.Notice;
-import com.dinstone.photon.transport.CustomeDecoder;
-import com.dinstone.photon.transport.CustomeEncoder;
 import com.dinstone.photon.transport.TransportDecoder;
 import com.dinstone.photon.transport.TransportEncoder;
 
@@ -54,7 +52,7 @@ public class CodecTest {
         ChannelInitializer<EmbeddedChannel> i = new ChannelInitializer<EmbeddedChannel>() {
             @Override
             protected void initChannel(EmbeddedChannel channel) throws Exception {
-                channel.pipeline().addLast(new CustomeDecoder()).addLast(new CustomeEncoder());
+                channel.pipeline().addLast(new MessageDecoder()).addLast(new MessageEncoder());
             }
         };
         EmbeddedChannel channel = new EmbeddedChannel(i);
@@ -79,7 +77,7 @@ public class CodecTest {
     private void dotest(EmbeddedChannel channel) {
         for (int j = 0; j < 10; j++) {
             Notice notice = new Notice();
-            notice.setMsgId(j);
+            notice.setMsgId(j + 1);
             notice.setAddress("address " + j);
             notice.setContent(("count-" + j).getBytes());
             channel.writeOneOutbound(notice);

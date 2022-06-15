@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2018~2021 dinstone<dinstone@163.com>
+ * Copyright (C) 2018~2022 dinstone<dinstone@163.com>
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,53 +15,28 @@
  */
 package com.dinstone.photon.message;
 
-import io.netty.buffer.ByteBuf;
-
-public class Request extends AbstractMessage {
+public class Request extends Message {
 
     private long arrival;
 
-    private int timeout;
+    private static final String timeout_name = ":timeout";
 
     public Request() {
-        super(Message.REQUEST);
+        super(Message.DEFAULT_VERSION, Message.Type.REQUEST);
         arrival = System.currentTimeMillis();
     }
 
     public int getTimeout() {
-        return timeout;
+        return headers().getInt(timeout_name, 0);
     }
 
     public void setTimeout(int timeout) {
-        this.timeout = timeout;
+        headers().setInt(timeout_name, timeout);
     }
 
     public boolean isTimeout() {
+        long timeout = getTimeout();
         return (timeout > 0 && arrival - System.currentTimeMillis() >= timeout);
-    }
-
-    @Override
-    public void encode(ByteBuf oBuffer) throws Exception {
-        super.encode(oBuffer);
-
-        oBuffer.writeInt(timeout);
-
-        // headers
-        writeData(oBuffer, Headers.encode(headers));
-        // content
-        writeData(oBuffer, content);
-    }
-
-    @Override
-    public void decode(ByteBuf iBuffer) throws Exception {
-        super.decode(iBuffer);
-
-        // timout
-        timeout = iBuffer.readInt();
-        // headers
-        headers = Headers.decode(readData(iBuffer));
-        // content
-        content = readData(iBuffer);
     }
 
 }

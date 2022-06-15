@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2018~2021 dinstone<dinstone@163.com>
+ * Copyright (C) 2018~2022 dinstone<dinstone@163.com>
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,39 +16,38 @@
 package com.dinstone.photon.message;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertSame;
+
+import java.util.List;
 
 import org.junit.Test;
 
 public class HeadersTest {
 
     @Test
-    public void test() throws Exception {
-        Headers attach = null;
-        byte[] bs = Headers.encode(attach);
-        assertEquals(4, bs.length);
+    public void test() {
+        Headers h = new Headers();
+        h.add("name", "n1").add("name", "n2").add("name", "n3");
 
-        Headers a = Headers.decode(bs);
-        assertEquals(a, null);
+        String v = h.get("name");
+        assertSame("n1", v);
 
-        attach = new Headers();
-        bs = Headers.encode(attach);
-        assertEquals(4, bs.length);
+        List<String> vs = h.getAll("name");
+        assertEquals(3, vs.size());
 
-        a = Headers.decode(bs);
-        assertEquals(a, null);
+        v = h.getAndRemove("name");
+        assertSame("n1", v);
 
-        attach.put(null, "null value");
-        attach.put("", "empty value");
-        attach.put("key", null);
-        attach.put("ekey", "");
-        bs = Headers.encode(attach);
-        assertEquals(64, bs.length);
+        vs = h.getAll("name");
+        assertEquals(0, vs.size());
 
-        a = Headers.decode(bs);
-        assertEquals("null value", a.get(null));
-        assertEquals("empty value", a.get(""));
-        assertEquals(null, a.get("key"));
-        assertEquals("", a.get("ekey"));
+        h.add("name", "first").add("name", "second");
+        h.set("name", "dinstone");
+        v = h.get("name");
+        assertSame("dinstone", v);
+
+        vs = h.getAll("name");
+        assertEquals(1, vs.size());
     }
 
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2018~2021 dinstone<dinstone@163.com>
+ * Copyright (C) 2018~2022 dinstone<dinstone@163.com>
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,27 +13,22 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.dinstone.photon.codec;
+package com.dinstone.photon;
 
-import java.util.List;
-
+import com.dinstone.photon.connection.Connection;
 import com.dinstone.photon.message.Heartbeat;
+import com.dinstone.photon.message.Notice;
+import com.dinstone.photon.message.Request;
+import com.dinstone.photon.message.Response;
 
-import io.netty.buffer.ByteBuf;
+public interface MessageProcessor {
 
-public class HeatbeatCodec extends AbstractCodec<Heartbeat> {
+    void process(Connection connection, Notice msg);
 
-    @Override
-    public void encode(Heartbeat message, ByteBuf out) {
-        out.writeInt(message.getMsgId());
-        out.writeBoolean(message.getTick());
-    }
+    void process(Connection connection, Request msg);
 
-    @Override
-    public void decode(ByteBuf in, List<Object> out) {
-        int messageId = in.readInt();
-        boolean tick = in.readBoolean();
-        out.add(new Heartbeat(messageId, tick));
-    }
+    void process(Connection connection, Response msg);
+
+    void process(Connection connection, Heartbeat msg);
 
 }

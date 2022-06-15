@@ -16,20 +16,28 @@
 package com.dinstone.photon.handler;
 
 import com.dinstone.photon.MessageProcessor;
+import com.dinstone.photon.connection.Connection;
+import com.dinstone.photon.message.Heartbeat;
+import com.dinstone.photon.message.Notice;
+import com.dinstone.photon.message.Request;
 import com.dinstone.photon.message.Response;
-import com.dinstone.photon.utils.AttributeUtil;
 
-import io.netty.channel.ChannelHandlerContext;
-import io.netty.util.concurrent.Promise;
-
-public class ResponseHandler implements MessageHandler<Response> {
+public class DefaultMessageProcessor implements MessageProcessor {
 
     @Override
-    public void handle(MessageProcessor processor, ChannelHandlerContext ctx, final Response response) {
-        Promise<Response> promise = AttributeUtil.promises(ctx.channel()).remove(response.getMsgId());
-        if (promise != null) {
-            promise.setSuccess(response);
-        }
+    public void process(Connection connection, Notice msg) {
+    }
+
+    @Override
+    public void process(Connection connection, Request msg) {
+    }
+
+    @Override
+    public void process(Connection connection, Response msg) {
+    }
+
+    @Override
+    public void process(Connection connection, Heartbeat msg) {
     }
 
 }

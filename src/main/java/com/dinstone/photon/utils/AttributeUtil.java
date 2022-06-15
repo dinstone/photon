@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2018~2021 dinstone<dinstone@163.com>
+ * Copyright (C) 2018~2022 dinstone<dinstone@163.com>
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.dinstone.photon.util;
+package com.dinstone.photon.utils;
 
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
@@ -26,22 +26,22 @@ import io.netty.util.Attribute;
 import io.netty.util.AttributeKey;
 import io.netty.util.concurrent.Promise;
 
-public class AttributeHelper {
+public class AttributeUtil {
 
     private static final AttributeKey<Connection> CONNECTION_KEY = AttributeKey.valueOf("connection.key");
 
     private static final AttributeKey<Map<Integer, Promise<Response>>> FUTURE_KEY = AttributeKey.valueOf("future.key");
 
     public static void setConnection(Channel channel, Connection connection) {
-        channel.attr(AttributeHelper.CONNECTION_KEY).set(connection);
+        channel.attr(AttributeUtil.CONNECTION_KEY).set(connection);
     }
 
-    public static Connection getConnection(Channel channel) {
-        return channel.attr(AttributeHelper.CONNECTION_KEY).get();
+    public static Connection connection(Channel channel) {
+        return channel.attr(AttributeUtil.CONNECTION_KEY).get();
     }
 
     public static Map<Integer, Promise<Response>> promises(Channel channel) {
-        Attribute<Map<Integer, Promise<Response>>> attr = channel.attr(AttributeHelper.FUTURE_KEY);
+        Attribute<Map<Integer, Promise<Response>>> attr = channel.attr(AttributeUtil.FUTURE_KEY);
         Map<Integer, Promise<Response>> promises = attr.get();
         if (promises == null) {
             attr.setIfAbsent(new ConcurrentHashMap<Integer, Promise<Response>>());

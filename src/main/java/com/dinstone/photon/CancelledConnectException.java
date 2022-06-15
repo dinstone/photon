@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2018~2021 dinstone<dinstone@163.com>
+ * Copyright (C) 2018~2022 dinstone<dinstone@163.com>
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,24 +13,20 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.dinstone.photon.util;
+package com.dinstone.photon;
 
-import java.util.concurrent.ThreadFactory;
-import java.util.concurrent.atomic.AtomicInteger;
+import java.net.ConnectException;
+import java.net.SocketAddress;
 
-public class NamedThreadFactory implements ThreadFactory {
+public class CancelledConnectException extends ConnectException {
 
-    private final AtomicInteger index = new AtomicInteger();
+    /**
+     * 
+     */
+    private static final long serialVersionUID = 1L;
 
-    private String prex;
-
-    public NamedThreadFactory(String prex) {
-        this.prex = prex;
-    }
-
-    @Override
-    public Thread newThread(Runnable r) {
-        return new Thread(r, prex + "-" + index.incrementAndGet());
+    public CancelledConnectException(SocketAddress remoteAddress) {
+        super("Connect cancelled: " + remoteAddress);
     }
 
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2018~2021 dinstone<dinstone@163.com>
+ * Copyright (C) 2018~2022 dinstone<dinstone@163.com>
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,54 +15,100 @@
  */
 package com.dinstone.photon.message;
 
-import io.netty.buffer.ByteBuf;
+public class Message {
 
-public interface Message {
+    public enum Type {
+        HEARTBEAT(0), // MEP: long connection parttern
+        REQUEST(1), // MEP: the request of the request-respose parttern
+        RESPONSE(2), // MEP: the response of the request-respose parttern
+        NOTICE(3); // MEP: one-way or notify parttern
 
-    /**
-     * MEP: long connection parttern
-     */
-    byte HEARTBEAT = 0;
+        private int value;
 
-    /**
-     * MEP: the request of the request-respose parttern
-     */
-    byte REQUEST = 1;
-
-    /**
-     * MEP: the response of the request-respose parttern
-     */
-    byte RESPONSE = 2;
-
-    /**
-     * MEP: one-way or notify parttern
-     */
-    byte NOTICE = 3;
-
-    byte getVersion();
-
-    byte getType();
-
-    int getMsgId();
-
-    void encode(ByteBuf oBuffer) throws Exception;
-
-    void decode(ByteBuf iBuffer) throws Exception;
-
-    static Message create(byte version, byte type) {
-        switch (type) {
-        case 0:
-            return new Heartbeat();
-        case 1:
-            return new Request();
-        case 2:
-            return new Response();
-        case 3:
-            return new Notice();
-        default:
-            break;
+        private Type(int value) {
+            this.value = value;
         }
-        throw new IllegalArgumentException("unsupported message type [" + type + "]");
+
+        /**
+         * the value to get
+         *
+         * @return the value
+         * 
+         */
+        public int value() {
+            return value;
+        }
+
+        public static Type valueOf(int value) {
+            switch (value) {
+            case 0:
+                return HEARTBEAT;
+            case 1:
+                return REQUEST;
+            case 2:
+                return RESPONSE;
+            case 3:
+                return NOTICE;
+            default:
+                break;
+            }
+            throw new IllegalArgumentException("unsupported message type [" + value + "]");
+        }
+
+    }
+
+    /**
+     * message default version
+     */
+    public static final byte DEFAULT_VERSION = 1;
+
+    protected byte version = DEFAULT_VERSION;
+
+    protected Type type;
+
+    protected int msgId;
+
+    protected Headers headers;
+
+    protected byte[] content;
+
+    public Message(byte version, Type type) {
+        this.version = version;
+        this.type = type;
+        this.headers = new Headers();
+    }
+
+    public byte getVersion() {
+        return version;
+    }
+
+    public Type getType() {
+        return type;
+    }
+
+    public int getMsgId() {
+        return msgId;
+    }
+
+    public void setMsgId(int msgId) {
+        this.msgId = msgId;
+    }
+
+    public Headers headers() {
+        return headers;
+    }
+
+    public byte[] getContent() {
+        return content;
+    }
+
+    public void setContent(byte[] content) {
+        this.content = content;
+    }
+
+    @Override
+    public String toString() {
+        return "Message [version=" + version + ", type=" + type + ", msgId=" + msgId + ", headers=" + headers + "]";
     }
 
 }

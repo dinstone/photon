@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2018~2021 dinstone<dinstone@163.com>
+ * Copyright (C) 2018~2022 dinstone<dinstone@163.com>
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,7 +18,7 @@ package com.dinstone.photon;
 import java.io.PrintStream;
 import java.io.PrintWriter;
 
-import com.dinstone.photon.util.ExceptionUtil;
+import com.dinstone.photon.utils.ExceptionUtil;
 
 /**
  * framework exception

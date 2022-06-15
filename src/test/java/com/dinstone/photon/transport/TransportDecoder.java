@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2018~2021 dinstone<dinstone@163.com>
+ * Copyright (C) 2018~2022 dinstone<dinstone@163.com>
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,7 +17,11 @@ package com.dinstone.photon.transport;
 
 import java.util.List;
 
+import com.dinstone.photon.message.Heartbeat;
 import com.dinstone.photon.message.Message;
+import com.dinstone.photon.message.Notice;
+import com.dinstone.photon.message.Request;
+import com.dinstone.photon.message.Response;
 
 import io.netty.buffer.ByteBuf;
 import io.netty.channel.ChannelHandlerContext;
@@ -54,17 +58,47 @@ public class TransportDecoder extends ByteToMessageDecoder {
                 return;
             }
 
-            // mark message start index
-            in.markReaderIndex();
             byte version = in.readByte();
+            if (Message.DEFAULT_VERSION != version) {
+                throw new DecoderException("unsupported message version [" + version + "]");
+            }
             byte type = in.readByte();
-            Message message = Message.create(version, type);
+            int msgid = in.readInt();
+            Message message = create(type);
+            message.setMsgId(msgid);
 
-            // reset message start index
-            in.resetReaderIndex();
-            message.decode(in);
+            // headers length
+            int hlen = in.readInt();
+            if (hlen > 0) {
+                message.headers().decode(in);
+            }
+
+            // content length
+            int clen = in.readInt();
+            if (clen > 0) {
+                byte[] dst = new byte[clen];
+                in.readBytes(dst);
+                message.setContent(dst);
+            }
+
             out.add(message);
         }
+    }
+
+    static Message create(byte type) {
+        switch (type) {
+        case 0:
+            return new Heartbeat();
+        case 1:
+            return new Request();
+        case 2:
+            return new Response();
+        case 3:
+            return new Notice();
+        default:
+            break;
+        }
+        throw new DecoderException("unsupported message type [" + type + "]");
     }
 
 }
