@@ -18,7 +18,6 @@ package com.dinstone.photon.connection;
 import java.net.InetSocketAddress;
 
 import com.dinstone.photon.message.Message;
-import com.dinstone.photon.message.Notice;
 import com.dinstone.photon.message.Request;
 import com.dinstone.photon.message.Response;
 

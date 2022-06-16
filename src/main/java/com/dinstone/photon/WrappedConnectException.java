@@ -30,4 +30,9 @@ public class WrappedConnectException extends ConnectException {
         initCause(cause);
     }
 
+    @Override
+    public synchronized Throwable fillInStackTrace() {
+        return this;
+    }
+
 }

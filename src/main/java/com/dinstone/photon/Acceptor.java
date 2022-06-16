@@ -27,7 +27,7 @@ import com.dinstone.photon.connection.Connection;
 import com.dinstone.photon.connection.ConnectionManager;
 import com.dinstone.photon.connection.DefaultConnection;
 import com.dinstone.photon.handler.DefaultMessageProcessor;
-import com.dinstone.photon.handler.MessageDispatcher;
+import com.dinstone.photon.handler.MessageHandleDispatcher;
 import com.dinstone.photon.utils.AttributeUtil;
 
 import io.netty.bootstrap.ServerBootstrap;
@@ -62,7 +62,7 @@ public class Acceptor {
 
     private ServerBootstrap bootstrap;
 
-    private MessageDispatcher messageDispatcher;
+    private MessageHandleDispatcher messageHandleDispatcher;
 
     public Acceptor(AcceptOptions acceptOptions) {
         this.options = acceptOptions;
@@ -92,11 +92,11 @@ public class Acceptor {
         if (messageProcessor == null) {
             throw new IllegalArgumentException("messageProcessor is null");
         }
-        this.messageDispatcher = new MessageDispatcher(messageProcessor);
+        this.messageHandleDispatcher = new MessageHandleDispatcher(messageProcessor);
     }
 
     public Acceptor bind(SocketAddress sa) {
-        checkMessageDispatcher();
+        checkMessageHandleDispatcher();
 
         try {
             bootstrap.bind(sa).sync();
@@ -137,9 +137,9 @@ public class Acceptor {
         bootstrap.childOption(ChannelOption.SO_KEEPALIVE, options.isTcpKeepAlive());
     }
 
-    private void checkMessageDispatcher() {
-        if (messageDispatcher == null) {
-            messageDispatcher = new MessageDispatcher(new DefaultMessageProcessor());
+    private void checkMessageHandleDispatcher() {
+        if (messageHandleDispatcher == null) {
+            messageHandleDispatcher = new MessageHandleDispatcher(new DefaultMessageProcessor());
         }
     }
 
@@ -201,7 +201,7 @@ public class Acceptor {
 
         @Override
         public void channelRead(final ChannelHandlerContext ctx, final Object msg) throws Exception {
-            messageDispatcher.dispatch(ctx, msg);
+            messageHandleDispatcher.dispatch(ctx, msg);
         }
 
         @Override

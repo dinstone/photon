@@ -15,6 +15,7 @@
  */
 package com.dinstone.photon;
 
+import java.net.ConnectException;
 import java.net.SocketAddress;
 
 import javax.net.ssl.SSLEngine;
@@ -27,7 +28,7 @@ import com.dinstone.photon.connection.Connection;
 import com.dinstone.photon.connection.ConnectionManager;
 import com.dinstone.photon.connection.DefaultConnection;
 import com.dinstone.photon.handler.DefaultMessageProcessor;
-import com.dinstone.photon.handler.MessageDispatcher;
+import com.dinstone.photon.handler.MessageHandleDispatcher;
 import com.dinstone.photon.message.Heartbeat;
 import com.dinstone.photon.utils.AttributeUtil;
 
@@ -64,7 +65,7 @@ public class Connector {
 
     private int refCount;
 
-    private MessageDispatcher messageDispatcher;
+    private MessageHandleDispatcher messageHandleDispatcher;
 
     public Connector(final ConnectOptions connectOptions) {
         this.options = connectOptions;
@@ -131,7 +132,7 @@ public class Connector {
         if (messageProcessor == null) {
             throw new IllegalArgumentException("messageProcessor is null");
         }
-        this.messageDispatcher = new MessageDispatcher(messageProcessor);
+        this.messageHandleDispatcher = new MessageHandleDispatcher(messageProcessor);
     }
 
     /**
@@ -164,7 +165,7 @@ public class Connector {
     }
 
     public Connection connect(SocketAddress sa) throws Exception {
-        checkMessageDispatcher();
+        checkMessageHandleDispatcher();
 
         // wait connect to peer
         ChannelFuture channelFuture = bootstrap.connect(sa).awaitUninterruptibly();
@@ -178,7 +179,11 @@ public class Connector {
         }
 
         if (!channelFuture.isSuccess()) {
-            throw new WrappedConnectException(sa, channelFuture.cause());
+            if (channelFuture.cause() instanceof ConnectException) {
+                throw (ConnectException) channelFuture.cause();
+            } else {
+                throw new WrappedConnectException(sa, channelFuture.cause());
+            }
         }
 
         Channel channel = channelFuture.channel();
@@ -190,9 +195,9 @@ public class Connector {
         return connection;
     }
 
-    private void checkMessageDispatcher() {
-        if (messageDispatcher == null) {
-            messageDispatcher = new MessageDispatcher(new DefaultMessageProcessor());
+    private void checkMessageHandleDispatcher() {
+        if (messageHandleDispatcher == null) {
+            messageHandleDispatcher = new MessageHandleDispatcher(new DefaultMessageProcessor());
         }
     }
 
@@ -222,7 +227,7 @@ public class Connector {
 
         @Override
         public void channelRead(ChannelHandlerContext ctx, Object msg) throws Exception {
-            messageDispatcher.dispatch(ctx, msg);
+            messageHandleDispatcher.dispatch(ctx, msg);
         }
 
         @Override

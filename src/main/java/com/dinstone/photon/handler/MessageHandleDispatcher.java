@@ -34,13 +34,13 @@ import com.dinstone.photon.utils.ExceptionUtil;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.util.concurrent.Promise;
 
-public class MessageDispatcher {
+public class MessageHandleDispatcher {
 
-    private static final Logger LOG = LoggerFactory.getLogger(MessageDispatcher.class);
+    private static final Logger LOG = LoggerFactory.getLogger(MessageHandleDispatcher.class);
 
     private MessageProcessor processor;
 
-    public MessageDispatcher(MessageProcessor processor) {
+    public MessageHandleDispatcher(MessageProcessor processor) {
         super();
         this.processor = processor;
     }
