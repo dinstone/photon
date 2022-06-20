@@ -30,8 +30,10 @@ import io.netty.util.internal.PlatformDependent;
 
 public class Headers extends DefaultHeaders<String, String, Headers> {
 
+    private static final StringValueConverter VALUE_CONVERTER = new StringValueConverter();
+
     public Headers() {
-        super(new StringValueConverter());
+        super(VALUE_CONVERTER);
     }
 
     public Headers decode(ByteBuf bb) throws IOException {

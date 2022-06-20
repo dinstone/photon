@@ -17,7 +17,7 @@ package com.dinstone.photon.message;
 
 public class Notice extends Message {
 
-    private static final String topic_name = ":topic";
+    private static final String topic_name = "notice.topic";
 
     public Notice() {
         super(Message.DEFAULT_VERSION, Message.Type.NOTICE);

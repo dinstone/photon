@@ -19,7 +19,7 @@ public class Request extends Message {
 
     private long arrival;
 
-    private static final String timeout_name = ":timeout";
+    private static final String timeout_name = "request.timeout";
 
     public Request() {
         super(Message.DEFAULT_VERSION, Message.Type.REQUEST);

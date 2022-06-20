@@ -20,7 +20,7 @@ public class Heartbeat extends Message {
     /**
      * true:ping / false:pong
      */
-    private static final String tick_name = ":tick";
+    private static final String tick_name = "heartbeat.tick";
 
     public Heartbeat() {
         super(Message.DEFAULT_VERSION, Message.Type.HEARTBEAT);
