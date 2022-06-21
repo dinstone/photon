@@ -73,9 +73,14 @@ public class ExchangeException extends RuntimeException {
         return ExceptionUtil.getMessage(getCause());
     }
 
+    public String getTraces() {
+        return traces;
+    }
+
     @Override
     public void printStackTrace(PrintStream s) {
         if (traces != null) {
+            s.println(this);
             s.print(traces);
         } else {
             super.printStackTrace(s);
@@ -85,10 +90,16 @@ public class ExchangeException extends RuntimeException {
     @Override
     public void printStackTrace(PrintWriter s) {
         if (traces != null) {
+            s.println(this);
             s.print(traces);
         } else {
             super.printStackTrace(s);
         }
+    }
+
+    @Override
+    public String toString() {
+        return getClass().getName() + ": (" + code + ")" + getMessage();
     }
 
 }

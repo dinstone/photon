@@ -30,7 +30,11 @@ public class ExceptionCodec {
             ByteArrayOutputStream bao = new ByteArrayOutputStream();
             ByteStreamUtil.writeInt(bao, exception.getCode());
             ByteStreamUtil.writeString(bao, exception.getMessage());
-            ByteStreamUtil.writeString(bao, ExceptionUtil.getStackTrace(exception));
+            if (exception.getCause() != null) {
+                ByteStreamUtil.writeString(bao, ExceptionUtil.getStackTrace(exception.getCause()));
+            } else {
+                ByteStreamUtil.writeString(bao, exception.getTraces());
+            }
             return bao.toByteArray();
         } catch (IOException e) {
         }

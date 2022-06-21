@@ -60,6 +60,19 @@ public class Headers extends DefaultHeaders<String, String, Headers> {
         return this;
     }
 
+    public Headers setAll(Iterable<Entry<String, String>> headers) {
+        if (headers != null && headers != this) {
+            headers.forEach(e -> {
+                if (e.getValue() == null) {
+                    remove(e.getKey());
+                } else {
+                    set(e.getKey(), e.getValue());
+                }
+            });
+        }
+        return this;
+    }
+
     static class StringValueConverter implements ValueConverter<String> {
 
         @Override
