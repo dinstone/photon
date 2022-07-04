@@ -35,6 +35,15 @@ public class ByteStreamUtil {
         out.write(i);
     }
 
+    public static short readShort(InputStream in) throws IOException {
+        return (short) (((byte) in.read() & 0xff) << 8 | (byte) in.read() & 0xff);
+    }
+
+    public static void writeShort(OutputStream out, int i) throws IOException {
+        out.write((byte) (i >> 8));
+        out.write(i);
+    }
+
     public static String readString(InputStream bai) throws IOException {
         int length = readInt(bai);
         if (length < 0) {

@@ -63,22 +63,26 @@ public class TransportDecoder extends ByteToMessageDecoder {
                 throw new DecoderException("unsupported message version [" + version + "]");
             }
             byte type = in.readByte();
+            short flag = in.readShort();
             int msgid = in.readInt();
             Message message = create(type);
             message.setMsgId(msgid);
+            message.setFlag(flag);
 
             // headers length
             int hlen = in.readInt();
             if (hlen > 0) {
-                message.headers().decode(in);
+                byte[] hs = new byte[hlen];
+                in.readBytes(hs);
+                message.setHeaders(hs);
             }
 
             // content length
             int clen = in.readInt();
             if (clen > 0) {
-                byte[] dst = new byte[clen];
-                in.readBytes(dst);
-                message.setContent(dst);
+                byte[] cs = new byte[clen];
+                in.readBytes(cs);
+                message.setContent(cs);
             }
 
             out.add(message);

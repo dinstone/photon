@@ -32,15 +32,15 @@ public class MessageEncoder extends MessageToByteEncoder<Message> {
         out.writeByte(message.getVersion());
         // message type
         out.writeByte(message.getType().value());
+        // message flag
+        out.writeShort(message.getFlag());
         // message id
         out.writeInt(message.getMsgId());
 
         // headers
-        int hi = out.writerIndex();
-        out.writeInt(0);
-        message.headers().encode(out);
-        int hl = out.writerIndex() - hi - 4;
-        out.setInt(hi, hl);
+        byte[] h = message.getHeaders();
+        out.writeInt(h.length);
+        out.writeBytes(h);
 
         // content
         byte[] c = message.getContent();

@@ -17,24 +17,21 @@ package com.dinstone.photon.message;
 
 public class Response extends Message {
 
-    private static final String status_name = "response.status";
-
     public Response() {
         super(Message.DEFAULT_VERSION, Message.Type.RESPONSE);
     }
 
     public Status getStatus() {
-        return Status.valueOf(headers().getInt(status_name));
+        return Status.valueOf(getFlag());
     }
 
     public void setStatus(Status status) {
-        headers().setInt(status_name, status.value);
+        setFlag((short) status.value);
     }
 
     public enum Status {
         SUCCESS(0), // message handle success
-        FAILURE(1), // message handle failure
-        TIMEOUT(2); // message handle timeout
+        FAILURE(1); // message handle failure
 
         private int value;
 
@@ -59,8 +56,6 @@ public class Response extends Message {
                 return SUCCESS;
             case 1:
                 return FAILURE;
-            case 2:
-                return TIMEOUT;
             default:
                 break;
             }

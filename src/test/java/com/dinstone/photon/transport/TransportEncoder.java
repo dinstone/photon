@@ -23,19 +23,7 @@ import io.netty.handler.codec.MessageToByteEncoder;
 
 public class TransportEncoder extends MessageToByteEncoder<Message> {
 
-    private static final byte[] PLACEHOLDER = new byte[4];
-
-    /** 2GB */
-    private int maxSize = Integer.MAX_VALUE;
-
     public TransportEncoder() {
-    }
-
-    public TransportEncoder(int maxSize) {
-        if (maxSize <= 0) {
-            throw new IllegalArgumentException("maxSize <= 0 :" + maxSize);
-        }
-        this.maxSize = maxSize;
     }
 
     @Override
@@ -47,15 +35,15 @@ public class TransportEncoder extends MessageToByteEncoder<Message> {
         out.writeByte(message.getVersion());
         // message type
         out.writeByte(message.getType().value());
+        // message flag
+        out.writeShort(message.getFlag());
         // message id
         out.writeInt(message.getMsgId());
 
         // headers
-        int hi = out.writerIndex();
-        out.writeInt(0);
-        message.headers().encode(out);
-        int hl = out.writerIndex() - hi - 4;
-        out.setInt(hi, hl);
+        byte[] h = message.getHeaders();
+        out.writeInt(h.length);
+        out.writeBytes(h);
 
         // content
         byte[] c = message.getContent();

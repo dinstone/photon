@@ -34,7 +34,7 @@ import io.netty.buffer.ByteBuf;
 import io.netty.channel.ChannelInitializer;
 import io.netty.channel.embedded.EmbeddedChannel;
 
-@BenchmarkMode(org.openjdk.jmh.annotations.Mode.AverageTime)
+@BenchmarkMode(org.openjdk.jmh.annotations.Mode.Throughput)
 
 @State(Scope.Thread)
 public class CodecTest {

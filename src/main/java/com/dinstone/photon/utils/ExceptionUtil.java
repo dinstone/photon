@@ -32,7 +32,7 @@ public class ExceptionUtil {
     public static Throwable getTargetException(InvocationTargetException e) {
         Throwable t = e.getTargetException();
         if (t instanceof UndeclaredThrowableException) {
-            t = (UndeclaredThrowableException) t.getCause();
+            t = ((UndeclaredThrowableException) t).getUndeclaredThrowable();
             if (t instanceof InvocationTargetException) {
                 return getTargetException((InvocationTargetException) t);
             }

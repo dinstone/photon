@@ -37,6 +37,7 @@ public class AcceptorTest {
     public static void main(String[] args) throws Exception {
         AcceptOptions acceptOptions = new AcceptOptions();
         acceptOptions.setEnableSsl(true);
+        acceptOptions.setIdleTimeout(100000000);
         SelfSignedCertificate cert = new SelfSignedCertificate();
         acceptOptions.setPrivateKey(cert.key());
         acceptOptions.setCertChain(new X509Certificate[] { cert.cert() });

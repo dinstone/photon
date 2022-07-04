@@ -15,12 +15,15 @@
  */
 package com.dinstone.photon.message;
 
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.text.ParseException;
 import java.util.Date;
 import java.util.Map.Entry;
 
 import com.dinstone.photon.utils.ByteBufferUtil;
+import com.dinstone.photon.utils.ByteStreamUtil;
 
 import io.netty.buffer.ByteBuf;
 import io.netty.handler.codec.DateFormatter;
@@ -36,7 +39,33 @@ public class Headers extends DefaultHeaders<String, String, Headers> {
         super(VALUE_CONVERTER);
     }
 
-    public Headers decode(ByteBuf bb) throws IOException {
+    byte[] encode() throws IOException {
+        ByteArrayOutputStream bao = new ByteArrayOutputStream();
+        if (this.isEmpty()) {
+            // count
+            ByteStreamUtil.writeShort(bao, 0);
+        } else {
+            // count
+            ByteStreamUtil.writeShort(bao, this.size());
+            for (Entry<String, String> element : this) {
+                ByteStreamUtil.writeString(bao, element.getKey());
+                ByteStreamUtil.writeString(bao, element.getValue());
+            }
+        }
+        return bao.toByteArray();
+    }
+
+    void decode(byte[] hsBytes) throws IOException {
+        ByteArrayInputStream bai = new ByteArrayInputStream(hsBytes);
+        int count = ByteStreamUtil.readShort(bai);
+        for (int i = 0; i < count; i++) {
+            String k = ByteStreamUtil.readString(bai);
+            String v = ByteStreamUtil.readString(bai);
+            this.add(k, v);
+        }
+    }
+
+    Headers decode(ByteBuf bb) throws IOException {
         int count = bb.readInt();
         for (int i = 0; i < count; i++) {
             String k = ByteBufferUtil.readString(bb);
@@ -46,7 +75,7 @@ public class Headers extends DefaultHeaders<String, String, Headers> {
         return this;
     }
 
-    public Headers encode(ByteBuf bb) throws IOException {
+    Headers encode(ByteBuf bb) throws IOException {
         if (this.isEmpty()) {
             bb.writeInt(0);
         } else {

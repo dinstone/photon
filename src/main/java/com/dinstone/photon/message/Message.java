@@ -15,6 +15,29 @@
  */
 package com.dinstone.photon.message;
 
+import java.io.IOException;
+
+import io.netty.handler.codec.CodecException;
+
+/**
+ * <pre>
+ * 0  Version     Type        Reserved Flag   32
+ * |----------|----------|----------/----------|
+ *                  Message ID
+ * |----------|----------|----------|----------|
+ *                  Header Length
+ * |----------|----------|----------|----------|
+ *                  Header Content
+ * |----------/----------/----------/----------|
+ *                  Body Length
+ * |----------|----------|----------|----------|
+ *                  Body Content
+ * |----------/----------/----------/----------|
+ * </pre>
+ * 
+ * @author dinstone
+ *
+ */
 public class Message {
 
     public enum Type {
@@ -66,9 +89,13 @@ public class Message {
 
     protected Type type;
 
+    protected short flag;
+
     protected int msgId;
 
     protected Headers headers;
+
+    private byte[] hsBytes;
 
     protected byte[] content;
 
@@ -86,6 +113,14 @@ public class Message {
         return type;
     }
 
+    public short getFlag() {
+        return flag;
+    }
+
+    public void setFlag(short flag) {
+        this.flag = flag;
+    }
+
     public int getMsgId() {
         return msgId;
     }
@@ -95,7 +130,30 @@ public class Message {
     }
 
     public Headers headers() {
+        if (hsBytes != null) {
+            try {
+                headers.decode(hsBytes);
+            } catch (IOException e) {
+                throw new CodecException("headers decode error", e);
+            }
+            hsBytes = null;
+        }
         return headers;
+    }
+
+    public byte[] getHeaders() {
+        if (hsBytes == null) {
+            try {
+                hsBytes = headers.encode();
+            } catch (IOException e) {
+                throw new CodecException("headers encode error", e);
+            }
+        }
+        return hsBytes;
+    }
+
+    public void setHeaders(byte[] hsBytes) {
+        this.hsBytes = hsBytes;
     }
 
     public byte[] getContent() {
@@ -108,7 +166,7 @@ public class Message {
 
     @Override
     public String toString() {
-        return "Message [version=" + version + ", type=" + type + ", msgId=" + msgId + ", headers=" + headers + "]";
+        return "Message [type=" + type + ", flag=" + flag + ", msgId=" + msgId + ", headers=" + headers + "]";
     }
 
 }

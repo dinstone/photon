@@ -51,8 +51,8 @@ public class ExceptionCodec {
                 return new ExchangeException(code, message, straces);
             }
             return new ExchangeException(199, "unkown exception");
-        } catch (Exception e) {
-            return new ExchangeException(199, "unkown exception", e);
+        } catch (IOException e) {
+            return new ExchangeException(199, "decode exception error", e);
         }
     }
 

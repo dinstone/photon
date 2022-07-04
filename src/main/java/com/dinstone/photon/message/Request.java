@@ -19,19 +19,17 @@ public class Request extends Message {
 
     private long arrival;
 
-    private static final String timeout_name = "request.timeout";
-
     public Request() {
         super(Message.DEFAULT_VERSION, Message.Type.REQUEST);
         arrival = System.currentTimeMillis();
     }
 
     public int getTimeout() {
-        return headers().getInt(timeout_name, 0);
+        return getFlag();
     }
 
     public void setTimeout(int timeout) {
-        headers().setInt(timeout_name, timeout);
+        setFlag((short) timeout);
     }
 
     public boolean isTimeout() {

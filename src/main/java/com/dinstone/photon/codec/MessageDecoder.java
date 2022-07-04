@@ -46,31 +46,29 @@ public class MessageDecoder extends ReplayingDecoder<MessageState> {
     protected void decode(ChannelHandlerContext ctx, ByteBuf in, List<Object> out) throws Exception {
         switch (state()) {
         case read_message_type:
-            // mark
             byte version = in.readByte();
             if (Message.DEFAULT_VERSION != version) {
                 throw new DecoderException("unsupported message version [" + version + "]");
             }
             byte type = in.readByte();
+            short flag = in.readShort();
             int msgid = in.readInt();
             message = create(Type.valueOf(type));
             message.setMsgId(msgid);
-            checkpoint(MessageState.read_message_headers);
+            message.setFlag(flag);
 
+            checkpoint(MessageState.read_message_headers);
             break;
         case read_message_headers:
             // headers length
             int hlen = in.readInt();
-            if (hlen <= 0) {
-                checkpoint(MessageState.read_message_content);
-                break;
+            if (hlen > 0) {
+                byte[] hs = new byte[hlen];
+                in.readBytes(hs);
+                message.setHeaders(hs);
             }
 
-            if (in.readableBytes() >= hlen) {
-                message.headers().decode(in);
-                checkpoint(MessageState.read_message_content);
-            }
-
+            checkpoint(MessageState.read_message_content);
             break;
         case read_message_content:
             // content length
@@ -83,9 +81,9 @@ public class MessageDecoder extends ReplayingDecoder<MessageState> {
             }
 
             if (in.readableBytes() >= clen) {
-                byte[] dst = new byte[clen];
-                in.readBytes(dst);
-                message.setContent(dst);
+                byte[] cs = new byte[clen];
+                in.readBytes(cs);
+                message.setContent(cs);
 
                 out.add(message);
                 message = null;

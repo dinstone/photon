@@ -17,26 +17,21 @@ package com.dinstone.photon.message;
 
 public class Heartbeat extends Message {
 
-    /**
-     * true:ping / false:pong
-     */
-    private static final String tick_name = "heartbeat.tick";
-
     public Heartbeat() {
         super(Message.DEFAULT_VERSION, Message.Type.HEARTBEAT);
     }
 
     public Heartbeat ping() {
-        headers().setBoolean(tick_name, true);
+        setFlag((short) 1);
         return this;
     }
 
     public boolean isPing() {
-        return headers().getBoolean(tick_name, true);
+        return getFlag() == 1;
     }
 
     public Heartbeat pong() {
-        headers().setBoolean(tick_name, false);
+        setFlag((short) 0);
         return this;
     }
 
@@ -46,7 +41,7 @@ public class Heartbeat extends Message {
 
     @Override
     public String toString() {
-        return "Heartbeat[id=" + getMsgId() + ",headers=" + headers() + "]";
+        return "Heartbeat [msgId=" + msgId + ", flag=" + flag + ", headers=" + headers + "]";
     }
 
 }
