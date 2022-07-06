@@ -66,7 +66,7 @@ public class Headers extends DefaultHeaders<String, String, Headers> {
     }
 
     Headers decode(ByteBuf bb) throws IOException {
-        int count = bb.readInt();
+        int count = bb.readShort();
         for (int i = 0; i < count; i++) {
             String k = ByteBufferUtil.readString(bb);
             String v = ByteBufferUtil.readString(bb);
@@ -77,10 +77,10 @@ public class Headers extends DefaultHeaders<String, String, Headers> {
 
     Headers encode(ByteBuf bb) throws IOException {
         if (this.isEmpty()) {
-            bb.writeInt(0);
+            bb.writeShort(0);
         } else {
             // count
-            bb.writeInt(this.size());
+            bb.writeShort(this.size());
             for (Entry<String, String> element : this) {
                 ByteBufferUtil.writeString(bb, element.getKey());
                 ByteBufferUtil.writeString(bb, element.getValue());
