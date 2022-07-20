@@ -39,8 +39,12 @@ public class MessageEncoder extends MessageToByteEncoder<Message> {
 
         // headers
         byte[] h = message.getHeaders();
-        out.writeInt(h.length);
-        out.writeBytes(h);
+        if (h != null && h.length > 0) {
+            out.writeInt(h.length);
+            out.writeBytes(h);
+        } else {
+            out.writeInt(0);
+        }
 
         // content
         byte[] c = message.getContent();

@@ -41,10 +41,10 @@ import io.netty.handler.codec.CodecException;
 public class Message {
 
     public enum Type {
-        HEARTBEAT(0), // MEP: long connection parttern
-        REQUEST(1), // MEP: the request of the request-respose parttern
-        RESPONSE(2), // MEP: the response of the request-respose parttern
-        NOTICE(3); // MEP: one-way or notify parttern
+        HEARTBEAT(0), // MEP: long connection Pattern
+        REQUEST(1), // MEP: the request of the Request-Response Pattern
+        RESPONSE(2), // MEP: the response of the Request-Response Pattern
+        NOTICE(3); // MEP: one-way or notify Pattern
 
         private int value;
 

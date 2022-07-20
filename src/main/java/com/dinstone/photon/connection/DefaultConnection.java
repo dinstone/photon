@@ -15,6 +15,7 @@
  */
 package com.dinstone.photon.connection;
 
+import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.util.concurrent.TimeUnit;
 
@@ -100,7 +101,7 @@ public class DefaultConnection implements Connection {
             public void operationComplete(ChannelFuture future) throws Exception {
                 if (!future.isSuccess()) {
                     String message = "send request message error";
-                    promise.setFailure(new RuntimeException(message, future.cause()));
+                    promise.setFailure(new IOException(message, future.cause()));
                     removeFuture(request.getMsgId());
                     LOG.warn(message, future.cause());
                 }

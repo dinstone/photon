@@ -40,19 +40,18 @@ public class Headers extends DefaultHeaders<String, String, Headers> {
     }
 
     byte[] encode() throws IOException {
-        ByteArrayOutputStream bao = new ByteArrayOutputStream();
         if (this.isEmpty()) {
-            // count
-            ByteStreamUtil.writeShort(bao, 0);
+            return null;
         } else {
+            ByteArrayOutputStream bao = new ByteArrayOutputStream();
             // count
             ByteStreamUtil.writeShort(bao, this.size());
             for (Entry<String, String> element : this) {
                 ByteStreamUtil.writeString(bao, element.getKey());
                 ByteStreamUtil.writeString(bao, element.getValue());
             }
+            return bao.toByteArray();
         }
-        return bao.toByteArray();
     }
 
     void decode(byte[] hsBytes) throws IOException {

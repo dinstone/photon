@@ -23,6 +23,8 @@ import io.netty.util.CharsetUtil;
 
 public class ByteStreamUtil {
 
+    private static final String EMPTY = "";
+
     public static int readInt(InputStream in) throws IOException {
         return ((byte) in.read() & 0xff) << 24 | ((byte) in.read() & 0xff) << 16 | ((byte) in.read() & 0xff) << 8
                 | (byte) in.read() & 0xff;
@@ -49,7 +51,7 @@ public class ByteStreamUtil {
         if (length < 0) {
             return null;
         } else if (length == 0) {
-            return "";
+            return EMPTY;
         } else {
             byte[] readBytes = new byte[length];
             bai.read(readBytes);
