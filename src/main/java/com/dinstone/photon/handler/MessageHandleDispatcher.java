@@ -15,21 +15,14 @@
  */
 package com.dinstone.photon.handler;
 
-import java.lang.reflect.InvocationTargetException;
-import java.util.concurrent.RejectedExecutionException;
-
 import com.dinstone.loghub.Logger;
 import com.dinstone.loghub.LoggerFactory;
-import com.dinstone.photon.ExchangeException;
 import com.dinstone.photon.MessageProcessor;
-import com.dinstone.photon.codec.ExceptionCodec;
 import com.dinstone.photon.message.Heartbeat;
 import com.dinstone.photon.message.Notice;
 import com.dinstone.photon.message.Request;
 import com.dinstone.photon.message.Response;
-import com.dinstone.photon.message.Response.Status;
 import com.dinstone.photon.utils.AttributeUtil;
-import com.dinstone.photon.utils.ExceptionUtil;
 
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.util.concurrent.Promise;
@@ -41,7 +34,6 @@ public class MessageHandleDispatcher {
     private MessageProcessor processor;
 
     public MessageHandleDispatcher(MessageProcessor processor) {
-        super();
         this.processor = processor;
     }
 
@@ -61,27 +53,7 @@ public class MessageHandleDispatcher {
     }
 
     public void handle(final ChannelHandlerContext ctx, final Request request) {
-        try {
-            processor.process(AttributeUtil.connection(ctx.channel()), request);
-        } catch (Throwable e) {
-            if (e instanceof InvocationTargetException) {
-                e = ExceptionUtil.getTargetException((InvocationTargetException) e);
-            }
-            ExchangeException exception = null;
-            if (e instanceof RejectedExecutionException) {
-                // server is busy
-                exception = new ExchangeException(101, "server is busy :" + ExceptionUtil.getMessage(e));
-            } else {
-                exception = new ExchangeException(100, "server error :" + ExceptionUtil.getMessage(e));
-            }
-
-            Response response = new Response();
-            response.setMsgId(request.getMsgId());
-            response.setStatus(Status.FAILURE);
-            response.setContent(ExceptionCodec.encode(exception));
-
-            ctx.writeAndFlush(response);
-        }
+        processor.process(AttributeUtil.connection(ctx.channel()), request);
     }
 
     public void handle(ChannelHandlerContext ctx, final Response response) {

@@ -50,4 +50,16 @@ public class HeadersTest {
         assertEquals(1, vs.size());
     }
 
+    @Test
+    public void testMM() {
+        MultiValueMap<String, String> mvm = new MultiValueMap<>();
+        mvm.add("seq", "one").add("seq", "two").add("seq", "three");
+
+        String v = mvm.get("seq");
+        assertEquals(v, "one");
+
+        boolean b = mvm.remove("seq");
+        assertEquals(b, true);
+    }
+
 }

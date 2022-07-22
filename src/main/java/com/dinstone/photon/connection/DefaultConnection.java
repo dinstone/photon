@@ -85,16 +85,14 @@ public class DefaultConnection implements Connection {
     public Response sync(final Request request) throws Exception {
         try {
             return async(request).get(request.getTimeout(), TimeUnit.MILLISECONDS);
-        } catch (Exception e) {
+        } finally {
             removeFuture(request.getMsgId());
-            throw e;
         }
     }
 
     @Override
     public Future<Response> async(final Request request) throws Exception {
         final Promise<Response> promise = createFuture(request.getMsgId());
-
         channel.writeAndFlush(request).addListener(new GenericFutureListener<ChannelFuture>() {
 
             @Override
@@ -108,7 +106,6 @@ public class DefaultConnection implements Connection {
             }
 
         });
-
         return promise;
     }
 

@@ -20,12 +20,14 @@ import io.netty.util.CharsetUtil;
 
 public class ByteBufferUtil {
 
+    private static final String EMPTY = "";
+
     public static String readString(ByteBuf bb) {
         int length = bb.readInt();
         if (length < 0) {
             return null;
         } else if (length == 0) {
-            return "";
+            return EMPTY;
         } else {
             byte[] bytes = new byte[length];
             bb.readBytes(bytes);
