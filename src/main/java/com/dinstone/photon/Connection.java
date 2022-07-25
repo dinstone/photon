@@ -15,18 +15,33 @@
  */
 package com.dinstone.photon;
 
-import java.net.ConnectException;
-import java.net.SocketAddress;
+import java.net.InetSocketAddress;
 
-public class TimeoutConnectException extends ConnectException {
+import com.dinstone.photon.message.Message;
+import com.dinstone.photon.message.Request;
+import com.dinstone.photon.message.Response;
 
-    /**
-     * 
-     */
-    private static final long serialVersionUID = 1L;
+import io.netty.channel.ChannelFuture;
+import io.netty.util.concurrent.Future;
 
-    public TimeoutConnectException(SocketAddress remoteAddress) {
-        super("Connect timeout: " + remoteAddress);
-    }
+public interface Connection {
+
+    String connectionId();
+
+    boolean isBusy();
+
+    boolean isActive();
+
+    public void destroy();
+
+    public InetSocketAddress getRemoteAddress();
+
+    public InetSocketAddress getLocalAddress();
+
+    ChannelFuture send(Message message);
+
+    Response sync(Request request) throws Exception;
+
+    Future<Response> async(Request request) throws Exception;
 
 }

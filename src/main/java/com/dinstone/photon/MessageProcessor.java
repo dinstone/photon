@@ -15,7 +15,6 @@
  */
 package com.dinstone.photon;
 
-import com.dinstone.photon.connection.Connection;
 import com.dinstone.photon.message.Heartbeat;
 import com.dinstone.photon.message.Notice;
 import com.dinstone.photon.message.Request;

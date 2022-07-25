@@ -18,7 +18,7 @@ package com.dinstone.photon.utils;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
-import com.dinstone.photon.connection.Connection;
+import com.dinstone.photon.Connection;
 import com.dinstone.photon.message.Response;
 
 import io.netty.channel.Channel;

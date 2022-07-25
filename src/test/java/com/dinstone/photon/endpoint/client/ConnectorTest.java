@@ -20,8 +20,8 @@ import java.net.InetSocketAddress;
 import com.dinstone.loghub.Logger;
 import com.dinstone.loghub.LoggerFactory;
 import com.dinstone.photon.ConnectOptions;
+import com.dinstone.photon.Connection;
 import com.dinstone.photon.Connector;
-import com.dinstone.photon.connection.Connection;
 import com.dinstone.photon.message.Request;
 import com.dinstone.photon.message.Response;
 

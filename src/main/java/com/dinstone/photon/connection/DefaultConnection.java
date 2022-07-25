@@ -21,6 +21,7 @@ import java.util.concurrent.TimeUnit;
 
 import com.dinstone.loghub.Logger;
 import com.dinstone.loghub.LoggerFactory;
+import com.dinstone.photon.Connection;
 import com.dinstone.photon.message.Message;
 import com.dinstone.photon.message.Request;
 import com.dinstone.photon.message.Response;

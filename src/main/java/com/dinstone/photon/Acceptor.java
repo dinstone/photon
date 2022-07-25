@@ -23,7 +23,6 @@ import com.dinstone.loghub.Logger;
 import com.dinstone.loghub.LoggerFactory;
 import com.dinstone.photon.codec.MessageDecoder;
 import com.dinstone.photon.codec.MessageEncoder;
-import com.dinstone.photon.connection.Connection;
 import com.dinstone.photon.connection.ConnectionManager;
 import com.dinstone.photon.connection.DefaultConnection;
 import com.dinstone.photon.handler.DefaultMessageProcessor;
@@ -95,16 +94,9 @@ public class Acceptor {
         this.messageHandleDispatcher = new MessageHandleDispatcher(messageProcessor);
     }
 
-    public Acceptor bind(SocketAddress sa) {
+    public Acceptor bind(SocketAddress sa) throws Exception {
         checkMessageHandleDispatcher();
-
-        try {
-            bootstrap.bind(sa).sync();
-        } catch (Exception e) {
-            throw new RuntimeException("can't bind service on " + sa, e);
-        }
-        LOG.info("photon acceptor bind on {}", sa);
-
+        bootstrap.bind(sa).sync();
         return this;
     }
 

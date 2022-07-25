@@ -29,6 +29,11 @@ public class Response extends Message {
         setFlag((short) status.value);
     }
 
+    @Override
+    public String toString() {
+        return "Response [status=" + getStatus() + ", msgId=" + msgId + ", headers=" + headers + "]";
+    }
+
     public enum Status {
         SUCCESS(0), // message handle success
         FAILURE(1); // message handle failure

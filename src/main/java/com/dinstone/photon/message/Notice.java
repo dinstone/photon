@@ -31,4 +31,9 @@ public class Notice extends Message {
         headers().set(topic_name, address);
     }
 
+    @Override
+    public String toString() {
+        return "Notice [msgId=" + msgId + ", headers=" + headers + "]";
+    }
+
 }

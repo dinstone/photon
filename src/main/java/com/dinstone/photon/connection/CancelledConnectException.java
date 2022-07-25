@@ -15,33 +15,18 @@
  */
 package com.dinstone.photon.connection;
 
-import java.net.InetSocketAddress;
+import java.net.ConnectException;
+import java.net.SocketAddress;
 
-import com.dinstone.photon.message.Message;
-import com.dinstone.photon.message.Request;
-import com.dinstone.photon.message.Response;
+public class CancelledConnectException extends ConnectException {
 
-import io.netty.channel.ChannelFuture;
-import io.netty.util.concurrent.Future;
+    /**
+     * 
+     */
+    private static final long serialVersionUID = 1L;
 
-public interface Connection {
-
-    String connectionId();
-
-    boolean isBusy();
-
-    boolean isActive();
-
-    public void destroy();
-
-    public InetSocketAddress getRemoteAddress();
-
-    public InetSocketAddress getLocalAddress();
-
-    ChannelFuture send(Message message);
-
-    Response sync(Request request) throws Exception;
-
-    Future<Response> async(Request request) throws Exception;
+    public CancelledConnectException(SocketAddress remoteAddress) {
+        super("Connect cancelled: " + remoteAddress);
+    }
 
 }

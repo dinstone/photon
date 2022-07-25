@@ -24,9 +24,11 @@ import com.dinstone.loghub.Logger;
 import com.dinstone.loghub.LoggerFactory;
 import com.dinstone.photon.codec.MessageDecoder;
 import com.dinstone.photon.codec.MessageEncoder;
-import com.dinstone.photon.connection.Connection;
+import com.dinstone.photon.connection.CancelledConnectException;
 import com.dinstone.photon.connection.ConnectionManager;
 import com.dinstone.photon.connection.DefaultConnection;
+import com.dinstone.photon.connection.TimeoutConnectException;
+import com.dinstone.photon.connection.WrappedConnectException;
 import com.dinstone.photon.handler.DefaultMessageProcessor;
 import com.dinstone.photon.handler.MessageHandleDispatcher;
 import com.dinstone.photon.message.Heartbeat;
@@ -201,7 +203,7 @@ public class Connector {
         }
     }
 
-    public class ClientHandler extends ChannelInboundHandlerAdapter {
+    private class ClientHandler extends ChannelInboundHandlerAdapter {
 
         private Heartbeat heartbeat = new Heartbeat();
 

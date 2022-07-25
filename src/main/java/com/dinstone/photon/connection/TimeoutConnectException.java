@@ -13,20 +13,20 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.dinstone.photon;
+package com.dinstone.photon.connection;
 
 import java.net.ConnectException;
 import java.net.SocketAddress;
 
-public class CancelledConnectException extends ConnectException {
+public class TimeoutConnectException extends ConnectException {
 
     /**
      * 
      */
     private static final long serialVersionUID = 1L;
 
-    public CancelledConnectException(SocketAddress remoteAddress) {
-        super("Connect cancelled: " + remoteAddress);
+    public TimeoutConnectException(SocketAddress remoteAddress) {
+        super("Connect timeout: " + remoteAddress);
     }
 
 }

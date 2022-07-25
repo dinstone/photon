@@ -22,7 +22,7 @@ import com.dinstone.loghub.Logger;
 import com.dinstone.loghub.LoggerFactory;
 import com.dinstone.photon.AcceptOptions;
 import com.dinstone.photon.Acceptor;
-import com.dinstone.photon.connection.Connection;
+import com.dinstone.photon.Connection;
 import com.dinstone.photon.handler.DefaultMessageProcessor;
 import com.dinstone.photon.message.Notice;
 import com.dinstone.photon.message.Request;

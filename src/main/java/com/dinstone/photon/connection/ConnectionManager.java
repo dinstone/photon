@@ -19,6 +19,8 @@ import java.util.Collection;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
+import com.dinstone.photon.Connection;
+
 import io.netty.channel.Channel;
 
 public class ConnectionManager {

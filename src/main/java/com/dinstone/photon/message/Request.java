@@ -37,4 +37,9 @@ public class Request extends Message {
         return (timeout > 0 && arrival - System.currentTimeMillis() >= timeout);
     }
 
+    @Override
+    public String toString() {
+        return "Request [timeout=" + getTimeout() + ", msgId=" + msgId + ", headers=" + headers + "]";
+    }
+
 }
