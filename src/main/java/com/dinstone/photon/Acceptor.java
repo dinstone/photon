@@ -143,11 +143,11 @@ public class Acceptor {
     }
 
     public void destroy() {
-        if (workGroup != null) {
-            workGroup.shutdownGracefully();
-        }
         if (bossGroup != null) {
             bossGroup.shutdownGracefully();
+        }
+        if (workGroup != null) {
+            workGroup.shutdownGracefully();
         }
     }
 

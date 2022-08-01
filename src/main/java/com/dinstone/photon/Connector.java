@@ -65,8 +65,6 @@ public class Connector {
 
     private ConnectOptions options;
 
-    private int refCount;
-
     private MessageHandleDispatcher messageHandleDispatcher;
 
     public Connector(final ConnectOptions connectOptions) {
@@ -135,29 +133,6 @@ public class Connector {
             throw new IllegalArgumentException("messageProcessor is null");
         }
         this.messageHandleDispatcher = new MessageHandleDispatcher(messageProcessor);
-    }
-
-    /**
-    *
-    */
-    public void incrementRefCount() {
-        ++refCount;
-    }
-
-    /**
-    *
-    */
-    public void decrementRefCount() {
-        if (refCount > 0) {
-            --refCount;
-        }
-    }
-
-    /**
-     * @return
-     */
-    public boolean isZeroRefCount() {
-        return refCount == 0;
     }
 
     public void destroy() {

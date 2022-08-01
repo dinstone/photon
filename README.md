@@ -14,7 +14,7 @@ select API dependency:
 		<dependency>
 			<groupId>com.dinstone.photon</groupId>
 			<artifactId>photon</artifactId>
-			<version>1.0.1</version>
+			<version>1.1.0</version>
 		</dependency>
 	
 # Example
