@@ -166,7 +166,7 @@ public class Connector {
         Channel channel = channelFuture.channel();
         DefaultConnection connection = new DefaultConnection(channel);
         ConnectionManager.addConnection(channel, connection);
-        AttributeUtil.setConnection(channel, connection);
+        AttributeUtil.connection(channel, connection);
 
         LOG.debug("connection created from {} to {}", channel.localAddress(), channel.remoteAddress());
         return connection;

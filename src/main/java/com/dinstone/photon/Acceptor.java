@@ -180,7 +180,7 @@ public class Acceptor {
             } else {
                 Connection connection = new DefaultConnection(ctx.channel());
                 ConnectionManager.addConnection(ctx.channel(), connection);
-                AttributeUtil.setConnection(ctx.channel(), connection);
+                AttributeUtil.connection(ctx.channel(), connection);
             }
         }
 

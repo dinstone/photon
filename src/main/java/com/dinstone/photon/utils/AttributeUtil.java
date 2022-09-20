@@ -32,7 +32,7 @@ public class AttributeUtil {
 
     private static final AttributeKey<Map<Integer, Promise<Response>>> FUTURE_KEY = AttributeKey.valueOf("future.key");
 
-    public static void setConnection(Channel channel, Connection connection) {
+    public static void connection(Channel channel, Connection connection) {
         channel.attr(AttributeUtil.CONNECTION_KEY).set(connection);
     }
 

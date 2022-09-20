@@ -17,7 +17,8 @@ package com.dinstone.photon.message;
 
 import java.io.IOException;
 
-import io.netty.handler.codec.CodecException;
+import io.netty.handler.codec.DecoderException;
+import io.netty.handler.codec.EncoderException;
 
 /**
  * <pre>
@@ -75,7 +76,7 @@ public class Message {
             default:
                 break;
             }
-            throw new IllegalArgumentException("unsupported message type [" + value + "]");
+            return null;
         }
 
     }
@@ -134,7 +135,7 @@ public class Message {
             try {
                 headers.decode(hsBytes);
             } catch (IOException e) {
-                throw new CodecException("headers decode error", e);
+                throw new DecoderException("headers decode error", e);
             }
             hsBytes = null;
         }
@@ -146,7 +147,7 @@ public class Message {
             try {
                 hsBytes = headers.encode();
             } catch (IOException e) {
-                throw new CodecException("headers encode error", e);
+                throw new EncoderException("headers encode error", e);
             }
         }
         return hsBytes;

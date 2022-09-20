@@ -53,7 +53,7 @@ public class MessageDecoder extends ReplayingDecoder<MessageState> {
             byte type = in.readByte();
             short flag = in.readShort();
             int msgid = in.readInt();
-            message = create(Type.valueOf(type));
+            message = create(type);
             message.setMsgId(msgid);
             message.setFlag(flag);
 
@@ -98,8 +98,9 @@ public class MessageDecoder extends ReplayingDecoder<MessageState> {
 
     }
 
-    static Message create(Type type) {
-        switch (type) {
+    static Message create(byte type) {
+        Type tenum = Type.valueOf(type);
+        switch (tenum) {
         case HEARTBEAT:
             return new Heartbeat();
         case REQUEST:

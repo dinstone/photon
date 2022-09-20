@@ -44,6 +44,7 @@ public class ConnectorTest {
         request.setTimeout(10000);
         request.setContent("Hello World".getBytes());
 
+        LOG.info("request headers  {}", request.headers());
         Response response = connection.sync(request);
         LOG.info("sync response is {}", response.headers());
 
