@@ -25,54 +25,49 @@ import com.dinstone.photon.message.Response;
 import com.dinstone.photon.utils.AttributeUtil;
 
 import io.netty.channel.ChannelHandlerContext;
-import io.netty.util.concurrent.Promise;
 
 public class MessageHandleDispatcher {
 
-    private static final Logger LOG = LoggerFactory.getLogger(MessageHandleDispatcher.class);
+	private static final Logger LOG = LoggerFactory.getLogger(MessageHandleDispatcher.class);
 
-    private MessageProcessor processor;
+	private MessageProcessor processor;
 
-    public MessageHandleDispatcher(MessageProcessor processor) {
-        this.processor = processor;
-    }
+	public MessageHandleDispatcher(MessageProcessor processor) {
+		this.processor = processor;
+	}
 
-    public void dispatch(ChannelHandlerContext ctx, Object msg) {
-        if (msg instanceof Request) {
-            handle(ctx, (Request) msg);
-        } else if (msg instanceof Response) {
-            handle(ctx, (Response) msg);
-        } else if (msg instanceof Heartbeat) {
-            handle(ctx, (Heartbeat) msg);
-        } else if (msg instanceof Notice) {
-            handle(ctx, (Notice) msg);
-        } else {
-            LOG.warn("unkown message : {}", msg);
-        }
+	public void dispatch(ChannelHandlerContext ctx, Object msg) {
+		if (msg instanceof Request) {
+			handle(ctx, (Request) msg);
+		} else if (msg instanceof Response) {
+			handle(ctx, (Response) msg);
+		} else if (msg instanceof Heartbeat) {
+			handle(ctx, (Heartbeat) msg);
+		} else if (msg instanceof Notice) {
+			handle(ctx, (Notice) msg);
+		} else {
+			LOG.warn("unkown message : {}", msg);
+		}
 
-    }
+	}
 
-    public void handle(final ChannelHandlerContext ctx, final Request request) {
-        processor.process(AttributeUtil.connection(ctx.channel()), request);
-    }
+	public void handle(final ChannelHandlerContext ctx, final Request request) {
+		processor.process(AttributeUtil.connection(ctx.channel()), request);
+	}
 
-    public void handle(ChannelHandlerContext ctx, final Response response) {
-        Promise<Response> promise = AttributeUtil.promises(ctx.channel()).remove(response.getMsgId());
-        if (promise != null) {
-            promise.setSuccess(response);
-        }
-        processor.process(AttributeUtil.connection(ctx.channel()), response);
-    }
+	public void handle(ChannelHandlerContext ctx, final Response response) {
+		processor.process(AttributeUtil.connection(ctx.channel()), response);
+	}
 
-    public void handle(final ChannelHandlerContext ctx, final Notice msg) {
-        processor.process(AttributeUtil.connection(ctx.channel()), msg);
-    }
+	public void handle(final ChannelHandlerContext ctx, final Notice msg) {
+		processor.process(AttributeUtil.connection(ctx.channel()), msg);
+	}
 
-    public void handle(ChannelHandlerContext ctx, Heartbeat heartbeat) {
-        if (heartbeat.isPing()) {
-            ctx.writeAndFlush(heartbeat.pong());
-        }
-        processor.process(AttributeUtil.connection(ctx.channel()), heartbeat);
-    }
+	public void handle(ChannelHandlerContext ctx, Heartbeat heartbeat) {
+		if (heartbeat.isPing()) {
+			ctx.writeAndFlush(heartbeat.pong());
+		}
+		processor.process(AttributeUtil.connection(ctx.channel()), heartbeat);
+	}
 
 }

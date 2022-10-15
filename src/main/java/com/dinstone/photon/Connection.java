@@ -16,32 +16,39 @@
 package com.dinstone.photon;
 
 import java.net.InetSocketAddress;
+import java.util.concurrent.CompletableFuture;
 
 import com.dinstone.photon.message.Message;
 import com.dinstone.photon.message.Request;
 import com.dinstone.photon.message.Response;
 
+import io.netty.channel.Channel;
 import io.netty.channel.ChannelFuture;
 import io.netty.util.concurrent.Future;
 
 public interface Connection {
 
-    String connectionId();
+	String connectionId();
 
-    boolean isBusy();
+	boolean isBusy();
 
-    boolean isActive();
+	boolean isActive();
 
-    public void destroy();
+	public void destroy();
 
-    public InetSocketAddress getRemoteAddress();
+	public InetSocketAddress getRemoteAddress();
 
-    public InetSocketAddress getLocalAddress();
+	public InetSocketAddress getLocalAddress();
 
-    ChannelFuture send(Message message);
+	ChannelFuture send(Message message);
 
-    Response sync(Request request) throws Exception;
+	Response sync(Request request) throws Exception;
 
-    Future<Response> async(Request request) throws Exception;
+	@Deprecated
+	Future<Response> async(Request request) throws Exception;
+
+	CompletableFuture<Response> asyncRequest(Request request) throws Exception;
+
+	Channel channel();
 
 }
