@@ -164,7 +164,7 @@ public class Connector {
         }
 
         Channel channel = channelFuture.channel();
-        DefaultConnection connection = new DefaultConnection(channel);
+        Connection connection = new DefaultConnection(channel);
         ConnectionManager.addConnection(channel, connection);
         AttributeUtil.connection(channel, connection);
 

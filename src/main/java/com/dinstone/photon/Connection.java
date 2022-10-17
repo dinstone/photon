@@ -22,33 +22,26 @@ import com.dinstone.photon.message.Message;
 import com.dinstone.photon.message.Request;
 import com.dinstone.photon.message.Response;
 
-import io.netty.channel.Channel;
-import io.netty.channel.ChannelFuture;
-import io.netty.util.concurrent.Future;
-
 public interface Connection {
 
-	String connectionId();
+    String connectionId();
 
-	boolean isBusy();
+    boolean isBusy();
 
-	boolean isActive();
+    boolean isActive();
 
-	public void destroy();
+    void destroy();
 
-	public InetSocketAddress getRemoteAddress();
+    InetSocketAddress getRemoteAddress();
 
-	public InetSocketAddress getLocalAddress();
+    InetSocketAddress getLocalAddress();
 
-	ChannelFuture send(Message message);
+    CompletableFuture<Void> sendMessage(Message message);
 
-	Response sync(Request request) throws Exception;
+    CompletableFuture<Response> sendRequest(Request request) throws Exception;
 
-	@Deprecated
-	Future<Response> async(Request request) throws Exception;
+    CompletableFuture<Response> createFuture(int messageId);
 
-	CompletableFuture<Response> asyncRequest(Request request) throws Exception;
-
-	Channel channel();
+    CompletableFuture<Response> removeFuture(int messageId);
 
 }

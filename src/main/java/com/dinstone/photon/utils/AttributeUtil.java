@@ -25,44 +25,30 @@ import com.dinstone.photon.message.Response;
 import io.netty.channel.Channel;
 import io.netty.util.Attribute;
 import io.netty.util.AttributeKey;
-import io.netty.util.concurrent.Promise;
 
 public class AttributeUtil {
 
-	private static final AttributeKey<Connection> CONNECTION_KEY = AttributeKey.valueOf("connection.key");
+    private static final AttributeKey<Connection> CONNECTION_KEY = AttributeKey.valueOf("connection.key");
 
-	private static final AttributeKey<Map<Integer, CompletableFuture<Response>>> FUTURE_KEY = AttributeKey
-			.valueOf("future.key");
+    private static final AttributeKey<Map<Integer, CompletableFuture<Response>>> FUTURE_KEY = AttributeKey
+            .valueOf("future.key");
 
-	private static final AttributeKey<Map<Integer, Promise<Response>>> PROMISE_KEY = AttributeKey
-			.valueOf("promise.key");
+    public static void connection(Channel channel, Connection connection) {
+        channel.attr(AttributeUtil.CONNECTION_KEY).set(connection);
+    }
 
-	public static void connection(Channel channel, Connection connection) {
-		channel.attr(AttributeUtil.CONNECTION_KEY).set(connection);
-	}
+    public static Connection connection(Channel channel) {
+        return channel.attr(AttributeUtil.CONNECTION_KEY).get();
+    }
 
-	public static Connection connection(Channel channel) {
-		return channel.attr(AttributeUtil.CONNECTION_KEY).get();
-	}
-
-	public static Map<Integer, Promise<Response>> promises(Channel channel) {
-		Attribute<Map<Integer, Promise<Response>>> attr = channel.attr(AttributeUtil.PROMISE_KEY);
-		Map<Integer, Promise<Response>> promises = attr.get();
-		if (promises == null) {
-			attr.setIfAbsent(new ConcurrentHashMap<Integer, Promise<Response>>());
-			promises = attr.get();
-		}
-		return promises;
-	}
-
-	public static Map<Integer, CompletableFuture<Response>> futures(Channel channel) {
-		Attribute<Map<Integer, CompletableFuture<Response>>> attr = channel.attr(AttributeUtil.FUTURE_KEY);
-		Map<Integer, CompletableFuture<Response>> futures = attr.get();
-		if (futures == null) {
-			futures = attr.setIfAbsent(new ConcurrentHashMap<Integer, CompletableFuture<Response>>());
-			futures = attr.get();
-		}
-		return futures;
-	}
+    public static Map<Integer, CompletableFuture<Response>> futures(Channel channel) {
+        Attribute<Map<Integer, CompletableFuture<Response>>> attr = channel.attr(AttributeUtil.FUTURE_KEY);
+        Map<Integer, CompletableFuture<Response>> futures = attr.get();
+        if (futures == null) {
+            futures = attr.setIfAbsent(new ConcurrentHashMap<Integer, CompletableFuture<Response>>());
+            futures = attr.get();
+        }
+        return futures;
+    }
 
 }

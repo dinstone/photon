@@ -51,13 +51,13 @@ public class AcceptorTest {
                 Notice notice = new Notice();
                 notice.setAddress("");
                 notice.setContent(req.getContent());
-                connection.send(notice);
+                connection.sendMessage(notice);
 
                 Response response = new Response();
                 response.setMsgId(req.getMsgId());
                 response.setStatus(Status.SUCCESS);
                 response.setContent(req.getContent());
-                connection.send(response);
+                connection.sendMessage(response);
             }
 
         });

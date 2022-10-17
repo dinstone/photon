@@ -23,34 +23,27 @@ import com.dinstone.photon.message.Heartbeat;
 import com.dinstone.photon.message.Notice;
 import com.dinstone.photon.message.Request;
 import com.dinstone.photon.message.Response;
-import com.dinstone.photon.utils.AttributeUtil;
-
-import io.netty.util.concurrent.Promise;
 
 public class DefaultMessageProcessor implements MessageProcessor {
 
-	@Override
-	public void process(Connection connection, Notice msg) {
-	}
+    @Override
+    public void process(Connection connection, Notice msg) {
+    }
 
-	@Override
-	public void process(Connection connection, Request msg) {
-	}
+    @Override
+    public void process(Connection connection, Request msg) {
+    }
 
-	@Override
-	public void process(Connection connection, Response msg) {
-		Promise<Response> promise = AttributeUtil.promises(connection.channel()).remove(msg.getMsgId());
-		if (promise != null) {
-			promise.setSuccess(msg);
-		}
-		CompletableFuture<Response> future = AttributeUtil.futures(connection.channel()).remove(msg.getMsgId());
-		if (future != null) {
-			future.complete(msg);
-		}
-	}
+    @Override
+    public void process(Connection connection, Response msg) {
+        CompletableFuture<Response> future = connection.removeFuture(msg.getMsgId());
+        if (future != null) {
+            future.complete(msg);
+        }
+    }
 
-	@Override
-	public void process(Connection connection, Heartbeat msg) {
-	}
+    @Override
+    public void process(Connection connection, Heartbeat msg) {
+    }
 
 }

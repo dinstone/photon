@@ -25,9 +25,6 @@ import com.dinstone.photon.Connector;
 import com.dinstone.photon.message.Request;
 import com.dinstone.photon.message.Response;
 
-import io.netty.util.concurrent.Future;
-import io.netty.util.concurrent.GenericFutureListener;
-
 public class ConnectorTest {
     private static final Logger LOG = LoggerFactory.getLogger(ConnectorTest.class);
 
@@ -44,27 +41,18 @@ public class ConnectorTest {
         request.setTimeout(10000);
         request.setContent("Hello World".getBytes());
 
-        LOG.info("request headers  {}", request.headers());
-        Response response = connection.sync(request);
-        LOG.info("sync response is {}", response.headers());
-
-        request.setMsgId(2);
-        request.setTimeout(3000);
-        connection.async(request).addListener(new GenericFutureListener<Future<Response>>() {
-
-            @Override
-            public void operationComplete(Future<Response> future) throws Exception {
-                try {
-                    LOG.info("thread {}", Thread.currentThread().getName());
-                    Response response = future.get();
-                    LOG.info("async response is {}", response.headers());
-                } catch (Throwable e) {
-                    e.printStackTrace();
-                }
-
-            }
+        LOG.info("async request is  {}", request);
+        connection.sendRequest(request).thenAccept(response -> {
+            LOG.info("async response is {}", response);
         });
 
+        request = new Request();
+        request.setMsgId(2);
+        request.setTimeout(3000);
+
+        LOG.info("sync request is  {}", request);
+        Response response = connection.sendRequest(request).get();
+        LOG.info("sync response is {}", response);
         System.in.read();
 
         connector.destroy();
