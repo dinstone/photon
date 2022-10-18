@@ -15,19 +15,29 @@
  */
 package com.dinstone.photon;
 
+import java.util.concurrent.CompletableFuture;
+
 import com.dinstone.photon.message.Heartbeat;
 import com.dinstone.photon.message.Notice;
 import com.dinstone.photon.message.Request;
 import com.dinstone.photon.message.Response;
 
-public interface MessageProcessor {
+public class MessageProcessor {
 
-    void process(Connection connection, Notice msg);
+    public void process(Connection connection, Request msg) {
+    }
 
-    void process(Connection connection, Request msg);
+    public void process(Connection connection, Response msg) {
+        CompletableFuture<Response> future = connection.removeFuture(msg.getMsgId());
+        if (future != null) {
+            future.complete(msg);
+        }
+    }
 
-    void process(Connection connection, Response msg);
+    public void process(Connection connection, Heartbeat msg) {
+    }
 
-    void process(Connection connection, Heartbeat msg);
+    public void process(Connection connection, Notice msg) {
+    }
 
 }

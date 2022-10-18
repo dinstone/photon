@@ -26,41 +26,28 @@ import com.dinstone.photon.utils.AttributeUtil;
 
 import io.netty.channel.ChannelHandlerContext;
 
-public class MessageHandleDispatcher {
+public class MessageDispatcher {
 
-    private static final Logger LOG = LoggerFactory.getLogger(MessageHandleDispatcher.class);
+    private static final Logger LOG = LoggerFactory.getLogger(MessageDispatcher.class);
 
     private MessageProcessor processor;
 
-    public MessageHandleDispatcher(MessageProcessor processor) {
+    public MessageDispatcher(MessageProcessor processor) {
         this.processor = processor;
     }
 
     public void dispatch(ChannelHandlerContext ctx, Object msg) {
         if (msg instanceof Request) {
-            handle(ctx, (Request) msg);
+            processor.process(AttributeUtil.connection(ctx.channel()), (Request) msg);
         } else if (msg instanceof Response) {
-            handle(ctx, (Response) msg);
+            processor.process(AttributeUtil.connection(ctx.channel()), (Response) msg);
         } else if (msg instanceof Heartbeat) {
             handle(ctx, (Heartbeat) msg);
         } else if (msg instanceof Notice) {
-            handle(ctx, (Notice) msg);
+            processor.process(AttributeUtil.connection(ctx.channel()), (Notice) msg);
         } else {
             LOG.warn("unkown message : {}", msg);
         }
-
-    }
-
-    public void handle(final ChannelHandlerContext ctx, final Request request) {
-        processor.process(AttributeUtil.connection(ctx.channel()), request);
-    }
-
-    public void handle(ChannelHandlerContext ctx, final Response response) {
-        processor.process(AttributeUtil.connection(ctx.channel()), response);
-    }
-
-    public void handle(final ChannelHandlerContext ctx, final Notice msg) {
-        processor.process(AttributeUtil.connection(ctx.channel()), msg);
     }
 
     public void handle(ChannelHandlerContext ctx, Heartbeat heartbeat) {

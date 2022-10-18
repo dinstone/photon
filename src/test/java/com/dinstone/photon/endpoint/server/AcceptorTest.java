@@ -23,7 +23,7 @@ import com.dinstone.loghub.LoggerFactory;
 import com.dinstone.photon.AcceptOptions;
 import com.dinstone.photon.Acceptor;
 import com.dinstone.photon.Connection;
-import com.dinstone.photon.handler.DefaultMessageProcessor;
+import com.dinstone.photon.MessageProcessor;
 import com.dinstone.photon.message.Notice;
 import com.dinstone.photon.message.Request;
 import com.dinstone.photon.message.Response;
@@ -42,7 +42,7 @@ public class AcceptorTest {
         acceptOptions.setPrivateKey(cert.key());
         acceptOptions.setCertChain(new X509Certificate[] { cert.cert() });
         Acceptor acceptor = new Acceptor(acceptOptions);
-        acceptor.setMessageProcessor(new DefaultMessageProcessor() {
+        acceptor.setMessageProcessor(new MessageProcessor() {
 
             @Override
             public void process(Connection connection, Request msg) {

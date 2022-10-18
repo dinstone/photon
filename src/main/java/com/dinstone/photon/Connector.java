@@ -29,8 +29,7 @@ import com.dinstone.photon.connection.ConnectionManager;
 import com.dinstone.photon.connection.DefaultConnection;
 import com.dinstone.photon.connection.TimeoutConnectException;
 import com.dinstone.photon.connection.WrappedConnectException;
-import com.dinstone.photon.handler.DefaultMessageProcessor;
-import com.dinstone.photon.handler.MessageHandleDispatcher;
+import com.dinstone.photon.handler.MessageDispatcher;
 import com.dinstone.photon.message.Heartbeat;
 import com.dinstone.photon.utils.AttributeUtil;
 
@@ -65,7 +64,7 @@ public class Connector {
 
     private ConnectOptions options;
 
-    private MessageHandleDispatcher messageHandleDispatcher;
+    private MessageDispatcher messageDispatcher;
 
     public Connector(final ConnectOptions connectOptions) {
         this.options = connectOptions;
@@ -132,7 +131,7 @@ public class Connector {
         if (messageProcessor == null) {
             throw new IllegalArgumentException("messageProcessor is null");
         }
-        this.messageHandleDispatcher = new MessageHandleDispatcher(messageProcessor);
+        this.messageDispatcher = new MessageDispatcher(messageProcessor);
     }
 
     public void destroy() {
@@ -142,7 +141,7 @@ public class Connector {
     }
 
     public Connection connect(SocketAddress sa) throws Exception {
-        checkMessageHandleDispatcher();
+        checkMessageProcessDispatcher();
 
         // wait connect to peer
         ChannelFuture channelFuture = bootstrap.connect(sa).awaitUninterruptibly();
@@ -172,9 +171,9 @@ public class Connector {
         return connection;
     }
 
-    private void checkMessageHandleDispatcher() {
-        if (messageHandleDispatcher == null) {
-            messageHandleDispatcher = new MessageHandleDispatcher(new DefaultMessageProcessor());
+    private void checkMessageProcessDispatcher() {
+        if (messageDispatcher == null) {
+            messageDispatcher = new MessageDispatcher(new MessageProcessor());
         }
     }
 
@@ -204,7 +203,7 @@ public class Connector {
 
         @Override
         public void channelRead(ChannelHandlerContext ctx, Object msg) throws Exception {
-            messageHandleDispatcher.dispatch(ctx, msg);
+            messageDispatcher.dispatch(ctx, msg);
         }
 
         @Override
