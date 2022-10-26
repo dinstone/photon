@@ -88,10 +88,10 @@ public class Connector {
                 ch.pipeline().addLast("ClientHandler", new ClientHandler());
             }
         });
-        applyConnectionOptions(bootstrap, connectOptions);
+        applyNetworkOptions(bootstrap, connectOptions);
     }
 
-    private void applyConnectionOptions(Bootstrap bootstrap, ConnectOptions options) {
+    private void applyNetworkOptions(Bootstrap bootstrap, ConnectOptions options) {
         bootstrap.option(ChannelOption.SO_REUSEADDR, options.isReuseAddress());
         bootstrap.option(ChannelOption.TCP_NODELAY, options.isTcpNoDelay());
         bootstrap.option(ChannelOption.SO_KEEPALIVE, options.isTcpKeepAlive());
@@ -121,23 +121,25 @@ public class Connector {
         bootstrap.option(ChannelOption.CONNECT_TIMEOUT_MILLIS, options.getConnectTimeout());
     }
 
-    protected SSLEngine createSslEngine(ByteBufAllocator byteBufAllocator) throws Exception {
+    private SSLEngine createSslEngine(ByteBufAllocator byteBufAllocator) throws Exception {
         SslContextBuilder builder = SslContextBuilder.forClient();
         builder.trustManager(options.getTrustManagerFactory());
         return builder.build().newEngine(byteBufAllocator);
     }
 
-    public void setMessageProcessor(MessageProcessor messageProcessor) {
+    public Connector setMessageProcessor(MessageProcessor messageProcessor) {
         if (messageProcessor == null) {
             throw new IllegalArgumentException("messageProcessor is null");
         }
         this.messageDispatcher = new MessageDispatcher(messageProcessor);
+        return this;
     }
 
-    public void destroy() {
+    public Connector destroy() {
         if (workGroup != null) {
             workGroup.shutdownGracefully();
         }
+        return this;
     }
 
     public Connection connect(SocketAddress sa) throws Exception {

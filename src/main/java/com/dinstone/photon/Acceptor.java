@@ -83,14 +83,16 @@ public class Acceptor {
                 ch.pipeline().addLast("ServerHandler", new ServerHandler());
             }
         });
-        applyConnectionOptions(bootstrap, acceptOptions);
+        applyNetworkOptions(bootstrap, acceptOptions);
     }
 
-    public void setMessageProcessor(MessageProcessor messageProcessor) {
+    public Acceptor setMessageProcessor(MessageProcessor messageProcessor) {
         if (messageProcessor == null) {
             throw new IllegalArgumentException("messageProcessor is null");
         }
         this.messageDispatcher = new MessageDispatcher(messageProcessor);
+
+        return this;
     }
 
     public Acceptor bind(SocketAddress sa) throws Exception {
@@ -99,7 +101,7 @@ public class Acceptor {
         return this;
     }
 
-    private void applyConnectionOptions(ServerBootstrap bootstrap, AcceptOptions options) {
+    private void applyNetworkOptions(ServerBootstrap bootstrap, AcceptOptions options) {
         if (options.getSoLinger() != -1) {
             bootstrap.option(ChannelOption.SO_LINGER, options.getSoLinger());
         }
@@ -141,13 +143,14 @@ public class Acceptor {
         return sslEngine;
     }
 
-    public void destroy() {
+    public Acceptor destroy() {
         if (bossGroup != null) {
             bossGroup.shutdownGracefully();
         }
         if (workGroup != null) {
             workGroup.shutdownGracefully();
         }
+        return this;
     }
 
     private class ServerHandler extends ChannelInboundHandlerAdapter {

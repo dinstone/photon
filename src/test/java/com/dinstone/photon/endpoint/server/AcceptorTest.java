@@ -45,8 +45,7 @@ public class AcceptorTest {
         acceptor.setMessageProcessor(new MessageProcessor() {
 
             @Override
-            public void process(Connection connection, Request msg) {
-                Request req = (Request) msg;
+            public void process(Connection connection, Request req) {
                 LOG.info("Request is {}", req.getMsgId());
                 Notice notice = new Notice();
                 notice.setAddress("");

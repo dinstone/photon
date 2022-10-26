@@ -1,5 +1,9 @@
-# What
-**Photon** is a a message exchange framework. 
+# Photon
+[![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](https://github.com/dinstone/photon/blob/master/LICENSE)
+[![Maven Central](https://img.shields.io/maven-central/v/com.dinstone.photon/photon.svg?label=Maven%20Central)](https://search.maven.org/search?q=com.dinstone.photon)
+
+# Overview
+**Photon** is a message exchange framework. 
 
 # Features
 * Efficient custom protocol ([Photon](https://github.com/dinstone/photon) message exchange protocol)
@@ -14,7 +18,7 @@ select API dependency:
 		<dependency>
 			<groupId>com.dinstone.photon</groupId>
 			<artifactId>photon</artifactId>
-			<version>1.1.0</version>
+			<version>1.1.1</version>
 		</dependency>
 	
 # Example
@@ -28,22 +32,21 @@ select API dependency:
         acceptOptions.setPrivateKey(cert.key());
         acceptOptions.setCertChain(new X509Certificate[] { cert.cert() });
         Acceptor acceptor = new Acceptor(acceptOptions);
-        acceptor.setMessageProcessor(new DefaultMessageProcessor() {
+        acceptor.setMessageProcessor(new MessageProcessor() {
 
             @Override
-            public void process(Connection connection, Request msg) {
-                Request req = (Request) msg;
+            public void process(Connection connection, Request req) {
                 LOG.info("Request is {}", req.getMsgId());
                 Notice notice = new Notice();
                 notice.setAddress("");
                 notice.setContent(req.getContent());
-                connection.send(notice);
+                connection.sendMessage(notice);
 
                 Response response = new Response();
                 response.setMsgId(req.getMsgId());
                 response.setStatus(Status.SUCCESS);
                 response.setContent(req.getContent());
-                connection.send(response);
+                connection.sendMessage(response);
             }
 
         });
@@ -71,26 +74,18 @@ select API dependency:
         request.setTimeout(10000);
         request.setContent("Hello World".getBytes());
 
-        Response response = connection.sync(request);
-        LOG.info("sync response is {}", response.headers());
-
-        request.setMsgId(2);
-        request.setTimeout(3000);
-        connection.async(request).addListener(new GenericFutureListener<Future<Response>>() {
-
-            @Override
-            public void operationComplete(Future<Response> future) throws Exception {
-                try {
-                    LOG.info("thread {}", Thread.currentThread().getName());
-                    Response response = future.get();
-                    LOG.info("async response is {}", response.headers());
-                } catch (Throwable e) {
-                    e.printStackTrace();
-                }
-
-            }
+        LOG.info("async request is  {}", request);
+        connection.sendRequest(request).thenAccept(response -> {
+            LOG.info("async response is {}", response);
         });
 
+        request = new Request();
+        request.setMsgId(2);
+        request.setTimeout(3000);
+
+        LOG.info("sync request is  {}", request);
+        Response response = connection.sendRequest(request).get();
+        LOG.info("sync response is {}", response);
         System.in.read();
 
         connector.destroy();
