@@ -17,19 +17,25 @@ package com.dinstone.photon.connection;
 
 import java.io.IOException;
 import java.net.InetSocketAddress;
+import java.util.Map;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.TimeUnit;
 
 import com.dinstone.photon.Connection;
 import com.dinstone.photon.message.Message;
 import com.dinstone.photon.message.Request;
 import com.dinstone.photon.message.Response;
-import com.dinstone.photon.utils.AttributeUtil;
 
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelFuture;
 import io.netty.util.concurrent.GenericFutureListener;
+import io.netty.util.concurrent.ScheduledFuture;
 
 public class DefaultConnection implements Connection {
+
+    private Map<Integer, CompletableFuture<Response>> reponseFutures = new ConcurrentHashMap<>();
+    private Map<Integer, ScheduledFuture<?>> timeoutFutures = new ConcurrentHashMap<>();
 
     private Channel channel;
 
@@ -55,6 +61,8 @@ public class DefaultConnection implements Connection {
     @Override
     public void destroy() {
         channel.close();
+        reponseFutures.forEach((id, rf) -> rf.cancel(false));
+        timeoutFutures.forEach((id, sf) -> sf.cancel(false));
     }
 
     @Override
@@ -69,13 +77,28 @@ public class DefaultConnection implements Connection {
 
     @Override
     public CompletableFuture<Response> removeFuture(int messageId) {
-        return AttributeUtil.futures(channel).remove(messageId);
+        ScheduledFuture<?> tf = timeoutFutures.remove(messageId);
+        if (tf != null) {
+            tf.cancel(false);
+        }
+        return reponseFutures.remove(messageId);
     }
 
     @Override
-    public CompletableFuture<Response> createFuture(int messageId) {
+    public CompletableFuture<Response> createFuture(Request request) {
         CompletableFuture<Response> promise = new CompletableFuture<Response>();
-        AttributeUtil.futures(channel).put(messageId, promise);
+        reponseFutures.put(request.getMsgId(), promise);
+        ScheduledFuture<?> tf = channel.eventLoop().schedule(new Runnable() {
+
+            @Override
+            public void run() {
+                CompletableFuture<Response> future = removeFuture(request.getMsgId());
+                if (future != null) {
+                    future.cancel(false);
+                }
+            }
+        }, request.getTimeout(), TimeUnit.MILLISECONDS);
+        timeoutFutures.put(request.getMsgId(), tf);
         return promise;
     }
 
@@ -97,7 +120,7 @@ public class DefaultConnection implements Connection {
 
     @Override
     public CompletableFuture<Response> sendRequest(Request request) throws Exception {
-        final CompletableFuture<Response> promise = createFuture(request.getMsgId());
+        final CompletableFuture<Response> promise = createFuture(request);
         channel.writeAndFlush(request).addListener(new GenericFutureListener<ChannelFuture>() {
 
             @Override

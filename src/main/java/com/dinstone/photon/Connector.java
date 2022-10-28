@@ -66,7 +66,7 @@ public class Connector {
 
     private MessageDispatcher messageDispatcher;
 
-    public Connector(final ConnectOptions connectOptions) {
+    public Connector(ConnectOptions connectOptions) {
         this.options = connectOptions;
 
         workGroup = new NioEventLoopGroup(options.getEventLoopSize(), new DefaultThreadFactory("PCT-Work"));

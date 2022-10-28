@@ -40,7 +40,7 @@ public interface Connection {
 
     CompletableFuture<Response> sendRequest(Request request) throws Exception;
 
-    CompletableFuture<Response> createFuture(int messageId);
+    CompletableFuture<Response> createFuture(Request request);
 
     CompletableFuture<Response> removeFuture(int messageId);
 
