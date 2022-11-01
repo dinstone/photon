@@ -13,16 +13,16 @@
 * High-performance NIO socket framework support - Netty4
 
 # Quick Start
-select API dependency:
 
-		<dependency>
-			<groupId>com.dinstone.photon</groupId>
-			<artifactId>photon</artifactId>
-			<version>1.1.1</version>
-		</dependency>
-	
-# Example
-### message provider:
+## add dependency:
+```xml
+<dependency>
+	<groupId>com.dinstone.photon</groupId>
+	<artifactId>photon</artifactId>
+	<version>1.1.1</version>
+</dependency>
+```
+## message provider:
 ```java
 	public static void main(String[] args) throws Exception {
         AcceptOptions acceptOptions = new AcceptOptions();
@@ -59,7 +59,7 @@ select API dependency:
     }
 ```
 
-### message consumer:
+## message consumer:
 ```java
 	public static void main(String[] args) throws Throwable {
         ConnectOptions connectOptions = new ConnectOptions();

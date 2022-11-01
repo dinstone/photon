@@ -32,20 +32,20 @@ import io.netty.handler.codec.ReplayingDecoder;
 
 public class MessageDecoder extends ReplayingDecoder<MessageState> {
 
-    public enum MessageState {
-        read_message_type, read_message_headers, read_message_content
+    enum MessageState {
+        READ_MESSAGE_TYPE, READ_MESSAGE_HEADERS, READ_MESSAGE_CONTENT
     }
 
     private Message message;
 
     public MessageDecoder() {
-        super(MessageState.read_message_type);
+        super(MessageState.READ_MESSAGE_TYPE);
     }
 
     @Override
     protected void decode(ChannelHandlerContext ctx, ByteBuf in, List<Object> out) throws Exception {
         switch (state()) {
-        case read_message_type:
+        case READ_MESSAGE_TYPE:
             byte version = in.readByte();
             if (Message.DEFAULT_VERSION != version) {
                 throw new DecoderException("unsupported message version [" + version + "]");
@@ -57,9 +57,9 @@ public class MessageDecoder extends ReplayingDecoder<MessageState> {
             message.setMsgId(msgid);
             message.setFlag(flag);
 
-            checkpoint(MessageState.read_message_headers);
+            checkpoint(MessageState.READ_MESSAGE_HEADERS);
             break;
-        case read_message_headers:
+        case READ_MESSAGE_HEADERS:
             // headers length
             int hlen = in.readInt();
             if (hlen > 0) {
@@ -68,15 +68,15 @@ public class MessageDecoder extends ReplayingDecoder<MessageState> {
                 message.setHeaders(hs);
             }
 
-            checkpoint(MessageState.read_message_content);
+            checkpoint(MessageState.READ_MESSAGE_CONTENT);
             break;
-        case read_message_content:
+        case READ_MESSAGE_CONTENT:
             // content length
             int clen = in.readInt();
             if (clen <= 0) {
                 out.add(message);
                 message = null;
-                checkpoint(MessageState.read_message_type);
+                checkpoint(MessageState.READ_MESSAGE_TYPE);
                 break;
             }
 
@@ -87,7 +87,7 @@ public class MessageDecoder extends ReplayingDecoder<MessageState> {
 
                 out.add(message);
                 message = null;
-                checkpoint(MessageState.read_message_type);
+                checkpoint(MessageState.READ_MESSAGE_TYPE);
             }
 
             break;

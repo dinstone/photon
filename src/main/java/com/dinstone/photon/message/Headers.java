@@ -31,6 +31,24 @@ import io.netty.handler.codec.DefaultHeaders;
 import io.netty.handler.codec.ValueConverter;
 import io.netty.util.internal.PlatformDependent;
 
+/**
+ * 
+ * <pre>
+ *    Header Size (16)     
+ * |----------|----------|
+ *    Key Length (32)     
+ * |----------|----------|
+ *   Key Content(UTF-8)
+ * |~~~~~~~~~~~~~~~~~~~~~|
+ *    Value Length (32) 
+ * |----------|----------|
+ *   Value Content(UTF-8)
+ * |~~~~~~~~~~~~~~~~~~~~~|
+ * </pre>
+ * 
+ * @author dinstone
+ *
+ */
 public class Headers extends DefaultHeaders<String, String, Headers> {
 
     private static final StringValueConverter VALUE_CONVERTER = new StringValueConverter();

@@ -17,18 +17,18 @@ package com.dinstone.photon.message;
 
 public class Notice extends Message {
 
-    private static final String topic_name = "notice.topic";
+    private static final String ADDRESS_KEY = "notice.topic";
 
     public Notice() {
         super(Message.DEFAULT_VERSION, Message.Type.NOTICE);
     }
 
     public String getAddress() {
-        return headers().get(topic_name);
+        return headers().get(ADDRESS_KEY);
     }
 
     public void setAddress(String address) {
-        headers().set(topic_name, address);
+        headers().set(ADDRESS_KEY, address);
     }
 
     @Override
