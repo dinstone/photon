@@ -47,10 +47,8 @@ public class ByteStreamUtil {
     }
 
     public static String readString(InputStream bai) throws IOException {
-        int length = readInt(bai);
-        if (length < 0) {
-            return null;
-        } else if (length == 0) {
+        int length = readShort(bai);
+        if (length <= 0) {
             return EMPTY;
         } else {
             byte[] readBytes = new byte[length];
@@ -60,13 +58,11 @@ public class ByteStreamUtil {
     }
 
     public static void writeString(OutputStream bao, String str) throws IOException {
-        if (str == null) {
-            writeInt(bao, -1);
-        } else if (str.isEmpty()) {
-            writeInt(bao, 0);
+        if (str == null || str.length() == 0) {
+            writeShort(bao, 0);
         } else {
             byte[] strBytes = str.getBytes(CharsetUtil.UTF_8);
-            writeInt(bao, strBytes.length);
+            writeShort(bao, strBytes.length);
             bao.write(strBytes);
         }
     }

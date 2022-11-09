@@ -36,11 +36,11 @@ import io.netty.util.internal.PlatformDependent;
  * <pre>
  *    Header Size (16)     
  * |----------|----------|
- *    Key Length (32)     
+ *    Key Length (16)     
  * |----------|----------|
  *   Key Content(UTF-8)
  * |~~~~~~~~~~~~~~~~~~~~~|
- *    Value Length (32) 
+ *    Value Length (16) 
  * |----------|----------|
  *   Value Content(UTF-8)
  * |~~~~~~~~~~~~~~~~~~~~~|

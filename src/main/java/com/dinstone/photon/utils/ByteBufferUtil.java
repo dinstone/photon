@@ -24,9 +24,7 @@ public class ByteBufferUtil {
 
     public static String readString(ByteBuf bb) {
         int length = bb.readInt();
-        if (length < 0) {
-            return null;
-        } else if (length == 0) {
+        if (length <= 0) {
             return EMPTY;
         } else {
             byte[] bytes = new byte[length];
@@ -36,9 +34,7 @@ public class ByteBufferUtil {
     }
 
     public static void writeString(ByteBuf bb, String str) {
-        if (str == null) {
-            bb.writeInt(-1);
-        } else if (str.length() == 0) {
+        if (str == null || str.length() == 0) {
             bb.writeInt(0);
         } else {
             byte[] strBytes = str.getBytes(CharsetUtil.UTF_8);
