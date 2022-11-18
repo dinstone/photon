@@ -15,7 +15,7 @@
  */
 package com.dinstone.photon;
 
-public abstract class PhotonOptions extends NetworkOptions {
+public abstract class TransportOptions extends NetworkOptions {
 
     /**
      * The default value of Netty use pooled buffers = false
@@ -36,7 +36,7 @@ public abstract class PhotonOptions extends NetworkOptions {
     private boolean enableSsl;
     private int idleTimeout;
 
-    public PhotonOptions() {
+    public TransportOptions() {
         super();
 
         usePooledBuffers = DEFAULT_USE_POOLED_BUFFERS;

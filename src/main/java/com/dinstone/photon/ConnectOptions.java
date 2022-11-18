@@ -19,7 +19,7 @@ import javax.net.ssl.TrustManagerFactory;
 
 import io.netty.handler.ssl.util.InsecureTrustManagerFactory;
 
-public class ConnectOptions extends PhotonOptions {
+public class ConnectOptions extends TransportOptions {
 
     /**
      * The default value of connect timeout = 3000 ms

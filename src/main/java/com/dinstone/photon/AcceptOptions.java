@@ -20,7 +20,7 @@ import java.security.cert.X509Certificate;
 
 import io.netty.handler.ssl.ClientAuth;
 
-public class AcceptOptions extends PhotonOptions {
+public class AcceptOptions extends TransportOptions {
 
     /**
      * The default accept event loop size = 1
