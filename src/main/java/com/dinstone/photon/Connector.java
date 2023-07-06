@@ -56,163 +56,163 @@ import io.netty.util.concurrent.DefaultThreadFactory;
 
 public class Connector {
 
-	private static final Logger LOG = LoggerFactory.getLogger(Connector.class);
+    private static final Logger LOG = LoggerFactory.getLogger(Connector.class);
 
-	private final NioEventLoopGroup workGroup;
+    private final NioEventLoopGroup workGroup;
 
-	private final Bootstrap bootstrap;
+    private final Bootstrap bootstrap;
 
-	private ConnectOptions options;
+    private ConnectOptions options;
 
-	private MessageDispatcher messageDispatcher;
+    private MessageDispatcher messageDispatcher;
 
-	public Connector(ConnectOptions connectOptions) {
-		this.options = connectOptions;
+    public Connector(ConnectOptions connectOptions) {
+        this.options = connectOptions;
 
-		workGroup = new NioEventLoopGroup(options.getWorkerSize(), new DefaultThreadFactory("PCT-Worker"));
-		bootstrap = new Bootstrap().group(workGroup).channel(NioSocketChannel.class);
-		bootstrap.handler(new ChannelInitializer<SocketChannel>() {
+        workGroup = new NioEventLoopGroup(options.getWorkerSize(), new DefaultThreadFactory("PCT-Worker"));
+        bootstrap = new Bootstrap().group(workGroup).channel(NioSocketChannel.class);
+        bootstrap.handler(new ChannelInitializer<SocketChannel>() {
 
-			@Override
-			public void initChannel(SocketChannel ch) throws Exception {
-				if (options.isEnableSsl()) {
-					SSLEngine engine = createSslEngine(ch.alloc());
-					ch.pipeline().addFirst(new SslHandler(engine));
-				}
+            @Override
+            public void initChannel(SocketChannel ch) throws Exception {
+                if (options.isEnableSsl()) {
+                    SSLEngine engine = createSslEngine(ch.alloc());
+                    ch.pipeline().addFirst(new SslHandler(engine));
+                }
 
-				ch.pipeline().addLast("MessageDecoder", new MessageDecoder());
-				ch.pipeline().addLast("MessageEncoder", new MessageEncoder());
+                ch.pipeline().addLast("MessageDecoder", new MessageDecoder());
+                ch.pipeline().addLast("MessageEncoder", new MessageEncoder());
 
-				ch.pipeline().addLast("IdleStateHandler",
-						new IdleStateHandler(2 * options.getIdleTimeout(), options.getIdleTimeout(), 0));
-				ch.pipeline().addLast("ClientHandler", new ClientHandler());
-			}
-		});
-		applyNetworkOptions(bootstrap, connectOptions);
-	}
+                ch.pipeline().addLast("IdleStateHandler",
+                        new IdleStateHandler(2 * options.getIdleTimeout(), options.getIdleTimeout(), 0));
+                ch.pipeline().addLast("ClientHandler", new ClientHandler());
+            }
+        });
+        applyNetworkOptions(bootstrap, connectOptions);
+    }
 
-	private void applyNetworkOptions(Bootstrap bootstrap, ConnectOptions options) {
-		bootstrap.option(ChannelOption.SO_REUSEADDR, options.isReuseAddress());
-		bootstrap.option(ChannelOption.TCP_NODELAY, options.isTcpNoDelay());
-		bootstrap.option(ChannelOption.SO_KEEPALIVE, options.isTcpKeepAlive());
+    private void applyNetworkOptions(Bootstrap bootstrap, ConnectOptions options) {
+        bootstrap.option(ChannelOption.SO_REUSEADDR, options.isReuseAddress());
+        bootstrap.option(ChannelOption.TCP_NODELAY, options.isTcpNoDelay());
+        bootstrap.option(ChannelOption.SO_KEEPALIVE, options.isTcpKeepAlive());
 
-		if (options.getLocalAddress() != null) {
-			bootstrap.localAddress(options.getLocalAddress(), 0);
-		}
-		if (options.getSendBufferSize() != -1) {
-			bootstrap.option(ChannelOption.SO_SNDBUF, options.getSendBufferSize());
-		}
-		if (options.getReceiveBufferSize() != -1) {
-			bootstrap.option(ChannelOption.SO_RCVBUF, options.getReceiveBufferSize());
-			bootstrap.option(ChannelOption.RCVBUF_ALLOCATOR,
-					new FixedRecvByteBufAllocator(options.getReceiveBufferSize()));
-		}
-		if (options.getSoLinger() != -1) {
-			bootstrap.option(ChannelOption.SO_LINGER, options.getSoLinger());
-		}
-		if (options.getTrafficClass() != -1) {
-			bootstrap.option(ChannelOption.IP_TOS, options.getTrafficClass());
-		}
-		if (options.isUsePooledBuffers()) {
-			bootstrap.option(ChannelOption.ALLOCATOR, PooledByteBufAllocator.DEFAULT);
-		} else {
-			bootstrap.option(ChannelOption.ALLOCATOR, UnpooledByteBufAllocator.DEFAULT);
-		}
-		bootstrap.option(ChannelOption.CONNECT_TIMEOUT_MILLIS, options.getConnectTimeout());
-	}
+        if (options.getLocalAddress() != null) {
+            bootstrap.localAddress(options.getLocalAddress(), 0);
+        }
+        if (options.getSendBufferSize() != -1) {
+            bootstrap.option(ChannelOption.SO_SNDBUF, options.getSendBufferSize());
+        }
+        if (options.getReceiveBufferSize() != -1) {
+            bootstrap.option(ChannelOption.SO_RCVBUF, options.getReceiveBufferSize());
+            bootstrap.option(ChannelOption.RCVBUF_ALLOCATOR,
+                    new FixedRecvByteBufAllocator(options.getReceiveBufferSize()));
+        }
+        if (options.getSoLinger() != -1) {
+            bootstrap.option(ChannelOption.SO_LINGER, options.getSoLinger());
+        }
+        if (options.getTrafficClass() != -1) {
+            bootstrap.option(ChannelOption.IP_TOS, options.getTrafficClass());
+        }
+        if (options.isUsePooledBuffers()) {
+            bootstrap.option(ChannelOption.ALLOCATOR, PooledByteBufAllocator.DEFAULT);
+        } else {
+            bootstrap.option(ChannelOption.ALLOCATOR, UnpooledByteBufAllocator.DEFAULT);
+        }
+        bootstrap.option(ChannelOption.CONNECT_TIMEOUT_MILLIS, options.getConnectTimeout());
+    }
 
-	private SSLEngine createSslEngine(ByteBufAllocator byteBufAllocator) throws Exception {
-		SslContextBuilder builder = SslContextBuilder.forClient();
-		builder.trustManager(options.getTrustManagerFactory());
-		return builder.build().newEngine(byteBufAllocator);
-	}
+    private SSLEngine createSslEngine(ByteBufAllocator byteBufAllocator) throws Exception {
+        SslContextBuilder builder = SslContextBuilder.forClient();
+        builder.trustManager(options.getTrustManagerFactory());
+        return builder.build().newEngine(byteBufAllocator);
+    }
 
-	public Connector setMessageProcessor(MessageProcessor messageProcessor) {
-		if (messageProcessor == null) {
-			throw new IllegalArgumentException("messageProcessor is null");
-		}
-		this.messageDispatcher = new MessageDispatcher(messageProcessor);
-		return this;
-	}
+    public Connector setMessageProcessor(MessageProcessor messageProcessor) {
+        if (messageProcessor == null) {
+            throw new IllegalArgumentException("messageProcessor is null");
+        }
+        this.messageDispatcher = new MessageDispatcher(messageProcessor);
+        return this;
+    }
 
-	public Connector destroy() {
-		if (workGroup != null) {
-			workGroup.shutdownGracefully();
-		}
-		return this;
-	}
+    public Connector destroy() {
+        if (workGroup != null) {
+            workGroup.shutdownGracefully();
+        }
+        return this;
+    }
 
-	public Connection connect(SocketAddress sa) throws Exception {
-		checkMessageProcessDispatcher();
+    public Connection connect(SocketAddress sa) throws Exception {
+        checkMessageProcessDispatcher();
 
-		// wait connect to peer
-		ChannelFuture channelFuture = bootstrap.connect(sa).awaitUninterruptibly();
+        // wait connect to peer
+        ChannelFuture channelFuture = bootstrap.connect(sa).awaitUninterruptibly();
 
-		if (!channelFuture.isDone()) {
-			throw new TimeoutConnectException(sa);
-		}
+        if (!channelFuture.isDone()) {
+            throw new TimeoutConnectException(sa);
+        }
 
-		if (channelFuture.isCancelled()) {
-			throw new CancelledConnectException(sa);
-		}
+        if (channelFuture.isCancelled()) {
+            throw new CancelledConnectException(sa);
+        }
 
-		if (!channelFuture.isSuccess()) {
-			if (channelFuture.cause() instanceof ConnectException) {
-				throw (ConnectException) channelFuture.cause();
-			} else {
-				throw new WrappedConnectException(sa, channelFuture.cause());
-			}
-		}
+        if (!channelFuture.isSuccess()) {
+            if (channelFuture.cause() instanceof ConnectException) {
+                throw (ConnectException) channelFuture.cause();
+            } else {
+                throw new WrappedConnectException(sa, channelFuture.cause());
+            }
+        }
 
-		Channel channel = channelFuture.channel();
-		Connection connection = new DefaultConnection(channel);
-		ConnectionManager.addConnection(channel, connection);
-		AttributeUtil.connection(channel, connection);
+        Channel channel = channelFuture.channel();
+        Connection connection = new DefaultConnection(channel);
+        ConnectionManager.addConnection(channel, connection);
+        AttributeUtil.connection(channel, connection);
 
-		LOG.debug("connection created from {} to {}", channel.localAddress(), channel.remoteAddress());
-		return connection;
-	}
+        LOG.debug("connection created from {} to {}", channel.localAddress(), channel.remoteAddress());
+        return connection;
+    }
 
-	private void checkMessageProcessDispatcher() {
-		if (messageDispatcher == null) {
-			messageDispatcher = new MessageDispatcher(new MessageProcessor());
-		}
-	}
+    private void checkMessageProcessDispatcher() {
+        if (messageDispatcher == null) {
+            messageDispatcher = new MessageDispatcher(new MessageProcessor());
+        }
+    }
 
-	private class ClientHandler extends ChannelInboundHandlerAdapter {
+    private class ClientHandler extends ChannelInboundHandlerAdapter {
 
-		private Heartbeat heartbeat = new Heartbeat();
+        private Heartbeat heartbeat = new Heartbeat();
 
-		@Override
-		public void userEventTriggered(ChannelHandlerContext ctx, Object evt) throws Exception {
-			if (evt instanceof IdleStateEvent) {
-				IdleStateEvent event = (IdleStateEvent) evt;
-				if (event.state() == IdleState.READER_IDLE) {
-					ctx.close();
-				} else if (event.state() == IdleState.WRITER_IDLE) {
-					ctx.writeAndFlush(heartbeat.ping());
-				}
-			} else {
-				super.userEventTriggered(ctx, evt);
-			}
-		}
+        @Override
+        public void userEventTriggered(ChannelHandlerContext ctx, Object evt) throws Exception {
+            if (evt instanceof IdleStateEvent) {
+                IdleStateEvent event = (IdleStateEvent) evt;
+                if (event.state() == IdleState.READER_IDLE) {
+                    ctx.close();
+                } else if (event.state() == IdleState.WRITER_IDLE) {
+                    ctx.writeAndFlush(heartbeat.ping());
+                }
+            } else {
+                super.userEventTriggered(ctx, evt);
+            }
+        }
 
-		@Override
-		public void channelInactive(ChannelHandlerContext ctx) throws Exception {
-			ConnectionManager.delConnection(ctx.channel());
-			super.channelInactive(ctx);
-		}
+        @Override
+        public void channelInactive(ChannelHandlerContext ctx) throws Exception {
+            ConnectionManager.delConnection(ctx.channel());
+            super.channelInactive(ctx);
+        }
 
-		@Override
-		public void channelRead(ChannelHandlerContext ctx, Object msg) throws Exception {
-			messageDispatcher.dispatch(ctx, msg);
-		}
+        @Override
+        public void channelRead(ChannelHandlerContext ctx, Object msg) throws Exception {
+            messageDispatcher.dispatch(ctx, msg);
+        }
 
-		@Override
-		public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) {
-			LOG.error("Unhandled Exception", cause);
-			ctx.close();
-		}
+        @Override
+        public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) {
+            LOG.error("Unhandled Exception", cause);
+            ctx.close();
+        }
 
-	}
+    }
 }

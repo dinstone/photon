@@ -21,69 +21,69 @@ import io.netty.handler.ssl.util.InsecureTrustManagerFactory;
 
 public class ConnectOptions extends TransportOptions {
 
-	/**
-	 * The default value of connect timeout = 3000 ms
-	 */
-	public static final int DEFAULT_CONNECT_TIMEOUT = 3000;
+    /**
+     * The default value of connect timeout = 3000 ms
+     */
+    public static final int DEFAULT_CONNECT_TIMEOUT = 3000;
 
-	/**
-	 * The default worker event loop size = 2.
-	 */
-	public static final int DEFAULT_WORKER_SIZE = 2;
+    /**
+     * The default worker event loop size = 2.
+     */
+    public static final int DEFAULT_WORKER_SIZE = 2;
 
-	private int workerSize;
-	private int connectTimeout;
-	private String localAddress;
-	private TrustManagerFactory trustManagerFactory;
+    private int workerSize;
+    private int connectTimeout;
+    private String localAddress;
+    private TrustManagerFactory trustManagerFactory;
 
-	public ConnectOptions() {
-		super();
+    public ConnectOptions() {
+        super();
 
-		workerSize = DEFAULT_WORKER_SIZE;
-		connectTimeout = DEFAULT_CONNECT_TIMEOUT;
-		trustManagerFactory = InsecureTrustManagerFactory.INSTANCE;
-	}
+        workerSize = DEFAULT_WORKER_SIZE;
+        connectTimeout = DEFAULT_CONNECT_TIMEOUT;
+        trustManagerFactory = InsecureTrustManagerFactory.INSTANCE;
+    }
 
-	public int getConnectTimeout() {
-		return connectTimeout;
-	}
+    public int getConnectTimeout() {
+        return connectTimeout;
+    }
 
-	public void setConnectTimeout(int connectTimeout) {
-		this.connectTimeout = connectTimeout;
-	}
+    public void setConnectTimeout(int connectTimeout) {
+        this.connectTimeout = connectTimeout;
+    }
 
-	public String getLocalAddress() {
-		return localAddress;
-	}
+    public String getLocalAddress() {
+        return localAddress;
+    }
 
-	public void setLocalAddress(String localAddress) {
-		this.localAddress = localAddress;
-	}
+    public void setLocalAddress(String localAddress) {
+        this.localAddress = localAddress;
+    }
 
-	@Deprecated
-	public int getEventLoopSize() {
-		return workerSize;
-	}
+    @Deprecated
+    public int getEventLoopSize() {
+        return workerSize;
+    }
 
-	@Deprecated
-	public void setEventLoopSize(int eventLoopSize) {
-		this.workerSize = eventLoopSize;
-	}
+    @Deprecated
+    public void setEventLoopSize(int eventLoopSize) {
+        this.workerSize = eventLoopSize;
+    }
 
-	public int getWorkerSize() {
-		return workerSize;
-	}
+    public int getWorkerSize() {
+        return workerSize;
+    }
 
-	public void setWorkerSize(int workerSize) {
-		this.workerSize = workerSize;
-	}
+    public void setWorkerSize(int workerSize) {
+        this.workerSize = workerSize;
+    }
 
-	public TrustManagerFactory getTrustManagerFactory() {
-		return trustManagerFactory;
-	}
+    public TrustManagerFactory getTrustManagerFactory() {
+        return trustManagerFactory;
+    }
 
-	public void setTrustManagerFactory(TrustManagerFactory trustManagerFactory) {
-		this.trustManagerFactory = trustManagerFactory;
-	}
+    public void setTrustManagerFactory(TrustManagerFactory trustManagerFactory) {
+        this.trustManagerFactory = trustManagerFactory;
+    }
 
 }
