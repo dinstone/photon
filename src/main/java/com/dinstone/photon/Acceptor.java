@@ -50,158 +50,158 @@ import io.netty.util.concurrent.DefaultThreadFactory;
 
 public class Acceptor {
 
-    private static final Logger LOG = LoggerFactory.getLogger(Acceptor.class);
+	private static final Logger LOG = LoggerFactory.getLogger(Acceptor.class);
 
-    private AcceptOptions options;
+	private AcceptOptions options;
 
-    private EventLoopGroup bossGroup;
+	private EventLoopGroup bossGroup;
 
-    private EventLoopGroup workGroup;
+	private EventLoopGroup workGroup;
 
-    private ServerBootstrap bootstrap;
+	private ServerBootstrap bootstrap;
 
-    private MessageDispatcher messageDispatcher;
+	private MessageDispatcher messageDispatcher;
 
-    public Acceptor(AcceptOptions acceptOptions) {
-        this.options = acceptOptions;
+	public Acceptor(AcceptOptions acceptOptions) {
+		this.options = acceptOptions;
 
-        bossGroup = new NioEventLoopGroup(options.getAcceptSize(), new DefaultThreadFactory("PAT-Boss"));
-        workGroup = new NioEventLoopGroup(options.getWorkerSize(), new DefaultThreadFactory("PAT-Work"));
-        bootstrap = new ServerBootstrap().group(bossGroup, workGroup);
-        bootstrap.channel(NioServerSocketChannel.class).childHandler(new ChannelInitializer<SocketChannel>() {
+		bossGroup = new NioEventLoopGroup(options.getAcceptSize(), new DefaultThreadFactory("PAT-Accept"));
+		workGroup = new NioEventLoopGroup(options.getWorkerSize(), new DefaultThreadFactory("PAT-Worker"));
+		bootstrap = new ServerBootstrap().group(bossGroup, workGroup);
+		bootstrap.channel(NioServerSocketChannel.class).childHandler(new ChannelInitializer<SocketChannel>() {
 
-            @Override
-            public void initChannel(SocketChannel ch) throws Exception {
-                if (options.isEnableSsl()) {
-                    SSLEngine engine = createSslEngine(ch.alloc());
-                    ch.pipeline().addFirst(new SslHandler(engine));
-                }
-                ch.pipeline().addLast("MessageDecoder", new MessageDecoder());
-                ch.pipeline().addLast("MessageEncoder", new MessageEncoder());
+			@Override
+			public void initChannel(SocketChannel ch) throws Exception {
+				if (options.isEnableSsl()) {
+					SSLEngine engine = createSslEngine(ch.alloc());
+					ch.pipeline().addFirst(new SslHandler(engine));
+				}
+				ch.pipeline().addLast("MessageDecoder", new MessageDecoder());
+				ch.pipeline().addLast("MessageEncoder", new MessageEncoder());
 
-                ch.pipeline().addLast("IdleStateHandler", new IdleStateHandler(2 * options.getIdleTimeout(), 0, 0));
-                ch.pipeline().addLast("ServerHandler", new ServerHandler());
-            }
-        });
-        applyNetworkOptions(bootstrap, acceptOptions);
-    }
+				ch.pipeline().addLast("IdleStateHandler", new IdleStateHandler(2 * options.getIdleTimeout(), 0, 0));
+				ch.pipeline().addLast("ServerHandler", new ServerHandler());
+			}
+		});
+		applyNetworkOptions(bootstrap, acceptOptions);
+	}
 
-    public Acceptor setMessageProcessor(MessageProcessor messageProcessor) {
-        if (messageProcessor == null) {
-            throw new IllegalArgumentException("messageProcessor is null");
-        }
-        this.messageDispatcher = new MessageDispatcher(messageProcessor);
+	public Acceptor setMessageProcessor(MessageProcessor messageProcessor) {
+		if (messageProcessor == null) {
+			throw new IllegalArgumentException("messageProcessor is null");
+		}
+		this.messageDispatcher = new MessageDispatcher(messageProcessor);
 
-        return this;
-    }
+		return this;
+	}
 
-    public Acceptor bind(SocketAddress sa) throws Exception {
-        checkMessageProcessDispatcher();
-        bootstrap.bind(sa).sync();
-        return this;
-    }
+	public Acceptor bind(SocketAddress sa) throws Exception {
+		checkMessageProcessDispatcher();
+		bootstrap.bind(sa).sync();
+		return this;
+	}
 
-    private void applyNetworkOptions(ServerBootstrap bootstrap, AcceptOptions options) {
-        if (options.getSoLinger() != -1) {
-            bootstrap.option(ChannelOption.SO_LINGER, options.getSoLinger());
-        }
-        bootstrap.option(ChannelOption.SO_REUSEADDR, options.isReuseAddress());
-        if (options.getAcceptBacklog() != -1) {
-            bootstrap.option(ChannelOption.SO_BACKLOG, options.getAcceptBacklog());
-        }
+	private void applyNetworkOptions(ServerBootstrap bootstrap, AcceptOptions options) {
+		if (options.getSoLinger() != -1) {
+			bootstrap.option(ChannelOption.SO_LINGER, options.getSoLinger());
+		}
+		bootstrap.option(ChannelOption.SO_REUSEADDR, options.isReuseAddress());
+		if (options.getAcceptBacklog() != -1) {
+			bootstrap.option(ChannelOption.SO_BACKLOG, options.getAcceptBacklog());
+		}
 
-        bootstrap.childOption(ChannelOption.TCP_NODELAY, options.isTcpNoDelay());
-        if (options.getSendBufferSize() != -1) {
-            bootstrap.childOption(ChannelOption.SO_SNDBUF, options.getSendBufferSize());
-        }
-        if (options.getReceiveBufferSize() != -1) {
-            bootstrap.childOption(ChannelOption.SO_RCVBUF, options.getReceiveBufferSize());
-            bootstrap.childOption(ChannelOption.RCVBUF_ALLOCATOR,
-                    new FixedRecvByteBufAllocator(options.getReceiveBufferSize()));
-        }
-        if (options.getTrafficClass() != -1) {
-            bootstrap.childOption(ChannelOption.IP_TOS, options.getTrafficClass());
-        }
-        if (options.isUsePooledBuffers()) {
-            bootstrap.childOption(ChannelOption.ALLOCATOR, PooledByteBufAllocator.DEFAULT);
-        } else {
-            bootstrap.childOption(ChannelOption.ALLOCATOR, UnpooledByteBufAllocator.DEFAULT);
-        }
-        bootstrap.childOption(ChannelOption.SO_KEEPALIVE, options.isTcpKeepAlive());
-    }
+		bootstrap.childOption(ChannelOption.TCP_NODELAY, options.isTcpNoDelay());
+		if (options.getSendBufferSize() != -1) {
+			bootstrap.childOption(ChannelOption.SO_SNDBUF, options.getSendBufferSize());
+		}
+		if (options.getReceiveBufferSize() != -1) {
+			bootstrap.childOption(ChannelOption.SO_RCVBUF, options.getReceiveBufferSize());
+			bootstrap.childOption(ChannelOption.RCVBUF_ALLOCATOR,
+					new FixedRecvByteBufAllocator(options.getReceiveBufferSize()));
+		}
+		if (options.getTrafficClass() != -1) {
+			bootstrap.childOption(ChannelOption.IP_TOS, options.getTrafficClass());
+		}
+		if (options.isUsePooledBuffers()) {
+			bootstrap.childOption(ChannelOption.ALLOCATOR, PooledByteBufAllocator.DEFAULT);
+		} else {
+			bootstrap.childOption(ChannelOption.ALLOCATOR, UnpooledByteBufAllocator.DEFAULT);
+		}
+		bootstrap.childOption(ChannelOption.SO_KEEPALIVE, options.isTcpKeepAlive());
+	}
 
-    private void checkMessageProcessDispatcher() {
-        if (messageDispatcher == null) {
-            messageDispatcher = new MessageDispatcher(new MessageProcessor());
-        }
-    }
+	private void checkMessageProcessDispatcher() {
+		if (messageDispatcher == null) {
+			messageDispatcher = new MessageDispatcher(new MessageProcessor());
+		}
+	}
 
-    private SSLEngine createSslEngine(ByteBufAllocator byteBufAllocator) throws Exception {
-        SslContextBuilder builder = SslContextBuilder.forServer(options.getPrivateKey(), options.getCertChain());
-        SSLEngine sslEngine = builder.build().newEngine(byteBufAllocator);
-        sslEngine.setUseClientMode(false);
-        return sslEngine;
-    }
+	private SSLEngine createSslEngine(ByteBufAllocator byteBufAllocator) throws Exception {
+		SslContextBuilder builder = SslContextBuilder.forServer(options.getPrivateKey(), options.getCertChain());
+		SSLEngine sslEngine = builder.build().newEngine(byteBufAllocator);
+		sslEngine.setUseClientMode(false);
+		return sslEngine;
+	}
 
-    public Acceptor destroy() {
-        if (bossGroup != null) {
-            bossGroup.shutdownGracefully();
-        }
-        if (workGroup != null) {
-            workGroup.shutdownGracefully();
-        }
-        return this;
-    }
+	public Acceptor destroy() {
+		if (bossGroup != null) {
+			bossGroup.shutdownGracefully();
+		}
+		if (workGroup != null) {
+			workGroup.shutdownGracefully();
+		}
+		return this;
+	}
 
-    private class ServerHandler extends ChannelInboundHandlerAdapter {
+	private class ServerHandler extends ChannelInboundHandlerAdapter {
 
-        private int connectionLimit;
+		private int connectionLimit;
 
-        public ServerHandler() {
-            connectionLimit = options.getConnectionLimit();
-        }
+		public ServerHandler() {
+			connectionLimit = options.getConnectionLimit();
+		}
 
-        @Override
-        public void userEventTriggered(ChannelHandlerContext ctx, Object evt) throws Exception {
-            if (evt instanceof IdleStateEvent) {
-                IdleStateEvent event = (IdleStateEvent) evt;
-                if (event.state() == IdleState.READER_IDLE) {
-                    ctx.close();
-                }
-            } else {
-                super.userEventTriggered(ctx, evt);
-            }
-        }
+		@Override
+		public void userEventTriggered(ChannelHandlerContext ctx, Object evt) throws Exception {
+			if (evt instanceof IdleStateEvent) {
+				IdleStateEvent event = (IdleStateEvent) evt;
+				if (event.state() == IdleState.READER_IDLE) {
+					ctx.close();
+				}
+			} else {
+				super.userEventTriggered(ctx, evt);
+			}
+		}
 
-        @Override
-        public void channelActive(ChannelHandlerContext ctx) throws Exception {
-            int connectionCount = ConnectionManager.connectionCount();
-            if (connectionLimit > 0 && connectionCount >= connectionLimit) {
-                ctx.close();
-                LOG.warn("connection count is more than limit: limit={},count={}", connectionLimit, connectionCount);
-            } else {
-                Connection connection = new DefaultConnection(ctx.channel());
-                ConnectionManager.addConnection(ctx.channel(), connection);
-                AttributeUtil.connection(ctx.channel(), connection);
-            }
-        }
+		@Override
+		public void channelActive(ChannelHandlerContext ctx) throws Exception {
+			int connectionCount = ConnectionManager.connectionCount();
+			if (connectionLimit > 0 && connectionCount >= connectionLimit) {
+				ctx.close();
+				LOG.warn("connection count is more than limit: limit={},count={}", connectionLimit, connectionCount);
+			} else {
+				Connection connection = new DefaultConnection(ctx.channel());
+				ConnectionManager.addConnection(ctx.channel(), connection);
+				AttributeUtil.connection(ctx.channel(), connection);
+			}
+		}
 
-        @Override
-        public void channelInactive(ChannelHandlerContext ctx) throws Exception {
-            ConnectionManager.delConnection(ctx.channel());
+		@Override
+		public void channelInactive(ChannelHandlerContext ctx) throws Exception {
+			ConnectionManager.delConnection(ctx.channel());
 
-            super.channelInactive(ctx);
-        }
+			super.channelInactive(ctx);
+		}
 
-        @Override
-        public void channelRead(final ChannelHandlerContext ctx, final Object msg) throws Exception {
-            messageDispatcher.dispatch(ctx, msg);
-        }
+		@Override
+		public void channelRead(final ChannelHandlerContext ctx, final Object msg) throws Exception {
+			messageDispatcher.dispatch(ctx, msg);
+		}
 
-        @Override
-        public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) {
-            LOG.error("untreated exception", cause);
-            ctx.close();
-        }
-    }
+		@Override
+		public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) {
+			LOG.error("untreated exception", cause);
+			ctx.close();
+		}
+	}
 }
