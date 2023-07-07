@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2018~2022 dinstone<dinstone@163.com>
+ * Copyright (C) 2018~2023 dinstone<dinstone@163.com>
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -25,7 +25,7 @@ import com.dinstone.photon.codec.MessageDecoder;
 import com.dinstone.photon.codec.MessageEncoder;
 import com.dinstone.photon.connection.ConnectionManager;
 import com.dinstone.photon.connection.DefaultConnection;
-import com.dinstone.photon.handler.MessageDispatcher;
+import com.dinstone.photon.handler.Dispatcher;
 import com.dinstone.photon.utils.AttributeUtil;
 
 import io.netty.bootstrap.ServerBootstrap;
@@ -60,7 +60,7 @@ public class Acceptor {
 
     private ServerBootstrap bootstrap;
 
-    private MessageDispatcher messageDispatcher;
+    private Dispatcher messageDispatcher;
 
     public Acceptor(AcceptOptions acceptOptions) {
         this.options = acceptOptions;
@@ -90,13 +90,13 @@ public class Acceptor {
         if (messageProcessor == null) {
             throw new IllegalArgumentException("messageProcessor is null");
         }
-        this.messageDispatcher = new MessageDispatcher(messageProcessor);
+        this.messageDispatcher = new Dispatcher(messageProcessor);
 
         return this;
     }
 
     public Acceptor bind(SocketAddress sa) throws Exception {
-        checkMessageProcessDispatcher();
+        checkMessageProcessor();
         bootstrap.bind(sa).sync();
         return this;
     }
@@ -130,9 +130,9 @@ public class Acceptor {
         bootstrap.childOption(ChannelOption.SO_KEEPALIVE, options.isTcpKeepAlive());
     }
 
-    private void checkMessageProcessDispatcher() {
+    private void checkMessageProcessor() {
         if (messageDispatcher == null) {
-            messageDispatcher = new MessageDispatcher(new MessageProcessor());
+            messageDispatcher = new Dispatcher(new MessageProcessor());
         }
     }
 

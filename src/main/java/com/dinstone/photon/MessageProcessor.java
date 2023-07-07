@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2018~2022 dinstone<dinstone@163.com>
+ * Copyright (C) 2018~2023 dinstone<dinstone@163.com>
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,8 +15,6 @@
  */
 package com.dinstone.photon;
 
-import java.util.concurrent.CompletableFuture;
-
 import com.dinstone.photon.message.Heartbeat;
 import com.dinstone.photon.message.Notice;
 import com.dinstone.photon.message.Request;
@@ -28,10 +26,6 @@ public class MessageProcessor {
     }
 
     public void process(Connection connection, Response msg) {
-        CompletableFuture<Response> future = connection.removeFuture(msg.getMsgId());
-        if (future != null) {
-            future.complete(msg);
-        }
     }
 
     public void process(Connection connection, Heartbeat msg) {

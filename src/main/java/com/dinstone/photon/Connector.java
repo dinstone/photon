@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2018~2022 dinstone<dinstone@163.com>
+ * Copyright (C) 2018~2023 dinstone<dinstone@163.com>
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -29,7 +29,7 @@ import com.dinstone.photon.connection.ConnectionManager;
 import com.dinstone.photon.connection.DefaultConnection;
 import com.dinstone.photon.connection.TimeoutConnectException;
 import com.dinstone.photon.connection.WrappedConnectException;
-import com.dinstone.photon.handler.MessageDispatcher;
+import com.dinstone.photon.handler.Dispatcher;
 import com.dinstone.photon.message.Heartbeat;
 import com.dinstone.photon.utils.AttributeUtil;
 
@@ -64,7 +64,7 @@ public class Connector {
 
     private ConnectOptions options;
 
-    private MessageDispatcher messageDispatcher;
+    private Dispatcher dispatcher;
 
     public Connector(ConnectOptions connectOptions) {
         this.options = connectOptions;
@@ -129,9 +129,9 @@ public class Connector {
 
     public Connector setMessageProcessor(MessageProcessor messageProcessor) {
         if (messageProcessor == null) {
-            throw new IllegalArgumentException("messageProcessor is null");
+            throw new IllegalArgumentException("message processor is null");
         }
-        this.messageDispatcher = new MessageDispatcher(messageProcessor);
+        this.dispatcher = new Dispatcher(messageProcessor);
         return this;
     }
 
@@ -143,7 +143,7 @@ public class Connector {
     }
 
     public Connection connect(SocketAddress sa) throws Exception {
-        checkMessageProcessDispatcher();
+        checkMessageProcessor();
 
         // wait connect to peer
         ChannelFuture channelFuture = bootstrap.connect(sa).awaitUninterruptibly();
@@ -173,9 +173,9 @@ public class Connector {
         return connection;
     }
 
-    private void checkMessageProcessDispatcher() {
-        if (messageDispatcher == null) {
-            messageDispatcher = new MessageDispatcher(new MessageProcessor());
+    private void checkMessageProcessor() {
+        if (dispatcher == null) {
+            dispatcher = new Dispatcher(new MessageProcessor());
         }
     }
 
@@ -205,7 +205,7 @@ public class Connector {
 
         @Override
         public void channelRead(ChannelHandlerContext ctx, Object msg) throws Exception {
-            messageDispatcher.dispatch(ctx, msg);
+            dispatcher.dispatch(ctx, msg);
         }
 
         @Override
