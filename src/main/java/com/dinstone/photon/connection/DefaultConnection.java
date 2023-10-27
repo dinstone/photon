@@ -95,7 +95,8 @@ public class DefaultConnection implements Connection {
             public void run() {
                 CompletableFuture<Response> future = removeFuture(request.getMsgId());
                 if (future != null) {
-                    future.completeExceptionally(new TimeoutException());
+                    future.completeExceptionally(
+                            new TimeoutException("request timeout of " + request.getTimeout() + "ms"));
                 }
             }
         }, request.getTimeout(), TimeUnit.MILLISECONDS);
