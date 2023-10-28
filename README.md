@@ -19,15 +19,16 @@
 <dependency>
 	<groupId>com.dinstone.photon</groupId>
 	<artifactId>photon</artifactId>
-	<version>1.1.3</version>
+	<version>1.1.4</version>
 </dependency>
 ```
 ## message provider:
+
 ```java
 	public static void main(String[] args) throws Exception {
         AcceptOptions acceptOptions = new AcceptOptions();
         acceptOptions.setEnableSsl(true);
-        acceptOptions.setIdleTimeout(100000000);
+        acceptOptions.setIdleTimeout(180000);
         SelfSignedCertificate cert = new SelfSignedCertificate();
         acceptOptions.setPrivateKey(cert.key());
         acceptOptions.setCertChain(new X509Certificate[] { cert.cert() });
@@ -60,6 +61,7 @@
 ```
 
 ## message consumer:
+
 ```java
 	public static void main(String[] args) throws Throwable {
         ConnectOptions connectOptions = new ConnectOptions();
@@ -86,6 +88,7 @@
         LOG.info("sync request is  {}", request);
         Response response = connection.sendRequest(request).get();
         LOG.info("sync response is {}", response);
+        
         System.in.read();
 
         connector.destroy();
