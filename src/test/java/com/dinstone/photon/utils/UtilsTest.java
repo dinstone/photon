@@ -53,14 +53,14 @@ public class UtilsTest {
     @Test
     public void futureTest2() {
         final CompletableFuture<Response> promise = new CompletableFuture<>();
-        CompletableFuture<String> rf = promise.thenApply(r -> "code:" + r.getMsgId());
+        CompletableFuture<String> rf = promise.thenApply(r -> "code:" + r.getSequence());
         rf.thenAccept(r -> System.out.println(r));
         rf.whenComplete((r, e) -> {
             assertNotNull(r);
             System.out.println("result is " + r);
         });
         Response r = new Response();
-        r.setMsgId(19999);
+        r.setSequence(19999);
         promise.complete(r);
     }
 

@@ -68,7 +68,7 @@ public class CodecTest {
     private void dotest(EmbeddedChannel channel) {
         for (int j = 0; j < 10; j++) {
             Notice notice = new Notice();
-            notice.setMsgId(j + 1);
+            notice.setSequence(j + 1);
             notice.setAddress("address " + j);
             notice.setContent(("count-" + j).getBytes());
             channel.writeOneOutbound(notice);
@@ -88,7 +88,7 @@ public class CodecTest {
             // System.out.println(" in = " + o);
             if (o instanceof Notice) {
                 Notice n = (Notice) o;
-                // System.out.println("msgid = " + n.getMsgId());
+                // System.out.println("sequence = " + n.getSequence());
             }
         });
     }

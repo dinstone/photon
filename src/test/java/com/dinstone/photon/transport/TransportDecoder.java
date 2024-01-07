@@ -64,9 +64,9 @@ public class TransportDecoder extends ByteToMessageDecoder {
             }
             byte type = in.readByte();
             short flag = in.readShort();
-            int msgid = in.readInt();
+            int seq = in.readInt();
             Message message = create(type);
-            message.setMsgId(msgid);
+            message.setSequence(seq);
             message.setFlag(flag);
 
             // headers length

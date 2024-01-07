@@ -41,7 +41,7 @@ public class Heartbeat extends Message {
 
     @Override
     public String toString() {
-        return "Heartbeat [msgId=" + msgId + ", tick=" + isPing() + ", headers=" + headers + "]";
+        return "Heartbeat [sequence=" + sequence + ", tick=" + isPing() + ", headers=" + headers + "]";
     }
 
 }

@@ -46,14 +46,14 @@ public class AcceptorTest {
 
             @Override
             public void process(Connection connection, Request req) {
-                LOG.info("Request is {}", req.getMsgId());
+                LOG.info("Request is {}", req.getSequence());
                 Notice notice = new Notice();
                 notice.setAddress("");
                 notice.setContent(req.getContent());
                 connection.sendMessage(notice);
 
                 Response response = new Response();
-                response.setMsgId(req.getMsgId());
+                response.setSequence(req.getSequence());
                 response.setStatus(Status.SUCCESS);
                 response.setContent(req.getContent());
                 connection.sendMessage(response);

@@ -39,7 +39,7 @@ public class Request extends Message {
 
     @Override
     public String toString() {
-        return "Request [timeout=" + getTimeout() + ", msgId=" + msgId + ", headers=" + headers + "]";
+        return "Request [timeout=" + getTimeout() + ", sequence=" + sequence + ", headers=" + headers + "]";
     }
 
 }

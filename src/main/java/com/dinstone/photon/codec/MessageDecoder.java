@@ -52,9 +52,9 @@ public class MessageDecoder extends ReplayingDecoder<MessageState> {
             }
             byte type = in.readByte();
             short flag = in.readShort();
-            int msgid = in.readInt();
+            int seq = in.readInt();
             message = create(type);
-            message.setMsgId(msgid);
+            message.setSequence(seq);
             message.setFlag(flag);
 
             checkpoint(MessageState.READ_MESSAGE_HEADERS);

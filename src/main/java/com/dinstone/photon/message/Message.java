@@ -24,7 +24,7 @@ import io.netty.handler.codec.EncoderException;
  * <pre>
  * 0  Version     Type        Reserved Flag   32
  * |----------|----------|----------/----------|
- *                  Message ID
+ *                  Exchange Sequence
  * |----------|----------|----------|----------|
  *                  Header Length
  * |----------|----------|----------|----------|
@@ -92,7 +92,7 @@ public class Message {
 
     protected short flag;
 
-    protected int msgId;
+    protected int sequence;
 
     protected Headers headers;
 
@@ -122,12 +122,22 @@ public class Message {
         this.flag = flag;
     }
 
+    @Deprecated
     public int getMsgId() {
-        return msgId;
+        return sequence;
     }
 
+    @Deprecated
     public void setMsgId(int msgId) {
-        this.msgId = msgId;
+        this.sequence = msgId;
+    }
+
+    public int getSequence() {
+        return sequence;
+    }
+
+    public void setSequence(int sequence) {
+        this.sequence = sequence;
     }
 
     public Headers headers() {
@@ -167,7 +177,7 @@ public class Message {
 
     @Override
     public String toString() {
-        return "Message [type=" + type + ", flag=" + flag + ", msgId=" + msgId + ", headers=" + headers + "]";
+        return "Message [type=" + type + ", flag=" + flag + ", sequence=" + sequence + ", headers=" + headers + "]";
     }
 
 }

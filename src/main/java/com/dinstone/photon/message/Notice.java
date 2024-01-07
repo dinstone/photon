@@ -33,7 +33,7 @@ public class Notice extends Message {
 
     @Override
     public String toString() {
-        return "Notice [msgId=" + msgId + ", headers=" + headers + "]";
+        return "Notice [sequence=" + sequence + ", headers=" + headers + "]";
     }
 
 }

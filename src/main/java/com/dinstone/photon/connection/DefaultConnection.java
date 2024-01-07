@@ -78,25 +78,25 @@ public class DefaultConnection implements Connection {
     }
 
     @Override
-    public CompletableFuture<Response> removeFuture(int messageId) {
-        ScheduledFuture<?> tf = timeoutFutures.remove(messageId);
+    public CompletableFuture<Response> removeFuture(int sequence) {
+        ScheduledFuture<?> tf = timeoutFutures.remove(sequence);
         if (tf != null) {
             tf.cancel(false);
         }
-        return responseFutures.remove(messageId);
+        return responseFutures.remove(sequence);
     }
 
     @Override
     public CompletableFuture<Response> createFuture(Request request) {
         CompletableFuture<Response> promise = new CompletableFuture<>();
-        responseFutures.put(request.getMsgId(), promise);
+        responseFutures.put(request.getSequence(), promise);
         ScheduledFuture<?> tf = channel.eventLoop().schedule(() -> {
-            CompletableFuture<Response> future = removeFuture(request.getMsgId());
+            CompletableFuture<Response> future = removeFuture(request.getSequence());
             if (future != null) {
                 future.completeExceptionally(new TimeoutException("request timeout of " + request.getTimeout() + "ms"));
             }
         }, request.getTimeout(), TimeUnit.MILLISECONDS);
-        timeoutFutures.put(request.getMsgId(), tf);
+        timeoutFutures.put(request.getSequence(), tf);
         return promise;
     }
 
@@ -124,7 +124,7 @@ public class DefaultConnection implements Connection {
             @Override
             public void operationComplete(ChannelFuture future) throws Exception {
                 if (!future.isSuccess()) {
-                    removeFuture(request.getMsgId());
+                    removeFuture(request.getSequence());
 
                     promise.completeExceptionally(future.cause());
                 }

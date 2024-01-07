@@ -31,7 +31,7 @@ public class Response extends Message {
 
     @Override
     public String toString() {
-        return "Response [status=" + getStatus() + ", msgId=" + msgId + ", headers=" + headers + "]";
+        return "Response [status=" + getStatus() + ", sequence=" + sequence + ", headers=" + headers + "]";
     }
 
     public enum Status {

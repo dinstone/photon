@@ -37,7 +37,7 @@ public class ConnectorTest {
         LOG.info("channel active is {}", connection.isActive());
 
         Request request = new Request();
-        request.setMsgId(1);
+        request.setSequence(1);
         request.setTimeout(10000);
         request.setContent("Hello World".getBytes());
 
@@ -47,7 +47,7 @@ public class ConnectorTest {
         });
 
         request = new Request();
-        request.setMsgId(2);
+        request.setSequence(2);
         request.setTimeout(3000);
 
         LOG.info("sync request is  {}", request);

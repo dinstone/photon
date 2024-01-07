@@ -42,6 +42,6 @@ public interface Connection {
 
     CompletableFuture<Response> createFuture(Request request);
 
-    CompletableFuture<Response> removeFuture(int messageId);
+    CompletableFuture<Response> removeFuture(int sequence);
 
 }

@@ -37,14 +37,14 @@
 
             @Override
             public void process(Connection connection, Request req) {
-                LOG.info("Request is {}", req.getMsgId());
+                LOG.info("Request is {}", req.getSequence());
                 Notice notice = new Notice();
                 notice.setAddress("");
                 notice.setContent(req.getContent());
                 connection.sendMessage(notice);
 
                 Response response = new Response();
-                response.setMsgId(req.getMsgId());
+                response.setSequence(req.getSequence());
                 response.setStatus(Status.SUCCESS);
                 response.setContent(req.getContent());
                 connection.sendMessage(response);
@@ -72,7 +72,7 @@
         LOG.info("channel active is {}", connection.isActive());
 
         Request request = new Request();
-        request.setMsgId(1);
+        request.setSequence(1);
         request.setTimeout(10000);
         request.setContent("Hello World".getBytes());
 
@@ -82,7 +82,7 @@
         });
 
         request = new Request();
-        request.setMsgId(2);
+        request.setSequence(2);
         request.setTimeout(3000);
 
         LOG.info("sync request is  {}", request);
