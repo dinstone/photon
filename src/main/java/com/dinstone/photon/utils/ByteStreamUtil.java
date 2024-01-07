@@ -52,13 +52,13 @@ public class ByteStreamUtil {
             return EMPTY;
         } else {
             byte[] readBytes = new byte[length];
-            bai.read(readBytes);
-            return new String(readBytes, CharsetUtil.UTF_8);
+            int readLength = bai.read(readBytes);
+            return new String(readBytes, 0,readLength,CharsetUtil.UTF_8);
         }
     }
 
     public static void writeString(OutputStream bao, String str) throws IOException {
-        if (str == null || str.length() == 0) {
+        if (str == null || str.isEmpty()) {
             writeShort(bao, 0);
         } else {
             byte[] strBytes = str.getBytes(CharsetUtil.UTF_8);

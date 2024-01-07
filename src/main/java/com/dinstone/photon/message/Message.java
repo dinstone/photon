@@ -47,9 +47,9 @@ public class Message {
         RESPONSE(2), // MEP: the response of the Request-Response Pattern
         NOTICE(3); // MEP: one-way or notify Pattern
 
-        private int value;
+        private final int value;
 
-        private Type(int value) {
+        Type(int value) {
             this.value = value;
         }
 
@@ -76,7 +76,7 @@ public class Message {
             default:
                 break;
             }
-            return null;
+            throw new IllegalArgumentException("unsupported message type : "+value);
         }
 
     }
@@ -86,7 +86,7 @@ public class Message {
      */
     public static final byte DEFAULT_VERSION = 1;
 
-    protected byte version = DEFAULT_VERSION;
+    protected byte version;
 
     protected Type type;
 

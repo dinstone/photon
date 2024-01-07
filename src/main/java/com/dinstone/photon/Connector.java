@@ -60,9 +60,9 @@ public class Connector {
 
     private final NioEventLoopGroup workGroup;
 
-    private final Bootstrap bootstrap;
+    private final ConnectOptions options;
 
-    private ConnectOptions options;
+    private final Bootstrap bootstrap;
 
     private Dispatcher dispatcher;
 
@@ -181,7 +181,7 @@ public class Connector {
 
     private class ClientHandler extends ChannelInboundHandlerAdapter {
 
-        private Heartbeat heartbeat = new Heartbeat();
+        private final Heartbeat heartbeat = new Heartbeat();
 
         @Override
         public void userEventTriggered(ChannelHandlerContext ctx, Object evt) throws Exception {

@@ -17,7 +17,7 @@ package com.dinstone.photon.message;
 
 public class Request extends Message {
 
-    private long arrival;
+    private final long arrival;
 
     public Request() {
         super(Message.DEFAULT_VERSION, Message.Type.REQUEST);

@@ -25,27 +25,27 @@ import io.netty.channel.Channel;
 
 public class ConnectionManager {
 
-    private static final ConnectionManager SINGTON = new ConnectionManager();
+    private static final ConnectionManager SINGLETON = new ConnectionManager();
 
-    private Map<Channel, Connection> channelConnectionMap = new ConcurrentHashMap<>();
+    private final Map<Channel, Connection> connectionMap = new ConcurrentHashMap<>();
 
     private ConnectionManager() {
     }
 
     public static void addConnection(Channel channel, Connection connection) {
-        SINGTON.channelConnectionMap.put(channel, connection);
+        SINGLETON.connectionMap.put(channel, connection);
     }
 
     public static Connection delConnection(Channel channel) {
-        return SINGTON.channelConnectionMap.remove(channel);
+        return SINGLETON.connectionMap.remove(channel);
     }
 
     public static int connectionCount() {
-        return SINGTON.channelConnectionMap.size();
+        return SINGLETON.connectionMap.size();
     }
 
     public static Collection<Connection> connections() {
-        return SINGTON.channelConnectionMap.values();
+        return SINGLETON.connectionMap.values();
     }
 
 }

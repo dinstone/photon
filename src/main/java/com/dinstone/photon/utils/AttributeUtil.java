@@ -45,7 +45,7 @@ public class AttributeUtil {
         Attribute<Map<Integer, CompletableFuture<Response>>> attr = channel.attr(AttributeUtil.FUTURE_KEY);
         Map<Integer, CompletableFuture<Response>> futures = attr.get();
         if (futures == null) {
-            futures = attr.setIfAbsent(new ConcurrentHashMap<Integer, CompletableFuture<Response>>());
+            attr.setIfAbsent(new ConcurrentHashMap<>());
             futures = attr.get();
         }
         return futures;

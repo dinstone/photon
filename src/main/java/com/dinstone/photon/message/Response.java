@@ -38,9 +38,9 @@ public class Response extends Message {
         SUCCESS(0), // message handle success
         FAILURE(1); // message handle failure
 
-        private int value;
+        private final int value;
 
-        private Status(int value) {
+        Status(int value) {
             this.value = value;
         }
 

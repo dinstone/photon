@@ -52,13 +52,13 @@ public class Acceptor {
 
     private static final Logger LOG = LoggerFactory.getLogger(Acceptor.class);
 
-    private AcceptOptions options;
+    private final AcceptOptions options;
 
-    private EventLoopGroup bossGroup;
+    private final EventLoopGroup bossGroup;
 
-    private EventLoopGroup workGroup;
+    private final EventLoopGroup workGroup;
 
-    private ServerBootstrap bootstrap;
+    private final ServerBootstrap bootstrap;
 
     private Dispatcher messageDispatcher;
 

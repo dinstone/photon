@@ -35,10 +35,11 @@ import io.netty.util.concurrent.ScheduledFuture;
 
 public class DefaultConnection implements Connection {
 
-    private Map<Integer, CompletableFuture<Response>> reponseFutures = new ConcurrentHashMap<>();
-    private Map<Integer, ScheduledFuture<?>> timeoutFutures = new ConcurrentHashMap<>();
+    private final Map<Integer, CompletableFuture<Response>> responseFutures = new ConcurrentHashMap<>();
 
-    private Channel channel;
+    private final Map<Integer, ScheduledFuture<?>> timeoutFutures = new ConcurrentHashMap<>();
+
+    private final Channel channel;
 
     public DefaultConnection(Channel channel) {
         this.channel = channel;
@@ -62,7 +63,7 @@ public class DefaultConnection implements Connection {
     @Override
     public void destroy() {
         channel.close();
-        reponseFutures.forEach((id, rf) -> rf.cancel(false));
+        responseFutures.forEach((id, rf) -> rf.cancel(false));
         timeoutFutures.forEach((id, sf) -> sf.cancel(false));
     }
 
@@ -82,22 +83,18 @@ public class DefaultConnection implements Connection {
         if (tf != null) {
             tf.cancel(false);
         }
-        return reponseFutures.remove(messageId);
+        return responseFutures.remove(messageId);
     }
 
     @Override
     public CompletableFuture<Response> createFuture(Request request) {
-        CompletableFuture<Response> promise = new CompletableFuture<Response>();
-        reponseFutures.put(request.getMsgId(), promise);
-        ScheduledFuture<?> tf = channel.eventLoop().schedule(new Runnable() {
-
-            @Override
-            public void run() {
-                CompletableFuture<Response> future = removeFuture(request.getMsgId());
-                if (future != null) {
-                    future.completeExceptionally(
-                            new TimeoutException("request timeout of " + request.getTimeout() + "ms"));
-                }
+        CompletableFuture<Response> promise = new CompletableFuture<>();
+        responseFutures.put(request.getMsgId(), promise);
+        ScheduledFuture<?> tf = channel.eventLoop().schedule(() -> {
+            CompletableFuture<Response> future = removeFuture(request.getMsgId());
+            if (future != null) {
+                future.completeExceptionally(
+                        new TimeoutException("request timeout of " + request.getTimeout() + "ms"));
             }
         }, request.getTimeout(), TimeUnit.MILLISECONDS);
         timeoutFutures.put(request.getMsgId(), tf);
@@ -106,7 +103,7 @@ public class DefaultConnection implements Connection {
 
     @Override
     public CompletableFuture<Void> sendMessage(Message msg) {
-        CompletableFuture<Void> promise = new CompletableFuture<Void>();
+        CompletableFuture<Void> promise = new CompletableFuture<>();
         channel.writeAndFlush(msg).addListener(new GenericFutureListener<ChannelFuture>() {
 
             @Override

@@ -34,7 +34,7 @@ public class ByteBufferUtil {
     }
 
     public static void writeString(ByteBuf bb, String str) {
-        if (str == null || str.length() == 0) {
+        if (str == null || str.isEmpty()) {
             bb.writeInt(0);
         } else {
             byte[] strBytes = str.getBytes(CharsetUtil.UTF_8);

@@ -34,7 +34,7 @@ public class Dispatcher {
 
     private static final Logger LOG = LoggerFactory.getLogger(Dispatcher.class);
 
-    private MessageProcessor processor;
+    private final MessageProcessor processor;
 
     public Dispatcher(MessageProcessor processor) {
         this.processor = processor;
@@ -56,7 +56,7 @@ public class Dispatcher {
             processor.process(AttributeUtil.connection(ctx.channel()), (Notice) msg);
             break;
         default:
-            LOG.warn("unkown message : {}", msg);
+            LOG.warn("unknown message : {}", msg);
             break;
         }
     }
