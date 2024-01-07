@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2018~2023 dinstone<dinstone@163.com>
+ * Copyright (C) 2018~2024 dinstone<dinstone@163.com>
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -53,7 +53,7 @@ public class ByteStreamUtil {
         } else {
             byte[] readBytes = new byte[length];
             int readLength = bai.read(readBytes);
-            return new String(readBytes, 0,readLength,CharsetUtil.UTF_8);
+            return new String(readBytes, 0, readLength, CharsetUtil.UTF_8);
         }
     }
 

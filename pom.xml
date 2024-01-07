@@ -221,7 +221,7 @@
 
 
     <name>photon</name>
-    <inceptionYear>2018~2023</inceptionYear>
+    <inceptionYear>2018~2024</inceptionYear>
     <description>photon is a message exchange framework.</description>
     <url>https://github.com/dinstone/photon</url>
     <scm>

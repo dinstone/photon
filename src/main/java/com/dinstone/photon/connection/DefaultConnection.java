@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2018~2023 dinstone<dinstone@163.com>
+ * Copyright (C) 2018~2024 dinstone<dinstone@163.com>
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -93,8 +93,7 @@ public class DefaultConnection implements Connection {
         ScheduledFuture<?> tf = channel.eventLoop().schedule(() -> {
             CompletableFuture<Response> future = removeFuture(request.getMsgId());
             if (future != null) {
-                future.completeExceptionally(
-                        new TimeoutException("request timeout of " + request.getTimeout() + "ms"));
+                future.completeExceptionally(new TimeoutException("request timeout of " + request.getTimeout() + "ms"));
             }
         }, request.getTimeout(), TimeUnit.MILLISECONDS);
         timeoutFutures.put(request.getMsgId(), tf);
