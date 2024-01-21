@@ -103,33 +103,23 @@ public class DefaultConnection implements Connection {
     @Override
     public CompletableFuture<Void> sendMessage(Message msg) {
         CompletableFuture<Void> promise = new CompletableFuture<>();
-        channel.writeAndFlush(msg).addListener(new GenericFutureListener<ChannelFuture>() {
-
-            @Override
-            public void operationComplete(ChannelFuture future) throws Exception {
-                if (!future.isSuccess()) {
-                    promise.completeExceptionally(new IOException("send message error", future.cause()));
-                }
+        channel.writeAndFlush(msg).addListener((GenericFutureListener<ChannelFuture>) future -> {
+            if (!future.isSuccess()) {
+                promise.completeExceptionally(new IOException("send message error", future.cause()));
             }
-
         });
         return promise;
     }
 
     @Override
-    public CompletableFuture<Response> sendRequest(Request request) throws Exception {
+    public CompletableFuture<Response> sendRequest(Request request) {
         final CompletableFuture<Response> promise = createFuture(request);
-        channel.writeAndFlush(request).addListener(new GenericFutureListener<ChannelFuture>() {
+        channel.writeAndFlush(request).addListener((GenericFutureListener<ChannelFuture>) future -> {
+            if (!future.isSuccess()) {
+                removeFuture(request.getSequence());
 
-            @Override
-            public void operationComplete(ChannelFuture future) throws Exception {
-                if (!future.isSuccess()) {
-                    removeFuture(request.getSequence());
-
-                    promise.completeExceptionally(future.cause());
-                }
+                promise.completeExceptionally(future.cause());
             }
-
         });
         return promise;
     }

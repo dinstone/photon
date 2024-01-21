@@ -204,7 +204,7 @@ public class Connector {
         }
 
         @Override
-        public void channelRead(ChannelHandlerContext ctx, Object msg) throws Exception {
+        public void channelRead(ChannelHandlerContext ctx, Object msg) {
             dispatcher.dispatch(ctx, msg);
         }
 

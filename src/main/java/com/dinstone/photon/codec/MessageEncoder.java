@@ -27,7 +27,7 @@ public class MessageEncoder extends MessageToByteEncoder<Message> {
     }
 
     @Override
-    protected void encode(ChannelHandlerContext ctx, Message message, ByteBuf out) throws Exception {
+    protected void encode(ChannelHandlerContext ctx, Message message, ByteBuf out) {
         // message version
         out.writeByte(message.getVersion());
         // message type

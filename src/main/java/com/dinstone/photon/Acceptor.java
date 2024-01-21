@@ -155,7 +155,7 @@ public class Acceptor {
 
     private class ServerHandler extends ChannelInboundHandlerAdapter {
 
-        private int connectionLimit;
+        private final int connectionLimit;
 
         public ServerHandler() {
             connectionLimit = options.getConnectionLimit();
@@ -174,7 +174,7 @@ public class Acceptor {
         }
 
         @Override
-        public void channelActive(ChannelHandlerContext ctx) throws Exception {
+        public void channelActive(ChannelHandlerContext ctx) {
             int connectionCount = ConnectionManager.connectionCount();
             if (connectionLimit > 0 && connectionCount >= connectionLimit) {
                 ctx.close();
@@ -194,7 +194,7 @@ public class Acceptor {
         }
 
         @Override
-        public void channelRead(final ChannelHandlerContext ctx, final Object msg) throws Exception {
+        public void channelRead(final ChannelHandlerContext ctx, final Object msg) {
             messageDispatcher.dispatch(ctx, msg);
         }
 

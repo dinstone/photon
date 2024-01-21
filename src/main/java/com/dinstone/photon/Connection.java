@@ -38,7 +38,7 @@ public interface Connection {
 
     CompletableFuture<Void> sendMessage(Message message);
 
-    CompletableFuture<Response> sendRequest(Request request) throws Exception;
+    CompletableFuture<Response> sendRequest(Request request);
 
     CompletableFuture<Response> createFuture(Request request);
 

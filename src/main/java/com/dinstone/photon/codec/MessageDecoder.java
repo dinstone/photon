@@ -43,7 +43,7 @@ public class MessageDecoder extends ReplayingDecoder<MessageState> {
     }
 
     @Override
-    protected void decode(ChannelHandlerContext ctx, ByteBuf in, List<Object> out) throws Exception {
+    protected void decode(ChannelHandlerContext ctx, ByteBuf in, List<Object> out) {
         switch (state()) {
         case READ_MESSAGE_TYPE:
             byte version = in.readByte();

@@ -82,7 +82,7 @@ public class Headers extends DefaultHeaders<String, String, Headers> {
         }
     }
 
-    Headers decode(ByteBuf bb) throws IOException {
+    Headers decode(ByteBuf bb) {
         int count = bb.readShort();
         for (int i = 0; i < count; i++) {
             String k = ByteBufferUtil.readString(bb);
@@ -92,7 +92,7 @@ public class Headers extends DefaultHeaders<String, String, Headers> {
         return this;
     }
 
-    Headers encode(ByteBuf bb) throws IOException {
+    Headers encode(ByteBuf bb) {
         if (this.isEmpty()) {
             bb.writeShort(0);
         } else {
