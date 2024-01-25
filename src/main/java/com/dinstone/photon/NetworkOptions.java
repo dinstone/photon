@@ -82,6 +82,18 @@ public abstract class NetworkOptions {
         soLinger = DEFAULT_SO_LINGER;
     }
 
+    public NetworkOptions(NetworkOptions other) {
+        sendBufferSize = other.sendBufferSize;
+        receiveBufferSize = other.receiveBufferSize;
+        reuseAddress = other.reuseAddress;
+        trafficClass = other.trafficClass;
+        logActivity = other.logActivity;
+
+        tcpNoDelay = other.tcpNoDelay;
+        tcpKeepAlive = other.tcpKeepAlive;
+        soLinger = other.soLinger;
+    }
+
     public int getSendBufferSize() {
         return sendBufferSize;
     }

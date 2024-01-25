@@ -47,6 +47,7 @@ import io.netty.handler.timeout.IdleState;
 import io.netty.handler.timeout.IdleStateEvent;
 import io.netty.handler.timeout.IdleStateHandler;
 import io.netty.util.concurrent.DefaultThreadFactory;
+import io.netty.util.concurrent.Future;
 
 public class Acceptor {
 
@@ -143,14 +144,12 @@ public class Acceptor {
         return sslEngine;
     }
 
-    public Acceptor destroy() {
+    public Future<?> destroy() {
         if (bossGroup != null) {
             bossGroup.shutdownGracefully();
         }
-        if (workGroup != null) {
-            workGroup.shutdownGracefully();
-        }
-        return this;
+
+        return workGroup.shutdownGracefully();
     }
 
     private class ServerHandler extends ChannelInboundHandlerAdapter {

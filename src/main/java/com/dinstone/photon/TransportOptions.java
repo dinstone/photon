@@ -44,6 +44,14 @@ public abstract class TransportOptions extends NetworkOptions {
         enableSsl = DEFAULT_ENABLE_SSL;
     }
 
+    public TransportOptions(TransportOptions other) {
+        super(other);
+
+        usePooledBuffers = other.usePooledBuffers;
+        idleTimeout = other.idleTimeout;
+        enableSsl = other.enableSsl;
+    }
+
     public boolean isUsePooledBuffers() {
         return usePooledBuffers;
     }

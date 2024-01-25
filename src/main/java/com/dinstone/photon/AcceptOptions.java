@@ -72,6 +72,20 @@ public class AcceptOptions extends TransportOptions {
         connectionLimit = DEFAULT_CONNECTION_LIMIT;
     }
 
+    public AcceptOptions(AcceptOptions other) {
+        super(other);
+
+        acceptSize = other.acceptSize;
+        workerSize = other.workerSize;
+
+        acceptBacklog = other.acceptBacklog;
+        clientAuth = other.clientAuth;
+        privateKey = other.privateKey;
+        certChain = other.certChain;
+
+        connectionLimit = other.connectionLimit;
+    }
+
     public int getAcceptSize() {
         return acceptSize;
     }

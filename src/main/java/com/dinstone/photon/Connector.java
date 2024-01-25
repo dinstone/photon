@@ -53,6 +53,7 @@ import io.netty.handler.timeout.IdleState;
 import io.netty.handler.timeout.IdleStateEvent;
 import io.netty.handler.timeout.IdleStateHandler;
 import io.netty.util.concurrent.DefaultThreadFactory;
+import io.netty.util.concurrent.Future;
 
 public class Connector {
 
@@ -135,11 +136,8 @@ public class Connector {
         return this;
     }
 
-    public Connector destroy() {
-        if (workGroup != null) {
-            workGroup.shutdownGracefully();
-        }
-        return this;
+    public Future<?> destroy() {
+        return workGroup.shutdownGracefully();
     }
 
     public Connection connect(SocketAddress sa) throws Exception {

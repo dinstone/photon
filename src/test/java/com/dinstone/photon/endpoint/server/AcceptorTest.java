@@ -17,6 +17,7 @@ package com.dinstone.photon.endpoint.server;
 
 import java.net.InetSocketAddress;
 import java.security.cert.X509Certificate;
+import java.util.concurrent.CompletableFuture;
 
 import com.dinstone.loghub.Logger;
 import com.dinstone.loghub.LoggerFactory;
@@ -30,6 +31,7 @@ import com.dinstone.photon.message.Response;
 import com.dinstone.photon.message.Response.Status;
 
 import io.netty.handler.ssl.util.SelfSignedCertificate;
+import io.netty.util.concurrent.Future;
 
 public class AcceptorTest {
     private static final Logger LOG = LoggerFactory.getLogger(AcceptorTest.class);
@@ -50,13 +52,14 @@ public class AcceptorTest {
                 Notice notice = new Notice();
                 notice.setAddress("");
                 notice.setContent(req.getContent());
-                connection.sendMessage(notice);
-
-                Response response = new Response();
-                response.setSequence(req.getSequence());
-                response.setStatus(Status.SUCCESS);
-                response.setContent(req.getContent());
-                connection.sendMessage(response);
+                CompletableFuture<Void> f = connection.sendMessage(notice);
+                f.thenAccept((v) -> {
+                    Response response = new Response();
+                    response.setSequence(req.getSequence());
+                    response.setStatus(Status.SUCCESS);
+                    response.setContent(req.getContent());
+                    connection.sendMessage(response);
+                });
             }
 
         });
@@ -65,7 +68,8 @@ public class AcceptorTest {
 
         System.in.read();
 
-        acceptor.destroy();
+        Future<?> f = acceptor.destroy();
+        f.awaitUninterruptibly();
     }
 
 }

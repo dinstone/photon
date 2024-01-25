@@ -106,6 +106,8 @@ public class DefaultConnection implements Connection {
         channel.writeAndFlush(msg).addListener((GenericFutureListener<ChannelFuture>) future -> {
             if (!future.isSuccess()) {
                 promise.completeExceptionally(new IOException("send message error", future.cause()));
+            } else {
+                promise.complete(null);
             }
         });
         return promise;

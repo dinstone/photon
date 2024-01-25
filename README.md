@@ -19,7 +19,7 @@
 <dependency>
 	<groupId>com.dinstone.photon</groupId>
 	<artifactId>photon</artifactId>
-	<version>1.2.0</version>
+	<version>1.2.1</version>
 </dependency>
 ```
 ## message provider:
