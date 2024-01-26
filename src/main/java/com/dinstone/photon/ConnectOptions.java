@@ -44,6 +44,15 @@ public class ConnectOptions extends TransportOptions {
         trustManagerFactory = InsecureTrustManagerFactory.INSTANCE;
     }
 
+    public ConnectOptions(ConnectOptions other) {
+        super(other);
+
+        workerSize = other.workerSize;
+        localAddress = other.localAddress;
+        connectTimeout = other.connectTimeout;
+        trustManagerFactory = other.trustManagerFactory;
+    }
+
     public int getConnectTimeout() {
         return connectTimeout;
     }
