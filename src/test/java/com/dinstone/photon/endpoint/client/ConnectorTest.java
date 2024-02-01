@@ -53,9 +53,10 @@ public class ConnectorTest {
         LOG.info("sync request is  {}", request);
         Response response = connection.sendRequest(request).get();
         LOG.info("sync response is {}", response);
+
         System.in.read();
 
-        connector.destroy();
+        connector.destroy().awaitUninterruptibly();
     }
 
 }

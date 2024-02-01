@@ -39,7 +39,7 @@ public class AcceptorTest {
     public static void main(String[] args) throws Exception {
         AcceptOptions acceptOptions = new AcceptOptions();
         acceptOptions.setEnableSsl(true);
-        acceptOptions.setIdleTimeout(100000000);
+        acceptOptions.setIdleTimeout(60000);
         SelfSignedCertificate cert = new SelfSignedCertificate();
         acceptOptions.setPrivateKey(cert.key());
         acceptOptions.setCertChain(new X509Certificate[] { cert.cert() });
@@ -50,7 +50,7 @@ public class AcceptorTest {
             public void process(Connection connection, Request req) {
                 LOG.info("Request is {}", req.getSequence());
                 Notice notice = new Notice();
-                notice.setAddress("");
+                notice.setAddress("order.created");
                 notice.setContent(req.getContent());
                 CompletableFuture<Void> f = connection.sendMessage(notice);
                 f.thenAccept((v) -> {
@@ -68,8 +68,7 @@ public class AcceptorTest {
 
         System.in.read();
 
-        Future<?> f = acceptor.destroy();
-        f.awaitUninterruptibly();
+        acceptor.destroy().awaitUninterruptibly();
     }
 
 }
