@@ -69,7 +69,7 @@ public class CodecTest {
         for (int j = 0; j < 10; j++) {
             Notice notice = new Notice();
             notice.setSequence(j + 1);
-            notice.setAddress("address " + j);
+            notice.setTopic("address " + j);
             notice.setContent(("count-" + j).getBytes());
             channel.writeOneOutbound(notice);
         }

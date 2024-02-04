@@ -50,7 +50,7 @@ public class AcceptorTest {
             public void process(Connection connection, Request req) {
                 LOG.info("Request is {}", req.getSequence());
                 Notice notice = new Notice();
-                notice.setAddress("order.created");
+                notice.setTopic("order.created");
                 notice.setContent(req.getContent());
                 CompletableFuture<Void> f = connection.sendMessage(notice);
                 f.thenAccept((v) -> {

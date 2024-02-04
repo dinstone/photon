@@ -61,7 +61,7 @@ public class Acceptor {
 
     private final ServerBootstrap bootstrap;
 
-    private Dispatcher messageDispatcher;
+    private Dispatcher dispatcher;
 
     public Acceptor(AcceptOptions acceptOptions) {
         this.options = acceptOptions;
@@ -91,7 +91,7 @@ public class Acceptor {
         if (messageProcessor == null) {
             throw new IllegalArgumentException("messageProcessor is null");
         }
-        this.messageDispatcher = new Dispatcher(messageProcessor);
+        this.dispatcher = new Dispatcher(messageProcessor);
 
         return this;
     }
@@ -132,8 +132,8 @@ public class Acceptor {
     }
 
     private void checkMessageProcessor() {
-        if (messageDispatcher == null) {
-            messageDispatcher = new Dispatcher(new MessageProcessor());
+        if (dispatcher == null) {
+            dispatcher = new Dispatcher(new MessageProcessor());
         }
     }
 
@@ -194,7 +194,7 @@ public class Acceptor {
 
         @Override
         public void channelRead(final ChannelHandlerContext ctx, final Object msg) {
-            messageDispatcher.dispatch(ctx, msg);
+            dispatcher.dispatch(ctx, msg);
         }
 
         @Override

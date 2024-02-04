@@ -69,11 +69,9 @@ public class Dispatcher {
     }
 
     public void handle(Connection connection, Response msg) {
-        CompletableFuture<Response> future = connection.removeFuture(msg.getSequence());
-        if (future != null) {
-            future.complete(msg);
+        if (connection.receiveResponse(msg)) {
+            processor.process(connection, msg);
         }
-        processor.process(connection, msg);
     }
 
 }

@@ -36,8 +36,8 @@ public class ConnectionManager {
         SINGLETON.connectionMap.put(channel, connection);
     }
 
-    public static Connection delConnection(Channel channel) {
-        return SINGLETON.connectionMap.remove(channel);
+    public static void delConnection(Channel channel) {
+        SINGLETON.connectionMap.remove(channel);
     }
 
     public static int connectionCount() {

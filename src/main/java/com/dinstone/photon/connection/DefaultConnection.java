@@ -77,8 +77,7 @@ public class DefaultConnection implements Connection {
         return (InetSocketAddress) channel.localAddress();
     }
 
-    @Override
-    public CompletableFuture<Response> removeFuture(int sequence) {
+    private CompletableFuture<Response> removeFuture(int sequence) {
         ScheduledFuture<?> tf = timeoutFutures.remove(sequence);
         if (tf != null) {
             tf.cancel(false);
@@ -86,8 +85,7 @@ public class DefaultConnection implements Connection {
         return responseFutures.remove(sequence);
     }
 
-    @Override
-    public CompletableFuture<Response> createFuture(Request request) {
+    private CompletableFuture<Response> createFuture(Request request) {
         CompletableFuture<Response> promise = new CompletableFuture<>();
         responseFutures.put(request.getSequence(), promise);
         ScheduledFuture<?> tf = channel.eventLoop().schedule(() -> {
@@ -124,6 +122,15 @@ public class DefaultConnection implements Connection {
             }
         });
         return promise;
+    }
+
+    @Override
+    public boolean receiveResponse(Response response) {
+        CompletableFuture<Response> f = removeFuture(response.getSequence());
+        if (f != null) {
+            return f.complete(response);
+        }
+        return false;
     }
 
 }

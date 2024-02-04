@@ -23,12 +23,22 @@ public class Notice extends Message {
         super(Message.DEFAULT_VERSION, Message.Type.NOTICE);
     }
 
+    @Deprecated
     public String getAddress() {
+        return getTopic();
+    }
+
+    @Deprecated
+    public void setAddress(String address) {
+        setTopic(address);
+    }
+
+    public String getTopic() {
         return headers().get(ADDRESS_KEY);
     }
 
-    public void setAddress(String address) {
-        headers().set(ADDRESS_KEY, address);
+    public void setTopic(String topic) {
+        headers().set(ADDRESS_KEY, topic);
     }
 
     @Override

@@ -15,12 +15,12 @@
  */
 package com.dinstone.photon;
 
-import java.net.InetSocketAddress;
-import java.util.concurrent.CompletableFuture;
-
 import com.dinstone.photon.message.Message;
 import com.dinstone.photon.message.Request;
 import com.dinstone.photon.message.Response;
+
+import java.net.InetSocketAddress;
+import java.util.concurrent.CompletableFuture;
 
 public interface Connection {
 
@@ -40,8 +40,6 @@ public interface Connection {
 
     CompletableFuture<Response> sendRequest(Request request);
 
-    CompletableFuture<Response> createFuture(Request request);
-
-    CompletableFuture<Response> removeFuture(int sequence);
+    boolean receiveResponse(Response response);
 
 }
