@@ -87,11 +87,11 @@ public class Acceptor {
         applyNetworkOptions(bootstrap, acceptOptions);
     }
 
-    public Acceptor setMessageProcessor(MessageProcessor messageProcessor) {
-        if (messageProcessor == null) {
-            throw new IllegalArgumentException("messageProcessor is null");
+    public Acceptor setProcessor(Processor processor) {
+        if (processor == null) {
+            throw new IllegalArgumentException("processor is null");
         }
-        this.dispatcher = new Dispatcher(messageProcessor);
+        this.dispatcher = new Dispatcher(processor);
 
         return this;
     }
@@ -133,7 +133,7 @@ public class Acceptor {
 
     private void checkMessageProcessor() {
         if (dispatcher == null) {
-            dispatcher = new Dispatcher(new MessageProcessor());
+            dispatcher = new Dispatcher(new Processor());
         }
     }
 

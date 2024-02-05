@@ -15,7 +15,9 @@
  */
 package com.dinstone.photon;
 
+import com.dinstone.photon.message.Heartbeat;
 import com.dinstone.photon.message.Message;
+import com.dinstone.photon.message.Notice;
 import com.dinstone.photon.message.Request;
 import com.dinstone.photon.message.Response;
 
@@ -36,10 +38,19 @@ public interface Connection {
 
     InetSocketAddress getLocalAddress();
 
-    CompletableFuture<Void> sendMessage(Message message);
+    CompletableFuture<Void> sendNotice(Notice notice);
+
+    CompletableFuture<Void> sendHeartbeat(Heartbeat heartbeat);
+
+    CompletableFuture<Void> sendResponse(Response response);
 
     CompletableFuture<Response> sendRequest(Request request);
 
-    boolean receiveResponse(Response response);
+    boolean dealNotice(Notice notice);
 
+    boolean dealRequest(Request request);
+
+    boolean dealResponse(Response response);
+
+    boolean dealHeartbeat(Heartbeat heartbeat);
 }

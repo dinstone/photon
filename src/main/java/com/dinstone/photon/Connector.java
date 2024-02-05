@@ -128,11 +128,11 @@ public class Connector {
         return builder.build().newEngine(byteBufAllocator);
     }
 
-    public Connector setMessageProcessor(MessageProcessor messageProcessor) {
-        if (messageProcessor == null) {
-            throw new IllegalArgumentException("message processor is null");
+    public Connector setProcessor(Processor processor) {
+        if (processor == null) {
+            throw new IllegalArgumentException("processor is null");
         }
-        this.dispatcher = new Dispatcher(messageProcessor);
+        this.dispatcher = new Dispatcher(processor);
         return this;
     }
 
@@ -173,7 +173,7 @@ public class Connector {
 
     private void checkMessageProcessor() {
         if (dispatcher == null) {
-            dispatcher = new Dispatcher(new MessageProcessor());
+            dispatcher = new Dispatcher(new Processor());
         }
     }
 

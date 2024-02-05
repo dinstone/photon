@@ -24,14 +24,13 @@ import com.dinstone.loghub.LoggerFactory;
 import com.dinstone.photon.AcceptOptions;
 import com.dinstone.photon.Acceptor;
 import com.dinstone.photon.Connection;
-import com.dinstone.photon.MessageProcessor;
+import com.dinstone.photon.Processor;
 import com.dinstone.photon.message.Notice;
 import com.dinstone.photon.message.Request;
 import com.dinstone.photon.message.Response;
 import com.dinstone.photon.message.Response.Status;
 
 import io.netty.handler.ssl.util.SelfSignedCertificate;
-import io.netty.util.concurrent.Future;
 
 public class AcceptorTest {
     private static final Logger LOG = LoggerFactory.getLogger(AcceptorTest.class);
@@ -44,7 +43,7 @@ public class AcceptorTest {
         acceptOptions.setPrivateKey(cert.key());
         acceptOptions.setCertChain(new X509Certificate[] { cert.cert() });
         Acceptor acceptor = new Acceptor(acceptOptions);
-        acceptor.setMessageProcessor(new MessageProcessor() {
+        acceptor.setProcessor(new Processor() {
 
             @Override
             public void process(Connection connection, Request req) {
@@ -52,13 +51,13 @@ public class AcceptorTest {
                 Notice notice = new Notice();
                 notice.setTopic("order.created");
                 notice.setContent(req.getContent());
-                CompletableFuture<Void> f = connection.sendMessage(notice);
+                CompletableFuture<Void> f = connection.sendNotice(notice);
                 f.thenAccept((v) -> {
                     Response response = new Response();
                     response.setSequence(req.getSequence());
                     response.setStatus(Status.SUCCESS);
                     response.setContent(req.getContent());
-                    connection.sendMessage(response);
+                    connection.sendResponse(response);
                 });
             }
 

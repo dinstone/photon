@@ -15,12 +15,10 @@
  */
 package com.dinstone.photon.handler;
 
-import java.util.concurrent.CompletableFuture;
-
 import com.dinstone.loghub.Logger;
 import com.dinstone.loghub.LoggerFactory;
 import com.dinstone.photon.Connection;
-import com.dinstone.photon.MessageProcessor;
+import com.dinstone.photon.Processor;
 import com.dinstone.photon.message.Heartbeat;
 import com.dinstone.photon.message.Message;
 import com.dinstone.photon.message.Notice;
@@ -34,43 +32,34 @@ public class Dispatcher {
 
     private static final Logger LOG = LoggerFactory.getLogger(Dispatcher.class);
 
-    private final MessageProcessor processor;
+    private final Processor processor;
 
-    public Dispatcher(MessageProcessor processor) {
+    public Dispatcher(Processor processor) {
         this.processor = processor;
     }
 
     public void dispatch(ChannelHandlerContext ctx, Object msg) {
-        Message message = (Message) msg;
-        switch (message.getType()) {
+        Connection connection = AttributeUtil.connection(ctx.channel());
+        switch (((Message) msg).getType()) {
+        case HEARTBEAT:
+            connection.dealHeartbeat((Heartbeat) msg);
+            processor.process(connection, (Heartbeat) msg);
+            break;
         case REQUEST:
-            processor.process(AttributeUtil.connection(ctx.channel()), (Request) msg);
+            connection.dealRequest((Request) msg);
+            processor.process(connection, (Request) msg);
             break;
         case RESPONSE:
-            handle(AttributeUtil.connection(ctx.channel()), (Response) msg);
-            break;
-        case HEARTBEAT:
-            handle(AttributeUtil.connection(ctx.channel()), (Heartbeat) msg);
+            connection.dealResponse((Response) msg);
+            processor.process(connection, (Response) msg);
             break;
         case NOTICE:
-            processor.process(AttributeUtil.connection(ctx.channel()), (Notice) msg);
+            connection.dealNotice((Notice) msg);
+            processor.process(connection, (Notice) msg);
             break;
         default:
             LOG.warn("unknown message : {}", msg);
             break;
-        }
-    }
-
-    private void handle(Connection connection, Heartbeat msg) {
-        if (msg.isPing()) {
-            connection.sendMessage(msg.pong());
-        }
-        processor.process(connection, msg);
-    }
-
-    public void handle(Connection connection, Response msg) {
-        if (connection.receiveResponse(msg)) {
-            processor.process(connection, msg);
         }
     }
 

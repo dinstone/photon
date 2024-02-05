@@ -22,9 +22,12 @@ import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import com.dinstone.photon.Connection;
+import com.dinstone.photon.message.Heartbeat;
 import com.dinstone.photon.message.Message;
+import com.dinstone.photon.message.Notice;
 import com.dinstone.photon.message.Request;
 import com.dinstone.photon.message.Response;
 
@@ -39,6 +42,7 @@ public class DefaultConnection implements Connection {
 
     private final Map<Integer, ScheduledFuture<?>> timeoutFutures = new ConcurrentHashMap<>();
 
+    private final AtomicInteger sequencer = new AtomicInteger();
     private final Channel channel;
 
     public DefaultConnection(Channel channel) {
@@ -98,8 +102,7 @@ public class DefaultConnection implements Connection {
         return promise;
     }
 
-    @Override
-    public CompletableFuture<Void> sendMessage(Message msg) {
+    private CompletableFuture<Void> sendMessage(Message msg) {
         CompletableFuture<Void> promise = new CompletableFuture<>();
         channel.writeAndFlush(msg).addListener((GenericFutureListener<ChannelFuture>) future -> {
             if (!future.isSuccess()) {
@@ -112,9 +115,26 @@ public class DefaultConnection implements Connection {
     }
 
     @Override
+    public CompletableFuture<Void> sendNotice(Notice notice) {
+        notice.setSequence(sequencer.incrementAndGet());
+        return sendMessage(notice);
+    }
+
+    @Override
+    public CompletableFuture<Void> sendHeartbeat(Heartbeat heartbeat) {
+        return sendMessage(heartbeat);
+    }
+
+    @Override
+    public CompletableFuture<Void> sendResponse(Response response) {
+        return sendMessage(response);
+    }
+
+    @Override
     public CompletableFuture<Response> sendRequest(Request request) {
-        final CompletableFuture<Response> promise = createFuture(request);
-        channel.writeAndFlush(request).addListener((GenericFutureListener<ChannelFuture>) future -> {
+        request.setSequence(sequencer.incrementAndGet());
+        CompletableFuture<Response> promise = createFuture(request);
+        channel.writeAndFlush(request).addListener(future -> {
             if (!future.isSuccess()) {
                 removeFuture(request.getSequence());
 
@@ -125,10 +145,29 @@ public class DefaultConnection implements Connection {
     }
 
     @Override
-    public boolean receiveResponse(Response response) {
+    public boolean dealNotice(Notice notice) {
+        return true;
+    }
+
+    @Override
+    public boolean dealRequest(Request request) {
+        return true;
+    }
+
+    @Override
+    public boolean dealResponse(Response response) {
         CompletableFuture<Response> f = removeFuture(response.getSequence());
         if (f != null) {
             return f.complete(response);
+        }
+        return false;
+    }
+
+    @Override
+    public boolean dealHeartbeat(Heartbeat heartbeat) {
+        if (heartbeat.isPing()) {
+            channel.writeAndFlush(heartbeat.pong());
+            return true;
         }
         return false;
     }

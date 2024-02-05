@@ -20,7 +20,7 @@ import com.dinstone.photon.message.Notice;
 import com.dinstone.photon.message.Request;
 import com.dinstone.photon.message.Response;
 
-public class MessageProcessor {
+public class Processor {
 
     public void process(Connection connection, Request msg) {
     }
