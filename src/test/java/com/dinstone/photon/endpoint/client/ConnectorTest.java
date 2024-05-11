@@ -30,7 +30,7 @@ public class ConnectorTest {
 
     public static void main(String[] args) throws Throwable {
         ConnectOptions connectOptions = new ConnectOptions();
-        connectOptions.setEnableSsl(true);
+        // connectOptions.setEnableSsl(true);
         Connector connector = new Connector(connectOptions);
 
         Connection connection = connector.connect(new InetSocketAddress("127.0.0.1", 4444));
@@ -46,15 +46,22 @@ public class ConnectorTest {
             LOG.info("async response is {}", response);
         });
 
-        request = new Request();
-        request.setSequence(2);
-        request.setTimeout(3000);
+        try {
+            for (int i = 2; i < 50000; i++) {
+                request = new Request();
+                request.setSequence(i);
+                request.setTimeout(3000);
 
-        LOG.info("sync request is  {}", request);
-        Response response = connection.sendRequest(request).get();
-        LOG.info("sync response is {}", response);
+                LOG.info("sync request is  {}", request);
+                Response response = connection.sendRequest(request).get();
+                LOG.info("sync response is {}", response);
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+            LOG.warn("error : ", e);
+        }
 
-        System.in.read();
+        // System.in.read();
 
         connector.destroy().awaitUninterruptibly();
     }

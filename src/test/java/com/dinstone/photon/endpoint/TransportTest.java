@@ -13,35 +13,63 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.dinstone.photon.endpoint.server;
+package com.dinstone.photon.endpoint;
 
 import java.net.InetSocketAddress;
-import java.security.cert.X509Certificate;
 import java.util.concurrent.CompletableFuture;
 
 import com.dinstone.loghub.Logger;
 import com.dinstone.loghub.LoggerFactory;
 import com.dinstone.photon.AcceptOptions;
 import com.dinstone.photon.Acceptor;
+import com.dinstone.photon.ConnectOptions;
 import com.dinstone.photon.Connection;
+import com.dinstone.photon.Connector;
 import com.dinstone.photon.Processor;
+import com.dinstone.photon.endpoint.client.ConnectorTest;
 import com.dinstone.photon.message.Notice;
 import com.dinstone.photon.message.Request;
 import com.dinstone.photon.message.Response;
-import com.dinstone.photon.message.Response.Status;
 
-import io.netty.handler.ssl.util.SelfSignedCertificate;
+public class TransportTest {
 
-public class AcceptorTest {
-    private static final Logger LOG = LoggerFactory.getLogger(AcceptorTest.class);
+    private static final Logger LOG = LoggerFactory.getLogger(TransportTest.class);
 
     public static void main(String[] args) throws Exception {
+        Acceptor acceptor = getAcceptor();
+
+        ConnectOptions connectOptions = new ConnectOptions();
+        Connector connector = new Connector(connectOptions);
+
+        Connection connection = connector.connect(new InetSocketAddress("127.0.0.1", 5555));
+        LOG.info("channel active is {}", connection.isActive());
+
+        Request request = new Request();
+        request.setSequence(1);
+        request.setTimeout(10000);
+        request.setContent("Hello World".getBytes());
+
+        LOG.info("async request is  {}", request);
+        connection.sendRequest(request).thenAccept(response -> {
+            LOG.info("async response is {}", response);
+        });
+
+        request = new Request();
+        request.setSequence(2);
+        request.setTimeout(3000);
+
+        LOG.info("sync request is  {}", request);
+        Response response = connection.sendRequest(request).get();
+        LOG.info("sync response is {}", response);
+
+        System.in.read();
+
+        connector.destroy().awaitUninterruptibly();
+        acceptor.destroy().awaitUninterruptibly();
+    }
+
+    private static Acceptor getAcceptor() throws Exception {
         AcceptOptions acceptOptions = new AcceptOptions();
-        // acceptOptions.setEnableSsl(false);
-        // acceptOptions.setIdleTimeout(60000);
-        // SelfSignedCertificate cert = new SelfSignedCertificate();
-        // acceptOptions.setPrivateKey(cert.key());
-        // acceptOptions.setCertChain(new X509Certificate[] { cert.cert() });
         Acceptor acceptor = new Acceptor(acceptOptions);
         acceptor.setProcessor(new Processor() {
 
@@ -55,7 +83,7 @@ public class AcceptorTest {
                 f.thenAccept((v) -> {
                     Response response = new Response();
                     response.setSequence(req.getSequence());
-                    response.setStatus(Status.SUCCESS);
+                    response.setStatus(Response.Status.SUCCESS);
                     response.setContent(req.getContent());
                     connection.sendResponse(response);
                 });
@@ -63,14 +91,7 @@ public class AcceptorTest {
 
         });
 
-        InetSocketAddress address = new InetSocketAddress("127.0.0.1", 4444);
-        acceptor.bind(address);
-
-        LOG.info("listen on: {}", address);
-
-        System.in.read();
-
-        acceptor.destroy().awaitUninterruptibly();
+        acceptor.bind(new InetSocketAddress("127.0.0.1", 5555));
+        return acceptor;
     }
-
 }

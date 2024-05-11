@@ -17,7 +17,6 @@ package com.dinstone.photon;
 
 import java.net.ConnectException;
 import java.net.SocketAddress;
-
 import javax.net.ssl.SSLEngine;
 
 import com.dinstone.loghub.Logger;
@@ -32,7 +31,6 @@ import com.dinstone.photon.connection.WrappedConnectException;
 import com.dinstone.photon.handler.Dispatcher;
 import com.dinstone.photon.message.Heartbeat;
 import com.dinstone.photon.utils.AttributeUtil;
-
 import io.netty.bootstrap.Bootstrap;
 import io.netty.buffer.ByteBufAllocator;
 import io.netty.buffer.PooledByteBufAllocator;
@@ -198,7 +196,6 @@ public class Connector {
         @Override
         public void channelInactive(ChannelHandlerContext ctx) throws Exception {
             ConnectionManager.delConnection(ctx.channel());
-            super.channelInactive(ctx);
         }
 
         @Override
@@ -208,7 +205,7 @@ public class Connector {
 
         @Override
         public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) {
-            LOG.error("Unhandled Exception", cause);
+            LOG.warn("Unhandled Exception", cause);
             ctx.close();
         }
 

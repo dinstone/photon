@@ -15,18 +15,20 @@
  */
 package com.dinstone.photon.utils;
 
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
-
 import java.util.Map;
+import java.util.concurrent.CancellationException;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.CompletionException;
+import java.util.concurrent.ExecutionException;
 
 import org.junit.Test;
 
 import com.dinstone.photon.message.Response;
-
 import io.netty.channel.Channel;
 import io.netty.channel.local.LocalChannel;
+
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
 
 public class UtilsTest {
 
@@ -62,6 +64,21 @@ public class UtilsTest {
         Response r = new Response();
         r.setSequence(19999);
         promise.complete(r);
+    }
+
+    @Test
+    public void futureTest3() {
+        final CompletableFuture<Response> promise = new CompletableFuture<>();
+        promise.completeExceptionally(new CancellationException("close"));
+        promise.completeExceptionally(new CompletionException("test", null));
+
+        try {
+            promise.get();
+        } catch (InterruptedException e) {
+            throw new RuntimeException(e);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
     }
 
 }

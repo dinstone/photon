@@ -18,6 +18,7 @@ package com.dinstone.photon.connection;
 import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.util.Map;
+import java.util.concurrent.CancellationException;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.TimeUnit;
@@ -30,7 +31,6 @@ import com.dinstone.photon.message.Message;
 import com.dinstone.photon.message.Notice;
 import com.dinstone.photon.message.Request;
 import com.dinstone.photon.message.Response;
-
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelFuture;
 import io.netty.util.concurrent.GenericFutureListener;
@@ -67,7 +67,9 @@ public class DefaultConnection implements Connection {
     @Override
     public void destroy() {
         channel.close();
-        responseFutures.forEach((id, rf) -> rf.cancel(false));
+
+        CancellationException ex = new CancellationException("cancellation due to connection closure");
+        responseFutures.forEach((id, cf) -> cf.completeExceptionally(ex));
         timeoutFutures.forEach((id, sf) -> sf.cancel(false));
     }
 

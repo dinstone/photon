@@ -188,8 +188,6 @@ public class Acceptor {
         @Override
         public void channelInactive(ChannelHandlerContext ctx) throws Exception {
             ConnectionManager.delConnection(ctx.channel());
-
-            super.channelInactive(ctx);
         }
 
         @Override
