@@ -28,7 +28,7 @@ public class AcceptOptions extends TransportOptions {
     public static final int DEFAULT_ACCEPT_SIZE = 1;
 
     /**
-     * The default worker event loop size = 0 (2 * Runtime.availableProcessors).
+     * The default worker event loop size = (2 * Runtime.availableProcessors).
      */
     public static final int DEFAULT_WORKER_SIZE = 0;
 

@@ -19,7 +19,7 @@
 <dependency>
 	<groupId>com.dinstone.photon</groupId>
 	<artifactId>photon</artifactId>
-	<version>1.2.3</version>
+	<version>1.2.4</version>
 </dependency>
 ```
 ## message provider:
@@ -34,7 +34,7 @@ public static void main(String[] args) throws Exception {
   acceptOptions.setPrivateKey(cert.key());
   acceptOptions.setCertChain(new X509Certificate[] { cert.cert() });
   Acceptor acceptor = new Acceptor(acceptOptions);
-  acceptor.setMessageProcessor(new MessageProcessor() {
+  acceptor.setProcessor(new MessageProcessor() {
 
     @Override
     public void process(Connection connection, Request req) {

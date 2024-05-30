@@ -22,14 +22,14 @@ import io.netty.handler.ssl.util.InsecureTrustManagerFactory;
 public class ConnectOptions extends TransportOptions {
 
     /**
-     * The default value of connect timeout = 3000 ms
+     * The default value of connect timeout = 1000 ms
      */
-    public static final int DEFAULT_CONNECT_TIMEOUT = 3000;
+    public static final int DEFAULT_CONNECT_TIMEOUT = 1000;
 
     /**
-     * The default worker event loop size = 2.
+     * The default worker event loop size = 1.
      */
-    public static final int DEFAULT_WORKER_SIZE = 2;
+    public static final int DEFAULT_WORKER_SIZE = 1;
 
     private int workerSize;
     private int connectTimeout;
@@ -67,16 +67,6 @@ public class ConnectOptions extends TransportOptions {
 
     public void setLocalAddress(String localAddress) {
         this.localAddress = localAddress;
-    }
-
-    @Deprecated
-    public int getEventLoopSize() {
-        return workerSize;
-    }
-
-    @Deprecated
-    public void setEventLoopSize(int eventLoopSize) {
-        this.workerSize = eventLoopSize;
     }
 
     public int getWorkerSize() {

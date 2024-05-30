@@ -26,7 +26,6 @@ import com.dinstone.photon.ConnectOptions;
 import com.dinstone.photon.Connection;
 import com.dinstone.photon.Connector;
 import com.dinstone.photon.Processor;
-import com.dinstone.photon.endpoint.client.ConnectorTest;
 import com.dinstone.photon.message.Notice;
 import com.dinstone.photon.message.Request;
 import com.dinstone.photon.message.Response;
