@@ -82,7 +82,6 @@ public class TransportTest {
                 f.thenAccept((v) -> {
                     Response response = new Response();
                     response.setSequence(req.getSequence());
-                    response.setStatus(Response.Status.SUCCESS);
                     response.setContent(req.getContent());
                     connection.sendResponse(response);
                 });

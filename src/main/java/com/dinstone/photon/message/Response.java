@@ -21,51 +21,16 @@ public class Response extends Message {
         super(Message.DEFAULT_VERSION, Message.Type.RESPONSE);
     }
 
-    public Status getStatus() {
-        return Status.valueOf(getFlag());
+    public int getStatus() {
+        return getFlag();
     }
 
-    public void setStatus(Status status) {
-        setFlag((short) status.value);
+    public void setStatus(int status) {
+        setFlag((short) status);
     }
 
     @Override
     public String toString() {
-        return "Response [status=" + getStatus() + ", sequence=" + sequence + ", headers=" + headers + "]";
-    }
-
-    public enum Status {
-        SUCCESS(0), // message handle success
-        FAILURE(1); // message handle failure
-
-        private final int value;
-
-        Status(int value) {
-            this.value = value;
-        }
-
-        /**
-         * the value to get
-         *
-         * @return the value
-         * 
-         * @see Status#value
-         */
-        public int getValue() {
-            return value;
-        }
-
-        public static Status valueOf(int value) {
-            switch (value) {
-            case 0:
-                return SUCCESS;
-            case 1:
-                return FAILURE;
-            default:
-                break;
-            }
-            throw new IllegalArgumentException("unsupported status type [" + value + "]");
-        }
-
+        return "Response [status=" + flag + ", sequence=" + sequence + ", headers=" + headers + "]";
     }
 }
