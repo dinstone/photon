@@ -33,29 +33,32 @@ import io.netty.handler.codec.ReplayingDecoder;
 public class MessageDecoder extends ReplayingDecoder<MessageState> {
 
     enum MessageState {
-        READ_MESSAGE_TYPE, READ_MESSAGE_HEADERS, READ_MESSAGE_CONTENT
+        READ_MESSAGE_METADATA, READ_MESSAGE_HEADERS, READ_MESSAGE_CONTENT
     }
 
     private Message message;
 
     public MessageDecoder() {
-        super(MessageState.READ_MESSAGE_TYPE);
+        super(MessageState.READ_MESSAGE_METADATA);
     }
 
     @Override
     protected void decode(ChannelHandlerContext ctx, ByteBuf in, List<Object> out) {
         switch (state()) {
-        case READ_MESSAGE_TYPE:
+        case READ_MESSAGE_METADATA:
             byte version = in.readByte();
             if (Message.DEFAULT_VERSION != version) {
                 throw new DecoderException("unsupported message version [" + version + "]");
             }
+
             byte type = in.readByte();
-            short flag = in.readShort();
-            int seq = in.readInt();
             message = create(type);
-            message.setSequence(seq);
+
+            short flag = in.readShort();
             message.setFlag(flag);
+
+            int seq = in.readInt();
+            message.setSequence(seq);
 
             checkpoint(MessageState.READ_MESSAGE_HEADERS);
             break;
@@ -76,7 +79,7 @@ public class MessageDecoder extends ReplayingDecoder<MessageState> {
             if (clen <= 0) {
                 out.add(message);
                 message = null;
-                checkpoint(MessageState.READ_MESSAGE_TYPE);
+                checkpoint(MessageState.READ_MESSAGE_METADATA);
                 break;
             }
 
@@ -87,7 +90,7 @@ public class MessageDecoder extends ReplayingDecoder<MessageState> {
 
                 out.add(message);
                 message = null;
-                checkpoint(MessageState.READ_MESSAGE_TYPE);
+                checkpoint(MessageState.READ_MESSAGE_METADATA);
             }
 
             break;
@@ -99,8 +102,8 @@ public class MessageDecoder extends ReplayingDecoder<MessageState> {
     }
 
     static Message create(byte type) {
-        Type tenum = Type.valueOf(type);
-        switch (tenum) {
+        Type typeEnum = Type.valueOf(type);
+        switch (typeEnum) {
         case HEARTBEAT:
             return new Heartbeat();
         case REQUEST:

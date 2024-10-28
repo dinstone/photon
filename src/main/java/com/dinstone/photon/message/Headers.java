@@ -24,30 +24,29 @@ import java.util.Map.Entry;
 
 import com.dinstone.photon.utils.ByteBufferUtil;
 import com.dinstone.photon.utils.ByteStreamUtil;
-
 import io.netty.buffer.ByteBuf;
 import io.netty.handler.codec.DateFormatter;
+import io.netty.handler.codec.DecoderException;
 import io.netty.handler.codec.DefaultHeaders;
+import io.netty.handler.codec.EncoderException;
 import io.netty.handler.codec.ValueConverter;
 import io.netty.util.internal.PlatformDependent;
 
 /**
- * 
  * <pre>
- *    Header Size (16)     
+ *    Header Size (16)
  * |----------|----------|
- *    Key Length (16)     
+ *    Key Length (16)
  * |----------|----------|
  *   Key Content(UTF-8)
  * |~~~~~~~~~~~~~~~~~~~~~|
- *    Value Length (16) 
+ *    Value Length (16)
  * |----------|----------|
  *   Value Content(UTF-8)
  * |~~~~~~~~~~~~~~~~~~~~~|
  * </pre>
- * 
- * @author dinstone
  *
+ * @author dinstone
  */
 public class Headers extends DefaultHeaders<String, String, Headers> {
 
@@ -57,28 +56,39 @@ public class Headers extends DefaultHeaders<String, String, Headers> {
         super(VALUE_CONVERTER);
     }
 
-    byte[] encode() throws IOException {
+    byte[] encode() {
         if (this.isEmpty()) {
             return null;
         } else {
-            ByteArrayOutputStream bao = new ByteArrayOutputStream();
-            // count
-            ByteStreamUtil.writeShort(bao, this.size());
-            for (Entry<String, String> element : this) {
-                ByteStreamUtil.writeString(bao, element.getKey());
-                ByteStreamUtil.writeString(bao, element.getValue());
+            try {
+                ByteArrayOutputStream bao = new ByteArrayOutputStream();
+                // count
+                ByteStreamUtil.writeShort(bao, this.size());
+                for (Entry<String, String> element : this) {
+                    ByteStreamUtil.writeString(bao, element.getKey());
+                    ByteStreamUtil.writeString(bao, element.getValue());
+                }
+                return bao.toByteArray();
+            } catch (IOException e) {
+                throw new EncoderException("headers encode error", e);
             }
-            return bao.toByteArray();
         }
     }
 
-    void decode(byte[] hsBytes) throws IOException {
-        ByteArrayInputStream bai = new ByteArrayInputStream(hsBytes);
-        int count = ByteStreamUtil.readShort(bai);
-        for (int i = 0; i < count; i++) {
-            String k = ByteStreamUtil.readString(bai);
-            String v = ByteStreamUtil.readString(bai);
-            this.add(k, v);
+    void decode(byte[] bytes) {
+        if (bytes == null) {
+            return;
+        }
+        try {
+            ByteArrayInputStream bai = new ByteArrayInputStream(bytes);
+            int count = ByteStreamUtil.readShort(bai);
+            for (int i = 0; i < count; i++) {
+                String k = ByteStreamUtil.readString(bai);
+                String v = ByteStreamUtil.readString(bai);
+                this.add(k, v);
+            }
+        } catch (IOException e) {
+            throw new DecoderException("headers decode error", e);
         }
     }
 

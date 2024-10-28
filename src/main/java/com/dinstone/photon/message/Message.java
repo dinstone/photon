@@ -15,16 +15,11 @@
  */
 package com.dinstone.photon.message;
 
-import java.io.IOException;
-
-import io.netty.handler.codec.DecoderException;
-import io.netty.handler.codec.EncoderException;
-
 /**
  * <pre>
- * 0  Version     Type        Reserved Flag   32
+ * 0  Version     Type             Flag       32
  * |----------|----------|----------/----------|
- *                  Exchange Sequence
+ *                    Sequence
  * |----------|----------|----------|----------|
  *                  Header Length
  * |----------|----------|----------|----------|
@@ -35,9 +30,8 @@ import io.netty.handler.codec.EncoderException;
  *                  Body Content
  * |----------/----------/----------/----------|
  * </pre>
- * 
- * @author dinstone
  *
+ * @author dinstone
  */
 public class Message {
 
@@ -57,7 +51,6 @@ public class Message {
          * the value to get
          *
          * @return the value
-         * 
          */
         public int value() {
             return value;
@@ -96,8 +89,6 @@ public class Message {
 
     protected Headers headers;
 
-    private byte[] hsBytes;
-
     protected byte[] content;
 
     public Message(byte version, Type type) {
@@ -122,16 +113,6 @@ public class Message {
         this.flag = flag;
     }
 
-    @Deprecated
-    public int getMsgId() {
-        return sequence;
-    }
-
-    @Deprecated
-    public void setMsgId(int msgId) {
-        this.sequence = msgId;
-    }
-
     public int getSequence() {
         return sequence;
     }
@@ -141,30 +122,15 @@ public class Message {
     }
 
     public Headers headers() {
-        if (hsBytes != null) {
-            try {
-                headers.decode(hsBytes);
-            } catch (IOException e) {
-                throw new DecoderException("headers decode error", e);
-            }
-            hsBytes = null;
-        }
         return headers;
     }
 
     public byte[] getHeaders() {
-        if (hsBytes == null) {
-            try {
-                hsBytes = headers.encode();
-            } catch (IOException e) {
-                throw new EncoderException("headers encode error", e);
-            }
-        }
-        return hsBytes;
+        return headers.encode();
     }
 
-    public void setHeaders(byte[] hsBytes) {
-        this.hsBytes = hsBytes;
+    public void setHeaders(byte[] bytes) {
+        headers.decode(bytes);
     }
 
     public byte[] getContent() {
